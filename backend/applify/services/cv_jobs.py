@@ -1,0 +1,48 @@
+import logging
+from collections.abc import Callable
+from contextlib import AbstractContextManager
+from datetime import date, datetime
+
+from sqlalchemy import update
+from sqlalchemy.orm import Session
+
+from applify.db.models import Document
+from applify.llm import LLMProvider
+from applify.services.cv_extraction import extract_cv
+from applify.services.skills import SkillTaxonomy
+
+log = logging.getLogger(__name__)
+
+SessionFactory = Callable[[], AbstractContextManager[Session]]
+
+
+def run_cv_extraction(
+    document_id: int, session_factory: SessionFactory, llm: LLMProvider, taxonomy: SkillTaxonomy
+) -> None:
+    """Background job: extract the CV and store the suggestion on the document."""
+    with session_factory() as session:
+        document = session.get(Document, document_id)
+        if document is None:
+            return
+        try:
+            suggestion = extract_cv(document.extracted_text or "", llm, taxonomy, date.today())
+        except Exception as exc:
+            log.exception("CV extraction failed for document %s", document_id)
+            document.extraction_status = "failed"
+            document.extraction_error = str(exc)[:2000]
+        else:
+            document.extraction_status = "done"
+            document.extraction_error = None
+            document.extraction_result = suggestion.model_dump(mode="json")
+        document.extracted_at = datetime.now()
+        session.commit()
+
+
+def fail_interrupted_jobs(session: Session) -> None:
+    """Jobs run in-process (D10); after a restart, 'running' jobs will never finish."""
+    session.execute(
+        update(Document)
+        .where(Document.extraction_status == "running")
+        .values(extraction_status="failed", extraction_error="Abgebrochen durch Neustart")
+    )
+    session.commit()

@@ -1,0 +1,48 @@
+LEBENSLAUF
+
+Lena Beispiel
+Karl-Liebknecht-Straße 12, 04107 Leipzig
+Telefon: +49 341 1234567
+E-Mail: lena.beispiel@example.org
+github.com/lenabeispiel
+
+PROFIL
+Fullstack-Webentwicklerin mit Schwerpunkt auf TypeScript, Vue.js und Python. Ich baue
+gerne robuste Webanwendungen vom Datenbankschema bis zur Oberfläche.
+
+BERUFSERFAHRUNG
+
+04/2023 – heute
+Fullstack Developer, Pixelwerk GmbH, Leipzig
+- Entwicklung einer Buchungsplattform mit Vue 3, Pinia und TypeScript
+- REST-APIs mit FastAPI und PostgreSQL, Deployment mit Docker und GitLab CI
+- Einführung von Playwright-Tests für kritische Nutzerflüsse
+
+10/2021 – 03/2023
+Werkstudentin Webentwicklung, Datenhafen AG, Dresden
+- Pflege eines Kundenportals in React und Node.js (Express)
+- Umsetzung responsiver Layouts mit Tailwind CSS
+
+03/2021 – 08/2021
+Praktikum Softwareentwicklung, Stadtwerke Musterstadt
+- Interne Tools mit Python und Flask
+
+AUSBILDUNG
+
+10/2018 – 09/2022
+B.Sc. Informatik, Universität Leipzig
+Abschlussarbeit: Barrierefreiheit in Single-Page-Applications
+
+2010 – 2018
+Abitur, Goethe-Gymnasium Halle
+
+KENNTNISSE
+Sprachen & Frameworks: JavaScript, TypeScript, Python, HTML, CSS, Vue, React, FastAPI
+Datenbanken: PostgreSQL, Redis
+Tools: Git, Docker, Linux, Figma
+Methoden: Scrum, Code Reviews
+
+SPRACHEN
+Deutsch – Muttersprache
+Englisch – verhandlungssicher (C1)
+Spanisch – Grundkenntnisse

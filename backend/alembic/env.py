@@ -8,7 +8,9 @@ from applify.db import models  # noqa: F401  (registers tables on Base.metadata)
 from applify.db.session import Base
 
 config = context.config
-config.set_main_option("sqlalchemy.url", get_settings().database_url)
+# Tests pass their own database URL; otherwise use the app settings.
+if not config.get_main_option("sqlalchemy.url"):
+    config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

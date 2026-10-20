@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '../app.css';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import favicon from '#lib/assets/favicon.svg';
@@ -42,55 +43,6 @@
 </div>
 
 <style>
-	:global(:root) {
-		--bg: #f7f7f5;
-		--surface: #ffffff;
-		--text: #1d1d1b;
-		--muted: #6b6b66;
-		--border: #e2e2dd;
-		--accent: #2f5bd3;
-		--ok: #1f8a4c;
-		--error: #c0392b;
-		color-scheme: light dark;
-		font-family: system-ui, sans-serif;
-	}
-	@media (prefers-color-scheme: dark) {
-		:global(:root) {
-			--bg: #171716;
-			--surface: #21211f;
-			--text: #ececea;
-			--muted: #9a9a94;
-			--border: #34342f;
-			--accent: #7d9dff;
-			--ok: #4cc27f;
-			--error: #ef6b5c;
-		}
-	}
-	:global(body) {
-		margin: 0;
-		background: var(--bg);
-		color: var(--text);
-	}
-	:global(.muted) {
-		color: var(--muted);
-	}
-	:global(.ok) {
-		color: var(--ok);
-	}
-	:global(.error) {
-		color: var(--error);
-	}
-	:global(.card) {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		padding: 1rem 1.25rem;
-	}
-	:global(.card h2) {
-		margin-top: 0;
-		font-size: 1rem;
-	}
-
 	.shell {
 		display: grid;
 		grid-template-columns: 13rem 1fr;
@@ -123,6 +75,7 @@
 	main {
 		padding: 1.5rem 2rem;
 		max-width: 70rem;
+		min-width: 0;
 	}
 	@media (max-width: 700px) {
 		.shell {

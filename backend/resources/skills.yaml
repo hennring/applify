@@ -1,0 +1,201 @@
+# Skill taxonomy (D12): canonical name, category and synonyms.
+# Used to normalize CV extraction output and (from M3) job descriptions.
+# Matching ignores case, spaces, dots, hyphens and underscores ("Vue.js" == "vuejs" == "Vue JS").
+
+# --- Programming languages ---
+- {name: JavaScript, category: language, synonyms: [JS, ECMAScript, ES6, ES2015, Vanilla JS]}
+- {name: TypeScript, category: language, synonyms: [TS]}
+- {name: Python, category: language, synonyms: [Python 3, Python3]}
+- {name: Java, category: language, synonyms: [Java 8, Java 11, Java 17, Java 21]}
+- {name: Kotlin, category: language}
+- {name: C#, category: language, synonyms: [CSharp, C Sharp]}
+- {name: C++, category: language, synonyms: [CPP, Cplusplus]}
+- {name: C, category: language}
+- {name: Go, category: language, synonyms: [Golang]}
+- {name: Rust, category: language}
+- {name: PHP, category: language, synonyms: [PHP 8, PHP8]}
+- {name: Ruby, category: language}
+- {name: Swift, category: language}
+- {name: Dart, category: language}
+- {name: Scala, category: language}
+- {name: Elixir, category: language}
+- {name: Bash, category: language, synonyms: [Shell, Shell Scripting, Bash Scripting, sh, zsh]}
+- {name: PowerShell, category: language}
+- {name: SQL, category: language}
+- {name: HTML, category: language, synonyms: [HTML5]}
+- {name: CSS, category: language, synonyms: [CSS3]}
+- {name: Sass, category: language, synonyms: [SCSS]}
+- {name: Less, category: language}
+- {name: R, category: language}
+- {name: Lua, category: language}
+
+# --- Frontend ---
+- {name: React, category: frontend, synonyms: [ReactJS, React.js]}
+- {name: Next.js, category: frontend, synonyms: [NextJS]}
+- {name: Vue, category: frontend, synonyms: [Vue.js, VueJS, Vue 3, Vue3, Vue 2]}
+- {name: Nuxt, category: frontend, synonyms: [Nuxt.js, NuxtJS]}
+- {name: Angular, category: frontend, synonyms: [Angular 2+]}
+- {name: AngularJS, category: frontend, synonyms: [Angular.js, Angular 1]}
+- {name: Svelte, category: frontend}
+- {name: SvelteKit, category: frontend}
+- {name: Solid, category: frontend, synonyms: [SolidJS]}
+- {name: Astro, category: frontend}
+- {name: Remix, category: frontend}
+- {name: jQuery, category: frontend}
+- {name: Redux, category: frontend, synonyms: [Redux Toolkit, RTK]}
+- {name: Pinia, category: frontend}
+- {name: Vuex, category: frontend}
+- {name: Zustand, category: frontend}
+- {name: RxJS, category: frontend}
+- {name: TanStack Query, category: frontend, synonyms: [React Query]}
+- {name: Tailwind CSS, category: frontend, synonyms: [Tailwind, TailwindCSS]}
+- {name: Bootstrap, category: frontend}
+- {name: Material UI, category: frontend, synonyms: [MUI]}
+- {name: Vite, category: frontend}
+- {name: Webpack, category: frontend}
+- {name: Storybook, category: frontend}
+- {name: Web Components, category: frontend}
+- {name: Three.js, category: frontend, synonyms: [ThreeJS]}
+- {name: D3.js, category: frontend, synonyms: [D3]}
+- {name: WebSockets, category: frontend, synonyms: [WebSocket, Socket.IO]}
+- {name: PWA, category: frontend, synonyms: [Progressive Web App, Progressive Web Apps]}
+- {name: Accessibility, category: frontend, synonyms: [a11y, Barrierefreiheit, WCAG]}
+- {name: Responsive Design, category: frontend}
+
+# --- Mobile ---
+- {name: React Native, category: mobile}
+- {name: Flutter, category: mobile}
+- {name: Ionic, category: mobile}
+- {name: Android, category: mobile, synonyms: [Android SDK]}
+- {name: iOS, category: mobile}
+
+# --- Backend ---
+- {name: Node.js, category: backend, synonyms: [Node, NodeJS]}
+- {name: Express, category: backend, synonyms: [Express.js, ExpressJS]}
+- {name: NestJS, category: backend, synonyms: [Nest.js]}
+- {name: Fastify, category: backend}
+- {name: Deno, category: backend}
+- {name: Bun, category: backend}
+- {name: Django, category: backend}
+- {name: Django REST Framework, category: backend, synonyms: [DRF]}
+- {name: FastAPI, category: backend}
+- {name: Flask, category: backend}
+- {name: SQLAlchemy, category: backend}
+- {name: Pydantic, category: backend}
+- {name: Celery, category: backend}
+- {name: Spring, category: backend, synonyms: [Spring Framework]}
+- {name: Spring Boot, category: backend}
+- {name: Hibernate, category: backend, synonyms: [JPA]}
+- {name: Quarkus, category: backend}
+- {name: .NET, category: backend, synonyms: [dotnet, .NET Core, ASP.NET, ASP.NET Core]}
+- {name: Laravel, category: backend}
+- {name: Symfony, category: backend}
+- {name: Ruby on Rails, category: backend, synonyms: [Rails, RoR]}
+- {name: Phoenix, category: backend}
+- {name: REST, category: backend, synonyms: [REST API, RESTful, REST APIs, RESTful APIs]}
+- {name: GraphQL, category: backend, synonyms: [Apollo, Apollo GraphQL]}
+- {name: gRPC, category: backend}
+- {name: OpenAPI, category: backend, synonyms: [Swagger]}
+- {name: Microservices, category: backend, synonyms: [Microservice, Microservice Architecture, Microservices-Architektur]}
+- {name: OAuth, category: backend, synonyms: [OAuth2, OAuth 2.0, OpenID Connect, OIDC]}
+- {name: JWT, category: backend, synonyms: [JSON Web Token]}
+- {name: Kafka, category: backend, synonyms: [Apache Kafka]}
+- {name: RabbitMQ, category: backend}
+
+# --- Databases ---
+- {name: PostgreSQL, category: database, synonyms: [Postgres, Postgre, PSQL]}
+- {name: MySQL, category: database}
+- {name: MariaDB, category: database}
+- {name: SQLite, category: database}
+- {name: Microsoft SQL Server, category: database, synonyms: [MSSQL, SQL Server, T-SQL]}
+- {name: Oracle Database, category: database, synonyms: [Oracle, Oracle DB, PL/SQL]}
+- {name: MongoDB, category: database, synonyms: [Mongo, Mongoose]}
+- {name: Redis, category: database}
+- {name: Elasticsearch, category: database, synonyms: [Elastic, ELK, OpenSearch]}
+- {name: DynamoDB, category: database}
+- {name: Firebase, category: database, synonyms: [Firestore]}
+- {name: Supabase, category: database}
+- {name: Prisma, category: database}
+- {name: Drizzle, category: database, synonyms: [Drizzle ORM]}
+- {name: TypeORM, category: database}
+- {name: Neo4j, category: database}
+
+# --- DevOps & Cloud ---
+- {name: Docker, category: devops, synonyms: [Docker Compose, Dockerfile]}
+- {name: Kubernetes, category: devops, synonyms: [K8s, Helm]}
+- {name: Terraform, category: devops}
+- {name: Ansible, category: devops}
+- {name: CI/CD, category: devops, synonyms: [CICD, Continuous Integration, Continuous Delivery, Continuous Deployment]}
+- {name: GitHub Actions, category: devops}
+- {name: GitLab CI, category: devops, synonyms: [GitLab CI/CD]}
+- {name: Jenkins, category: devops}
+- {name: Linux, category: devops, synonyms: [Ubuntu, Debian, Unix]}
+- {name: Nginx, category: devops}
+- {name: Apache HTTP Server, category: devops, synonyms: [Apache, httpd]}
+- {name: Prometheus, category: devops}
+- {name: Grafana, category: devops}
+- {name: Sentry, category: devops}
+- {name: AWS, category: cloud, synonyms: [Amazon Web Services, EC2, S3, Lambda, AWS Lambda]}
+- {name: Azure, category: cloud, synonyms: [Microsoft Azure]}
+- {name: Google Cloud, category: cloud, synonyms: [GCP, Google Cloud Platform]}
+- {name: Vercel, category: cloud}
+- {name: Netlify, category: cloud}
+- {name: Cloudflare, category: cloud, synonyms: [Cloudflare Workers]}
+- {name: Serverless, category: cloud}
+
+# --- Testing ---
+- {name: Jest, category: testing}
+- {name: Vitest, category: testing}
+- {name: Cypress, category: testing}
+- {name: Playwright, category: testing}
+- {name: Selenium, category: testing}
+- {name: Testing Library, category: testing, synonyms: [React Testing Library]}
+- {name: pytest, category: testing}
+- {name: JUnit, category: testing}
+- {name: Mocha, category: testing}
+- {name: TDD, category: testing, synonyms: [Test Driven Development, Test-Driven Development]}
+- {name: Unit Testing, category: testing, synonyms: [Unit Tests, Unit-Tests]}
+- {name: E2E Testing, category: testing, synonyms: [End-to-End Testing, E2E Tests, End-to-End-Tests]}
+
+# --- Tools ---
+- {name: Git, category: tool, synonyms: [GitHub, GitLab, Bitbucket]}
+- {name: Jira, category: tool}
+- {name: Confluence, category: tool}
+- {name: npm, category: tool, synonyms: [yarn, pnpm]}
+- {name: ESLint, category: tool}
+- {name: Prettier, category: tool}
+- {name: Postman, category: tool}
+- {name: VS Code, category: tool, synonyms: [Visual Studio Code]}
+- {name: IntelliJ IDEA, category: tool, synonyms: [IntelliJ, WebStorm, PyCharm, JetBrains]}
+
+# --- Design ---
+- {name: Figma, category: design}
+- {name: Adobe XD, category: design}
+- {name: UX Design, category: design, synonyms: [UX, User Experience]}
+- {name: UI Design, category: design, synonyms: [UI, User Interface Design]}
+
+# --- CMS & E-Commerce ---
+- {name: WordPress, category: cms}
+- {name: Shopify, category: cms}
+- {name: Strapi, category: cms}
+- {name: Contentful, category: cms}
+- {name: TYPO3, category: cms}
+- {name: Shopware, category: cms}
+- {name: Magento, category: cms, synonyms: [Adobe Commerce]}
+
+# --- Data & AI ---
+- {name: Pandas, category: data}
+- {name: NumPy, category: data}
+- {name: Machine Learning, category: data, synonyms: [ML, Maschinelles Lernen]}
+- {name: LLM, category: data, synonyms: [LLMs, Large Language Models, GenAI, Generative AI]}
+- {name: OpenAI API, category: data, synonyms: [ChatGPT API]}
+- {name: LangChain, category: data}
+
+# --- Methods ---
+- {name: Scrum, category: methodology}
+- {name: Kanban, category: methodology}
+- {name: Agile, category: methodology, synonyms: [Agil, Agile Softwareentwicklung, Agile Development]}
+- {name: Clean Code, category: methodology}
+- {name: Domain-Driven Design, category: methodology, synonyms: [DDD]}
+- {name: Code Review, category: methodology, synonyms: [Code Reviews]}
+- {name: SEO, category: methodology, synonyms: [Suchmaschinenoptimierung]}

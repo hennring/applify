@@ -1,0 +1,28 @@
+JONAS MUSTER
+Frontend Engineer
+Hamburg, Germany · jonas.muster@example.com · 0170 9876543
+
+SUMMARY
+Frontend engineer with a focus on React, Next.js and design systems.
+
+EXPERIENCE
+
+Frontend Engineer — Nordlicht Software GmbH, Hamburg
+January 2022 – Present
+• Built a component library with React, TypeScript and Storybook
+• Migrated the marketing site to Next.js; improved Core Web Vitals
+• Wrote unit tests with Jest and Testing Library
+
+Junior Web Developer — Agentur Elbblick, Hamburg
+2020 – 2021
+• Implemented WordPress themes with PHP, Sass and jQuery
+
+EDUCATION
+Apprenticeship as IT specialist for application development (Fachinformatiker Anwendungsentwicklung)
+IHK Hamburg, 2017 – 2020
+
+SKILLS
+React, Next.js, TypeScript, JavaScript, CSS, Sass, Storybook, Jest, Figma, Git, GraphQL
+
+LANGUAGES
+German (native), English (fluent)

@@ -21,6 +21,11 @@ def get_sessionmaker() -> sessionmaker[Session]:
     return sessionmaker(bind=get_engine(), expire_on_commit=False)
 
 
+def get_session_factory() -> sessionmaker[Session]:
+    """For background jobs, which need their own session outside the request."""
+    return get_sessionmaker()
+
+
 def get_session() -> Iterator[Session]:
     with get_sessionmaker()() as session:
         yield session

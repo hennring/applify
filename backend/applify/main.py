@@ -1,11 +1,19 @@
+import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.exc import SQLAlchemyError
 
-from applify.api import health
+from applify.api import documents, health, profile
 from applify.config import get_settings
+from applify.db.session import get_sessionmaker
+from applify.services.cv_jobs import fail_interrupted_jobs
+
+log = logging.getLogger(__name__)
 
 
 def mount_spa(app: FastAPI, static_dir: Path) -> None:
@@ -23,9 +31,22 @@ def mount_spa(app: FastAPI, static_dir: Path) -> None:
         return FileResponse(index)
 
 
-def create_app() -> FastAPI:
-    app = FastAPI(title="Applify", version="0.1.0")
-    app.include_router(health.router, prefix="/api")
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    try:
+        with get_sessionmaker()() as session:
+            fail_interrupted_jobs(session)
+    except SQLAlchemyError:
+        log.warning("could not reset interrupted jobs", exc_info=True)
+    yield
+
+
+def create_app(*, run_startup_tasks: bool = True) -> FastAPI:
+    app = FastAPI(
+        title="Applify", version="0.1.0", lifespan=lifespan if run_startup_tasks else None
+    )
+    for module in (health, documents, profile):
+        app.include_router(module.router, prefix="/api")
     mount_spa(app, get_settings().static_dir)
     return app
 
