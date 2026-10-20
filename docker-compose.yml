@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-applify}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-applify}
+      POSTGRES_DB: ${POSTGRES_DB:-applify}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APPLIFY_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-applify}:${POSTGRES_PASSWORD:-applify}@db:5432/${POSTGRES_DB:-applify}
+      APPLIFY_OLLAMA_URL: ${APPLIFY_OLLAMA_URL:-http://host.docker.internal:11434}
+      APPLIFY_OLLAMA_MODEL: ${APPLIFY_OLLAMA_MODEL:-qwen3:14b}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data/files:/data/files
+    ports:
+      - "127.0.0.1:8000:8000"
