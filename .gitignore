@@ -1,0 +1,24 @@
+# Persistente lokale Daten (DB, Dokumente, Pakete)
+data/
+
+# Secrets
+.env
+*.token.json
+credentials*.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / SvelteKit
+node_modules/
+.svelte-kit/
+build/
+
+# IDE
+.idea/
+*.iml
