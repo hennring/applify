@@ -1,3 +1,6 @@
+from dataclasses import replace
+from datetime import UTC, datetime
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -126,3 +129,22 @@ def test_profile_locations_get_coordinates(api: TestClient, db_session: Session)
     api.put("/api/profile", json=PROFILE)
     leipzig = db_session.query(ProfileLocation).filter_by(name="Leipzig").one()
     assert leipzig.lat is not None and abs(leipzig.lat - 51.34) < 0.1
+
+
+def test_jobs_are_sorted_by_publication_date(api: TestClient, fake_source: FakeSource) -> None:
+    api.put("/api/profile", json=PROFILE | {"locations": [{"name": "Leipzig", "radius_km": 30}]})
+    dated = [
+        ("1", "Backend Entwickler", datetime(2026, 10, 1, tzinfo=UTC)),
+        ("2", "Frontend Entwickler", datetime(2026, 10, 15, tzinfo=UTC)),
+        ("3", "Data Engineer", None),
+    ]
+    fake_source.postings = {
+        "Fullstack Entwickler": [
+            replace(ba(external_id, title), posted_at=posted)
+            for external_id, title, posted in dated
+        ]
+    }
+    api.post("/api/runs")
+    titles = [j["title"] for j in api.get("/api/jobs").json()["items"]]
+    # Unknown dates last.
+    assert titles == ["Frontend Entwickler", "Backend Entwickler", "Data Engineer"]

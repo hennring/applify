@@ -189,7 +189,7 @@
 <section>
 	<h2 class="listhead">
 		Stellen <span class="count">{data.jobs.total}</span>
-		<span class="muted hint">neueste zuerst – Ranking folgt in M3</span>
+		<span class="muted hint">nach Veröffentlichung, neueste zuerst – Ranking folgt in M3</span>
 	</h2>
 	{#if jobs.length}
 		<ul class="jobs">

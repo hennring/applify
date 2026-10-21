@@ -50,11 +50,11 @@ def list_jobs(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> JobPage:
-    """Newest first; ranking per profile follows in M3."""
+    """Most recently published first; ranking per profile follows in M3."""
     jobs = session.scalars(
         select(Job)
         .options(selectinload(Job.sources))
-        .order_by(Job.first_seen_at.desc(), Job.posted_at.desc().nulls_last(), Job.id.desc())
+        .order_by(Job.posted_at.desc().nulls_last(), Job.first_seen_at.desc(), Job.id.desc())
         .limit(limit)
         .offset(offset)
     )
