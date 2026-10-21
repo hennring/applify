@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll, replaceState } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { api, errorMessage, type Schemas } from '#lib/api/client.ts';
 	import Icon from '#lib/components/Icon.svelte';
+	import JobDetail from '#lib/components/JobDetail.svelte';
 	import ScoreBadge from '#lib/components/ScoreBadge.svelte';
 	import { healthRows } from '#lib/health.ts';
 	import { JOB_PAGE_SIZE } from '#lib/jobs.ts';
@@ -27,7 +29,58 @@
 	let error = $state<string | null>(null);
 	let more = $state<Schemas['MatchOut'][]>([]);
 	let loadingMore = $state(false);
-	const matches = $derived([...data.matches.items, ...more]);
+	// Status and score changes from the detail panel, applied to the list right away.
+	let patched = $state<Record<number, Schemas['MatchDetail']>>({});
+	const matches = $derived(
+		[...data.matches.items, ...more].map((m) => {
+			const p = patched[m.job.id];
+			if (!p) return m;
+			return {
+				...m,
+				score: p.score,
+				status: p.status,
+				excluded_reason: p.excluded_reason,
+				breakdown: p.breakdown,
+				job: { ...m.job, has_full_text: p.job.has_full_text }
+			};
+		})
+	);
+
+	// The job open in the panel: set by shallow routing, or from ?stelle= after a reload.
+	const selectedId = $derived(
+		page.state.jobId !== undefined
+			? page.state.jobId
+			: Number(page.url.searchParams.get('stelle')) || null
+	);
+
+	function href(filters: typeof data.filters, jobId: number | null): string {
+		const parts = [
+			filters.onlyNew && 'neu=1',
+			filters.excluded && 'ausgeblendet=1',
+			filters.sort === 'date' && 'sort=datum',
+			jobId !== null && `stelle=${jobId}`
+		].filter(Boolean);
+		return `${resolve('/')}${parts.length ? `?${parts.join('&')}` : ''}`;
+	}
+
+	function select(jobId: number | null) {
+		// Only the URL and page state change; the list is not loaded again.
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		replaceState(href(data.filters, jobId), { jobId });
+	}
+
+	function openJob(event: MouseEvent, jobId: number) {
+		// Narrow windows and modifier clicks get the full detail page instead.
+		if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+		if (!window.matchMedia('(min-width: 1100px)').matches) return;
+		event.preventDefault();
+		select(jobId);
+	}
+
+	function onkeydown(event: KeyboardEvent) {
+		const typing = event.target instanceof HTMLElement && event.target.closest('input, textarea');
+		if (event.key === 'Escape' && selectedId !== null && !typing) select(null);
+	}
 
 	async function startRun() {
 		starting = true;
@@ -66,7 +119,7 @@
 
 	async function loadMore() {
 		loadingMore = true;
-		const { data: page } = await api.GET('/api/matches', {
+		const { data: result } = await api.GET('/api/matches', {
 			params: {
 				query: {
 					only_new: data.filters.onlyNew,
@@ -78,7 +131,7 @@
 			}
 		});
 		loadingMore = false;
-		if (page) more = [...more, ...page.items];
+		if (result) more = [...more, ...result.items];
 	}
 
 	async function markAllSeen() {
@@ -92,18 +145,10 @@
 		if (changes.neu !== undefined) next.onlyNew = changes.neu;
 		if (changes.ausgeblendet !== undefined) next.excluded = changes.ausgeblendet;
 		if (changes.sort !== undefined) next.sort = changes.sort;
-		const query = [
-			next.onlyNew && 'neu=1',
-			next.excluded && 'ausgeblendet=1',
-			next.sort === 'date' && 'sort=datum'
-		].filter(Boolean);
 		more = [];
-		// Same route, only the query string changes.
+		// Same route, only the query string changes; an open panel stays open.
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		goto(`${resolve('/')}${query.length ? `?${query.join('&')}` : ''}`, {
-			replace: true,
-			reset: false
-		});
+		goto(href(next, selectedId), { replace: true, reset: false });
 	}
 
 	/** The most telling reasons: hits and misses, by component weight. */
@@ -228,119 +273,175 @@
 	</p>
 {/if}
 
-<div class="toolbar">
-	<div class="segmented" role="group" aria-label="Auswahl">
-		<button
-			type="button"
-			class:on={!data.filters.onlyNew && !data.filters.excluded}
-			onclick={() => setFilter({ neu: false, ausgeblendet: false })}>Alle</button
-		>
-		<button
-			type="button"
-			class:on={data.filters.onlyNew && !data.filters.excluded}
-			onclick={() => setFilter({ neu: true, ausgeblendet: false })}
-			>Neu <span class="count">{data.matches.new}</span></button
-		>
-		<button
-			type="button"
-			class:on={data.filters.excluded}
-			onclick={() => setFilter({ ausgeblendet: true, neu: false })}
-			title="Durch harte Filter ausgeblendet"
-			>Ausgeblendet <span class="count">{data.matches.excluded}</span></button
-		>
+<svelte:window {onkeydown} />
+
+<div class="master" class:split={selectedId !== null}>
+	<div class="list">
+		<div class="toolbar">
+			<div class="segmented" role="group" aria-label="Auswahl">
+				<button
+					type="button"
+					class:on={!data.filters.onlyNew && !data.filters.excluded}
+					onclick={() => setFilter({ neu: false, ausgeblendet: false })}>Alle</button
+				>
+				<button
+					type="button"
+					class:on={data.filters.onlyNew && !data.filters.excluded}
+					onclick={() => setFilter({ neu: true, ausgeblendet: false })}
+					>Neu <span class="count">{data.matches.new}</span></button
+				>
+				<button
+					type="button"
+					class:on={data.filters.excluded}
+					onclick={() => setFilter({ ausgeblendet: true, neu: false })}
+					title="Durch harte Filter ausgeblendet"
+					>Ausgeblendet <span class="count">{data.matches.excluded}</span></button
+				>
+			</div>
+			<div class="segmented" role="group" aria-label="Sortierung">
+				<button
+					type="button"
+					class:on={data.filters.sort === 'score'}
+					onclick={() => setFilter({ sort: 'score' })}>Score</button
+				>
+				<button
+					type="button"
+					class:on={data.filters.sort === 'date'}
+					onclick={() => setFilter({ sort: 'date' })}>Datum</button
+				>
+			</div>
+			<span class="muted">{data.matches.total} Stellen</span>
+			{#if data.matches.new}
+				<button type="button" class="seen" onclick={markAllSeen}
+					><Icon name="check" size={16} /> Alle als gesehen markieren</button
+				>
+			{/if}
+		</div>
+
+		{#if matches.length}
+			<ul class="jobs">
+				{#each matches as match (match.job.id)}
+					{@const job = match.job}
+					{@const salary = formatSalary(job.salary_min, job.salary_max)}
+					<li
+						class="card job"
+						class:seen={match.status !== 'new'}
+						class:selected={match.job.id === selectedId}
+					>
+						<ScoreBadge score={match.score} />
+						<div class="body">
+							<div class="title">
+								<a
+									href={resolve('/jobs/[id]', { id: String(job.id) })}
+									onclick={(e) => openJob(e, job.id)}>{job.title}</a
+								>
+								{#if match.status === 'new'}<span class="badge new">neu</span>{/if}
+								{#if match.breakdown.low_data}<span
+										class="badge"
+										title="Kein Anzeigentext – Score v. a. aus Titel, Ort und Seniorität"
+										>geringe Datenbasis</span
+									>{/if}
+							</div>
+							<div class="meta">
+								<span><Icon name="building" size={15} /> {job.company || '–'}</span>
+								{#if job.location_raw}<span
+										><Icon name="map-pin" size={15} /> {job.location_raw}</span
+									>{/if}
+								{#if job.remote_type}<span
+										><Icon name="house" size={15} /> {jobRemoteLabels[job.remote_type]}</span
+									>{/if}
+								{#if salary}<span><Icon name="wallet" size={15} /> {salary}</span>{/if}
+								{#if job.posted_at}<span
+										><Icon name="calendar" size={15} /> {formatDate(job.posted_at)}</span
+									>{/if}
+							</div>
+							{#if match.excluded_reason}
+								<p class="reason error"><Icon name="ban" size={15} /> {match.excluded_reason}</p>
+							{:else}
+								<ul class="evidence">
+									{#each highlights(match) as e, i (i)}
+										<li class={e.kind}>
+											<Icon name={e.kind === 'hit' ? 'check' : 'x'} size={13} />
+											{e.text}
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						</div>
+						<div class="links">
+							{#each job.sources as source (source.url)}
+								<!-- External link to the posting, not an app route. -->
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+								<a href={source.url} target="_blank" rel="noopener noreferrer" class="source"
+									>{sourceLabels[source.source] ?? source.source}
+									<Icon name="external-link" size={13} /></a
+								>
+							{/each}
+						</div>
+					</li>
+				{/each}
+			</ul>
+			{#if matches.length < data.matches.total}
+				<button type="button" class="more" disabled={loadingMore} onclick={loadMore}>
+					<Icon name={loadingMore ? 'loader' : 'chevron-down'} size={16} />
+					Mehr laden ({data.matches.total - matches.length})
+				</button>
+			{/if}
+		{:else}
+			<p class="muted">
+				{data.filters.onlyNew
+					? 'Keine neuen Stellen.'
+					: data.filters.excluded
+						? 'Keine ausgeblendeten Stellen.'
+						: 'Noch keine Stellen bewertet.'}
+			</p>
+		{/if}
 	</div>
-	<div class="segmented" role="group" aria-label="Sortierung">
-		<button
-			type="button"
-			class:on={data.filters.sort === 'score'}
-			onclick={() => setFilter({ sort: 'score' })}>Score</button
-		>
-		<button
-			type="button"
-			class:on={data.filters.sort === 'date'}
-			onclick={() => setFilter({ sort: 'date' })}>Datum</button
-		>
-	</div>
-	<span class="muted">{data.matches.total} Stellen</span>
-	{#if data.matches.new}
-		<button type="button" class="seen" onclick={markAllSeen}
-			><Icon name="check" size={16} /> Alle als gesehen markieren</button
-		>
+	{#if selectedId !== null}
+		<div class="panel">
+			<JobDetail
+				jobId={selectedId}
+				layout="panel"
+				onclose={() => select(null)}
+				onupdate={(m) => (patched[m.job.id] = m)}
+			/>
+		</div>
 	{/if}
 </div>
 
-{#if matches.length}
-	<ul class="jobs">
-		{#each matches as match (match.job.id)}
-			{@const job = match.job}
-			{@const salary = formatSalary(job.salary_min, job.salary_max)}
-			<li class="card job" class:seen={match.status !== 'new'}>
-				<ScoreBadge score={match.score} />
-				<div class="body">
-					<div class="title">
-						<a href={resolve('/jobs/[id]', { id: String(job.id) })}>{job.title}</a>
-						{#if match.status === 'new'}<span class="badge new">neu</span>{/if}
-						{#if match.breakdown.low_data}<span
-								class="badge"
-								title="Kein Anzeigentext – Score v. a. aus Titel, Ort und Seniorität"
-								>geringe Datenbasis</span
-							>{/if}
-					</div>
-					<div class="meta">
-						<span><Icon name="building" size={15} /> {job.company || '–'}</span>
-						{#if job.location_raw}<span><Icon name="map-pin" size={15} /> {job.location_raw}</span
-							>{/if}
-						{#if job.remote_type}<span
-								><Icon name="house" size={15} /> {jobRemoteLabels[job.remote_type]}</span
-							>{/if}
-						{#if salary}<span><Icon name="wallet" size={15} /> {salary}</span>{/if}
-						{#if job.posted_at}<span
-								><Icon name="calendar" size={15} /> {formatDate(job.posted_at)}</span
-							>{/if}
-					</div>
-					{#if match.excluded_reason}
-						<p class="reason error"><Icon name="ban" size={15} /> {match.excluded_reason}</p>
-					{:else}
-						<ul class="evidence">
-							{#each highlights(match) as e, i (i)}
-								<li class={e.kind}>
-									<Icon name={e.kind === 'hit' ? 'check' : 'x'} size={13} />
-									{e.text}
-								</li>
-							{/each}
-						</ul>
-					{/if}
-				</div>
-				<div class="links">
-					{#each job.sources as source (source.url)}
-						<!-- External link to the posting, not an app route. -->
-						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-						<a href={source.url} target="_blank" rel="noopener noreferrer" class="source"
-							>{sourceLabels[source.source] ?? source.source}
-							<Icon name="external-link" size={13} /></a
-						>
-					{/each}
-				</div>
-			</li>
-		{/each}
-	</ul>
-	{#if matches.length < data.matches.total}
-		<button type="button" class="more" disabled={loadingMore} onclick={loadMore}>
-			<Icon name={loadingMore ? 'loader' : 'chevron-down'} size={16} />
-			Mehr laden ({data.matches.total - matches.length})
-		</button>
-	{/if}
-{:else}
-	<p class="muted">
-		{data.filters.onlyNew
-			? 'Keine neuen Stellen.'
-			: data.filters.excluded
-				? 'Keine ausgeblendeten Stellen.'
-				: 'Noch keine Stellen bewertet.'}
-	</p>
-{/if}
-
 <style>
+	.master {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 1rem;
+		align-items: start;
+	}
+	.master.split {
+		grid-template-columns: minmax(0, 1fr) minmax(30rem, 1.15fr);
+	}
+	/* Below the sticky page header, scrolling on its own. */
+	.panel {
+		position: sticky;
+		top: 5.6rem;
+		margin-top: 1.5rem;
+	}
+	.panel :global(.detail) {
+		max-height: calc(100vh - 6.8rem);
+		overflow-y: auto;
+		box-sizing: border-box;
+	}
+	@media (max-width: 1100px) {
+		.master.split {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.panel {
+			display: none;
+		}
+	}
+	.job.selected {
+		border-color: var(--accent);
+		box-shadow: inset 3px 0 0 var(--accent);
+	}
 	.pagehead {
 		position: sticky;
 		top: 0;
