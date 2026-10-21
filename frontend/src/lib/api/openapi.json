@@ -469,7 +469,7 @@
 			"get": {
 				"tags": ["jobs"],
 				"summary": "List Jobs",
-				"description": "Newest first; ranking per profile follows in M3.",
+				"description": "Most recently published first; ranking per profile follows in M3.",
 				"operationId": "list_jobs_api_jobs_get",
 				"parameters": [
 					{
@@ -559,6 +559,236 @@
 					}
 				}
 			}
+		},
+		"/api/matches": {
+			"get": {
+				"tags": ["matches"],
+				"summary": "List Matches",
+				"description": "Ranked list (F11); hidden jobs only with excluded=true, each with its reason.",
+				"operationId": "list_matches_api_matches_get",
+				"parameters": [
+					{
+						"name": "only_new",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": false,
+							"title": "Only New"
+						}
+					},
+					{
+						"name": "excluded",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": false,
+							"title": "Excluded"
+						}
+					},
+					{
+						"name": "sort",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": ["score", "date"],
+							"type": "string",
+							"default": "score",
+							"title": "Sort"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 200,
+							"minimum": 1,
+							"default": 50,
+							"title": "Limit"
+						}
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 0,
+							"default": 0,
+							"title": "Offset"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MatchPage"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/matches/{job_id}": {
+			"get": {
+				"tags": ["matches"],
+				"summary": "Get Match",
+				"operationId": "get_match_api_matches__job_id__get",
+				"parameters": [
+					{
+						"name": "job_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Job Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MatchDetail"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/matches/{job_id}/seen": {
+			"post": {
+				"tags": ["matches"],
+				"summary": "Mark Seen",
+				"description": "Opened in the detail view: no longer new (F10).",
+				"operationId": "mark_seen_api_matches__job_id__seen_post",
+				"parameters": [
+					{
+						"name": "job_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Job Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MatchDetail"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/matches/seen": {
+			"post": {
+				"tags": ["matches"],
+				"summary": "Mark All Seen",
+				"operationId": "mark_all_seen_api_matches_seen_post",
+				"responses": {
+					"204": {
+						"description": "Successful Response"
+					}
+				}
+			}
+		},
+		"/api/matches/{job_id}/text": {
+			"put": {
+				"tags": ["matches"],
+				"summary": "Paste Text",
+				"description": "Posting text pasted by the user (F8); the job is rated again.",
+				"operationId": "paste_text_api_matches__job_id__text_put",
+				"parameters": [
+					{
+						"name": "job_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Job Id"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PastedText"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MatchDetail"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"components": {
@@ -597,6 +827,25 @@
 				"type": "object",
 				"required": ["type", "file"],
 				"title": "Body_upload_document_api_documents_post"
+			},
+			"Breakdown": {
+				"properties": {
+					"low_data": {
+						"type": "boolean",
+						"title": "Low Data",
+						"default": false
+					},
+					"components": {
+						"items": {
+							"$ref": "#/components/schemas/ComponentOut"
+						},
+						"type": "array",
+						"title": "Components",
+						"default": []
+					}
+				},
+				"type": "object",
+				"title": "Breakdown"
 			},
 			"ChangeItem": {
 				"properties": {
@@ -675,6 +924,54 @@
 				"type": "object",
 				"required": ["status"],
 				"title": "ComponentHealth"
+			},
+			"ComponentOut": {
+				"properties": {
+					"key": {
+						"type": "string",
+						"title": "Key"
+					},
+					"label": {
+						"type": "string",
+						"title": "Label"
+					},
+					"weight": {
+						"type": "integer",
+						"title": "Weight"
+					},
+					"value": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Value"
+					},
+					"points": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Points"
+					},
+					"evidence": {
+						"items": {
+							"$ref": "#/components/schemas/EvidenceOut"
+						},
+						"type": "array",
+						"title": "Evidence"
+					}
+				},
+				"type": "object",
+				"required": ["key", "label", "weight", "value", "points", "evidence"],
+				"title": "ComponentOut"
 			},
 			"Contact-Input": {
 				"properties": {
@@ -924,6 +1221,22 @@
 				"type": "object",
 				"required": ["institution", "degree", "start", "end"],
 				"title": "Education"
+			},
+			"EvidenceOut": {
+				"properties": {
+					"kind": {
+						"type": "string",
+						"enum": ["hit", "miss", "unknown"],
+						"title": "Kind"
+					},
+					"text": {
+						"type": "string",
+						"title": "Text"
+					}
+				},
+				"type": "object",
+				"required": ["kind", "text"],
+				"title": "EvidenceOut"
 			},
 			"HTTPValidationError": {
 				"properties": {
@@ -1252,6 +1565,133 @@
 				"type": "object",
 				"required": ["name", "radius_km"],
 				"title": "Location"
+			},
+			"MatchDetail": {
+				"properties": {
+					"score": {
+						"type": "integer",
+						"title": "Score"
+					},
+					"excluded_reason": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Excluded Reason"
+					},
+					"status": {
+						"type": "string",
+						"title": "Status"
+					},
+					"seen_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Seen At"
+					},
+					"breakdown": {
+						"$ref": "#/components/schemas/Breakdown"
+					},
+					"job": {
+						"$ref": "#/components/schemas/JobDetail"
+					}
+				},
+				"type": "object",
+				"required": ["score", "excluded_reason", "status", "seen_at", "breakdown", "job"],
+				"title": "MatchDetail"
+			},
+			"MatchOut": {
+				"properties": {
+					"score": {
+						"type": "integer",
+						"title": "Score"
+					},
+					"excluded_reason": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Excluded Reason"
+					},
+					"status": {
+						"type": "string",
+						"title": "Status"
+					},
+					"seen_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Seen At"
+					},
+					"breakdown": {
+						"$ref": "#/components/schemas/Breakdown"
+					},
+					"job": {
+						"$ref": "#/components/schemas/JobOut"
+					}
+				},
+				"type": "object",
+				"required": ["score", "excluded_reason", "status", "seen_at", "breakdown", "job"],
+				"title": "MatchOut"
+			},
+			"MatchPage": {
+				"properties": {
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"new": {
+						"type": "integer",
+						"title": "New"
+					},
+					"excluded": {
+						"type": "integer",
+						"title": "Excluded"
+					},
+					"items": {
+						"items": {
+							"$ref": "#/components/schemas/MatchOut"
+						},
+						"type": "array",
+						"title": "Items"
+					}
+				},
+				"type": "object",
+				"required": ["total", "new", "excluded", "items"],
+				"title": "MatchPage"
+			},
+			"PastedText": {
+				"properties": {
+					"text": {
+						"type": "string",
+						"maxLength": 100000,
+						"minLength": 100,
+						"title": "Text"
+					}
+				},
+				"type": "object",
+				"required": ["text"],
+				"title": "PastedText"
 			},
 			"ProfileData-Input": {
 				"properties": {

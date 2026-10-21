@@ -1,8 +1,11 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api, errorMessage, type Schemas } from '#lib/api/client.ts';
 	import Icon from '#lib/components/Icon.svelte';
+	import ScoreBadge from '#lib/components/ScoreBadge.svelte';
 	import { healthRows } from '#lib/health.ts';
+	import { JOB_PAGE_SIZE } from '#lib/jobs.ts';
 	import {
 		formatDate,
 		formatDateTime,
@@ -11,7 +14,6 @@
 		runStatusLabels,
 		sourceLabels
 	} from '#lib/labels.ts';
-	import { JOB_PAGE_SIZE } from '#lib/jobs.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -23,9 +25,9 @@
 
 	let starting = $state(false);
 	let error = $state<string | null>(null);
-	let more = $state<Schemas['JobOut'][]>([]);
+	let more = $state<Schemas['MatchOut'][]>([]);
 	let loadingMore = $state(false);
-	const jobs = $derived([...data.jobs.items, ...more]);
+	const matches = $derived([...data.matches.items, ...more]);
 
 	async function startRun() {
 		starting = true;
@@ -41,17 +43,20 @@
 		await invalidateAll();
 	}
 
-	// While a run is going, refresh its progress every two seconds; reload the list after.
+	// While a run is going, refresh its progress every two seconds and the list now and then;
+	// jobs are rated after each query, so the list grows during the run.
 	$effect(() => {
 		const id = run?.id;
 		if (!running || id === undefined) return;
+		let ticks = 0;
 		const timer = setInterval(async () => {
 			const { data: fresh } = await api.GET('/api/runs/{run_id}', {
 				params: { path: { run_id: id } }
 			});
 			if (!fresh) return;
 			polled = fresh;
-			if (fresh.status !== 'running') {
+			ticks += 1;
+			if (fresh.status !== 'running' || ticks % 5 === 0) {
 				more = [];
 				await invalidateAll();
 			}
@@ -61,16 +66,53 @@
 
 	async function loadMore() {
 		loadingMore = true;
-		const { data: page } = await api.GET('/api/jobs', {
-			params: { query: { limit: JOB_PAGE_SIZE, offset: jobs.length } }
+		const { data: page } = await api.GET('/api/matches', {
+			params: {
+				query: {
+					only_new: data.filters.onlyNew,
+					excluded: data.filters.excluded,
+					sort: data.filters.sort,
+					limit: JOB_PAGE_SIZE,
+					offset: matches.length
+				}
+			}
 		});
 		loadingMore = false;
 		if (page) more = [...more, ...page.items];
 	}
 
-	// Jobs first seen in the latest run are new (F10).
-	const isNew = (job: Schemas['JobOut']) =>
-		!!data.run && new Date(job.first_seen_at) >= new Date(data.run.started_at);
+	async function markAllSeen() {
+		await api.POST('/api/matches/seen');
+		more = [];
+		await invalidateAll();
+	}
+
+	function setFilter(changes: { neu?: boolean; ausgeblendet?: boolean; sort?: 'score' | 'date' }) {
+		const next = { ...data.filters };
+		if (changes.neu !== undefined) next.onlyNew = changes.neu;
+		if (changes.ausgeblendet !== undefined) next.excluded = changes.ausgeblendet;
+		if (changes.sort !== undefined) next.sort = changes.sort;
+		const query = [
+			next.onlyNew && 'neu=1',
+			next.excluded && 'ausgeblendet=1',
+			next.sort === 'date' && 'sort=datum'
+		].filter(Boolean);
+		more = [];
+		// Same route, only the query string changes.
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		goto(`${resolve('/')}${query.length ? `?${query.join('&')}` : ''}`, {
+			replace: true,
+			reset: false
+		});
+	}
+
+	/** The most telling reasons: hits and misses, by component weight. */
+	function highlights(match: Schemas['MatchOut']) {
+		return match.breakdown.components
+			.toSorted((a, b) => b.weight - a.weight)
+			.flatMap((c) => c.evidence.filter((e) => e.kind !== 'unknown'))
+			.slice(0, 5);
+	}
 
 	const totals = $derived(
 		Object.values(run?.stats ?? {}).reduce(
@@ -186,23 +228,62 @@
 	</p>
 {/if}
 
-<section>
-	<h2 class="listhead">
-		Stellen <span class="count">{data.jobs.total}</span>
-		<span class="muted hint">nach Veröffentlichung, neueste zuerst – Ranking folgt in M3</span>
-	</h2>
-	{#if jobs.length}
-		<ul class="jobs">
-			{#each jobs as job (job.id)}
-				{@const salary = formatSalary(job.salary_min, job.salary_max)}
-				<li class="card job">
+<div class="toolbar">
+	<div class="segmented" role="group" aria-label="Auswahl">
+		<button
+			type="button"
+			class:on={!data.filters.onlyNew && !data.filters.excluded}
+			onclick={() => setFilter({ neu: false, ausgeblendet: false })}>Alle</button
+		>
+		<button
+			type="button"
+			class:on={data.filters.onlyNew && !data.filters.excluded}
+			onclick={() => setFilter({ neu: true, ausgeblendet: false })}
+			>Neu <span class="count">{data.matches.new}</span></button
+		>
+		<button
+			type="button"
+			class:on={data.filters.excluded}
+			onclick={() => setFilter({ ausgeblendet: true, neu: false })}
+			title="Durch harte Filter ausgeblendet"
+			>Ausgeblendet <span class="count">{data.matches.excluded}</span></button
+		>
+	</div>
+	<div class="segmented" role="group" aria-label="Sortierung">
+		<button
+			type="button"
+			class:on={data.filters.sort === 'score'}
+			onclick={() => setFilter({ sort: 'score' })}>Score</button
+		>
+		<button
+			type="button"
+			class:on={data.filters.sort === 'date'}
+			onclick={() => setFilter({ sort: 'date' })}>Datum</button
+		>
+	</div>
+	<span class="muted">{data.matches.total} Stellen</span>
+	{#if data.matches.new}
+		<button type="button" class="seen" onclick={markAllSeen}
+			><Icon name="check" size={16} /> Alle als gesehen markieren</button
+		>
+	{/if}
+</div>
+
+{#if matches.length}
+	<ul class="jobs">
+		{#each matches as match (match.job.id)}
+			{@const job = match.job}
+			{@const salary = formatSalary(job.salary_min, job.salary_max)}
+			<li class="card job" class:seen={match.status !== 'new'}>
+				<ScoreBadge score={match.score} />
+				<div class="body">
 					<div class="title">
-						<!-- External link to the posting, not an app route. -->
-						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-						<a href={job.sources[0]?.url} target="_blank" rel="noopener noreferrer">{job.title}</a>
-						{#if isNew(job)}<span class="badge new">neu</span>{/if}
-						{#if !job.has_full_text}<span class="badge" title="Kein Anzeigentext verfügbar"
-								>nur Kurzinfo</span
+						<a href={resolve('/jobs/[id]', { id: String(job.id) })}>{job.title}</a>
+						{#if match.status === 'new'}<span class="badge new">neu</span>{/if}
+						{#if match.breakdown.low_data}<span
+								class="badge"
+								title="Kein Anzeigentext – Score v. a. aus Titel, Ort und Seniorität"
+								>geringe Datenbasis</span
 							>{/if}
 					</div>
 					<div class="meta">
@@ -217,29 +298,47 @@
 								><Icon name="calendar" size={15} /> {formatDate(job.posted_at)}</span
 							>{/if}
 					</div>
-					<div class="links">
-						{#each job.sources as source (source.url)}
-							<!-- External link to the posting, not an app route. -->
-							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-							<a href={source.url} target="_blank" rel="noopener noreferrer" class="source"
-								>{sourceLabels[source.source] ?? source.source}
-								<Icon name="external-link" size={13} /></a
-							>
-						{/each}
-					</div>
-				</li>
-			{/each}
-		</ul>
-		{#if jobs.length < data.jobs.total}
-			<button type="button" class="more" disabled={loadingMore} onclick={loadMore}>
-				<Icon name={loadingMore ? 'loader' : 'chevron-down'} size={16} />
-				Mehr laden ({data.jobs.total - jobs.length})
-			</button>
-		{/if}
-	{:else}
-		<p class="muted">Noch keine Stellen gespeichert.</p>
+					{#if match.excluded_reason}
+						<p class="reason error"><Icon name="ban" size={15} /> {match.excluded_reason}</p>
+					{:else}
+						<ul class="evidence">
+							{#each highlights(match) as e, i (i)}
+								<li class={e.kind}>
+									<Icon name={e.kind === 'hit' ? 'check' : 'x'} size={13} />
+									{e.text}
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</div>
+				<div class="links">
+					{#each job.sources as source (source.url)}
+						<!-- External link to the posting, not an app route. -->
+						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+						<a href={source.url} target="_blank" rel="noopener noreferrer" class="source"
+							>{sourceLabels[source.source] ?? source.source}
+							<Icon name="external-link" size={13} /></a
+						>
+					{/each}
+				</div>
+			</li>
+		{/each}
+	</ul>
+	{#if matches.length < data.matches.total}
+		<button type="button" class="more" disabled={loadingMore} onclick={loadMore}>
+			<Icon name={loadingMore ? 'loader' : 'chevron-down'} size={16} />
+			Mehr laden ({data.matches.total - matches.length})
+		</button>
 	{/if}
-</section>
+{:else}
+	<p class="muted">
+		{data.filters.onlyNew
+			? 'Keine neuen Stellen.'
+			: data.filters.excluded
+				? 'Keine ausgeblendeten Stellen.'
+				: 'Noch keine Stellen bewertet.'}
+	</p>
+{/if}
 
 <style>
 	.pagehead {
@@ -283,7 +382,9 @@
 	.health span,
 	.meta span,
 	.runhead span,
-	.errors summary {
+	.errors summary,
+	.reason,
+	.seen {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.3rem;
@@ -340,16 +441,15 @@
 	.stats th {
 		font-weight: 500;
 		color: var(--muted);
-		text-align: right;
-	}
-	.stats th:first-child,
-	.stats td:first-child {
-		text-align: left;
 	}
 	.stats th,
 	.stats td {
 		padding: 0.25rem 0.9rem 0.25rem 0;
 		text-align: right;
+	}
+	.stats th:first-child,
+	.stats td:first-child {
+		text-align: left;
 	}
 	.errors {
 		margin-top: 0.75rem;
@@ -362,20 +462,38 @@
 		margin: 0.5rem 0 0;
 		padding-left: 1.2rem;
 	}
-	.listhead {
+	.toolbar {
 		display: flex;
-		align-items: baseline;
-		gap: 0.5rem;
-		margin: 1.5rem 0 0.75rem;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem 1rem;
+		margin: 1.5rem 0 0.9rem;
+	}
+	.segmented {
+		display: inline-flex;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		overflow: hidden;
+	}
+	.segmented button {
+		border: none;
+		border-radius: 0;
+		padding: 0.35rem 0.9rem;
+		background: var(--surface);
+	}
+	.segmented button + button {
+		border-left: 1px solid var(--border);
+	}
+	.segmented button.on {
+		background: var(--accent);
+		color: var(--accent-text);
 	}
 	.count {
-		font-size: 0.9rem;
-		color: var(--muted);
-		font-weight: 500;
-	}
-	.hint {
 		font-size: 0.8rem;
-		font-weight: 400;
+		opacity: 0.8;
+	}
+	.seen {
+		margin-left: auto;
 	}
 	.jobs {
 		list-style: none;
@@ -387,8 +505,17 @@
 	.job {
 		margin: 0;
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		gap: 0.4rem 1rem;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		gap: 1rem;
+		align-items: start;
+	}
+	.job.seen .title a {
+		font-weight: 500;
+	}
+	.body {
+		display: grid;
+		gap: 0.4rem;
+		min-width: 0;
 	}
 	.title {
 		display: flex;
@@ -410,16 +537,40 @@
 		color: var(--accent-text);
 	}
 	.meta {
-		grid-column: 1;
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.3rem 1.1rem;
 		color: var(--muted);
 		font-size: 0.9rem;
 	}
+	.evidence {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		list-style: none;
+		margin: 0.15rem 0 0;
+		padding: 0;
+		font-size: 0.82rem;
+	}
+	.evidence li {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.1rem 0.55rem;
+		border-radius: 999px;
+		border: 1px solid var(--border);
+	}
+	.evidence .hit {
+		color: var(--ok);
+	}
+	.evidence .miss {
+		color: var(--error);
+	}
+	.reason {
+		margin: 0.15rem 0 0;
+		font-size: 0.9rem;
+	}
 	.links {
-		grid-column: 2;
-		grid-row: 1 / span 2;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
@@ -438,5 +589,15 @@
 		align-items: center;
 		gap: 0.3rem;
 		margin: 1rem auto 0;
+	}
+	@media (max-width: 700px) {
+		.job {
+			grid-template-columns: auto minmax(0, 1fr);
+		}
+		.links {
+			grid-column: 2;
+			flex-direction: row;
+			align-items: center;
+		}
 	}
 </style>

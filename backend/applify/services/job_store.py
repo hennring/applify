@@ -82,8 +82,9 @@ def merge(job: Job, posting: JobPosting) -> None:
         not job.has_full_text or len(posting.description) > len(job.description)
     ):
         job.description, job.has_full_text = posting.description, True
+        job.skills = None  # rescan on the next scoring
     elif not job.description and posting.description:
-        job.description = posting.description
+        job.description, job.skills = posting.description, None
     if job.salary_min is None and job.salary_max is None:
         job.salary_min, job.salary_max = posting.salary_min, posting.salary_max
     if job.lat is None and posting.lat is not None:

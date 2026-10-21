@@ -12,6 +12,7 @@ from applify.services.background import TaskRunner, get_search_runner
 from applify.services.cv_jobs import SessionFactory
 from applify.services.geo import Gazetteer, get_gazetteer
 from applify.services.search_runner import RunConflict, create_run, run_search
+from applify.services.skills import SkillTaxonomy, get_taxonomy
 from applify.sources import get_sources_factory
 from applify.sources.base import SourcesFactory
 from applify.users import get_current_user_id
@@ -67,12 +68,13 @@ def start_run(
     session_factory: Annotated[SessionFactory, Depends(get_session_factory)],
     sources: Annotated[SourcesFactory, Depends(get_sources_factory)],
     gazetteer: Annotated[Gazetteer, Depends(get_gazetteer)],
+    taxonomy: Annotated[SkillTaxonomy, Depends(get_taxonomy)],
 ) -> RunOut:
     try:
         run = create_run(session, user_id)
     except RunConflict as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
-    runner(run_search, run.id, session_factory, sources, gazetteer)
+    runner(run_search, run.id, session_factory, sources, gazetteer, taxonomy)
     session.refresh(run)
     return RunOut.of(run)
 

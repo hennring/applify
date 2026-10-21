@@ -11,8 +11,10 @@ from applify.db.models import SearchRun
 from applify.services.cv_jobs import SessionFactory
 from applify.services.geo import Gazetteer
 from applify.services.job_store import find_source, store_posting
+from applify.services.match_store import Scorer
 from applify.services.profile_store import load_profile
 from applify.services.search_terms import derive_search_terms
+from applify.services.skills import SkillTaxonomy
 from applify.sources.base import JobSource, SearchQuery, SourceError, SourcesFactory
 
 log = logging.getLogger(__name__)
@@ -69,14 +71,18 @@ class _Progress:
 
 
 def run_search(
-    run_id: int, session_factory: SessionFactory, sources: SourcesFactory, gazetteer: Gazetteer
+    run_id: int,
+    session_factory: SessionFactory,
+    sources: SourcesFactory,
+    gazetteer: Gazetteer,
+    taxonomy: SkillTaxonomy,
 ) -> None:
     with session_factory() as session:
         run = session.get(SearchRun, run_id)
         if run is None:
             return
         try:
-            _run(session, run, sources(), gazetteer)
+            _run(session, run, sources(), gazetteer, taxonomy)
         except Exception as exc:
             log.exception("search run %s failed", run_id)
             session.rollback()
@@ -87,7 +93,13 @@ def run_search(
         session.commit()
 
 
-def _run(session: Session, run: SearchRun, sources: list[JobSource], gazetteer: Gazetteer) -> None:
+def _run(
+    session: Session,
+    run: SearchRun,
+    sources: list[JobSource],
+    gazetteer: Gazetteer,
+    taxonomy: SkillTaxonomy,
+) -> None:
     profile = load_profile(session, run.user_id)
     terms = derive_search_terms(profile)
     if not terms:
@@ -101,6 +113,7 @@ def _run(session: Session, run: SearchRun, sources: list[JobSource], gazetteer: 
         for name, radius in locations
         for term in terms
     ]
+    scorer = Scorer(session, run.user_id, gazetteer, taxonomy)
     progress = _Progress(session, run, sources)
     seen: set[tuple[str, str]] = set()
 
@@ -115,16 +128,20 @@ def _run(session: Session, run: SearchRun, sources: list[JobSource], gazetteer: 
         postings = [p for p in postings if (p.source, p.external_id) not in seen]
         seen.update((p.source, p.external_id) for p in postings)
         stats = progress.stats[source.name]
+        jobs = []
         for n, posting in enumerate(postings, 1):
             stats["found"] += 1
             # Details only for listings not stored yet; known ones keep what they have.
             if find_source(session, posting) is None:
                 posting = source.complete(posting)
-            _, outcome = store_posting(session, posting, gazetteer)
+            job, outcome = store_posting(session, posting, gazetteer)
+            jobs.append(job)
             stats[outcome] += 1
             if n % COMMIT_EVERY == 0:
                 done = (i + n / len(postings)) / len(queries)
                 progress.save(done, f"{step} – {n}/{len(postings)}")
+        # Rated right away, so the list is usable while the run continues.
+        scorer.score(jobs, run.id)
         progress.save((i + 1) / len(queries), step)
 
 

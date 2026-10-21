@@ -10,6 +10,7 @@ from applify.db.models import Document
 from applify.llm import LLMProvider
 from applify.schemas.profile import CvSuggestion
 from applify.services.cv_extraction import extract_cv
+from applify.services.match_store import rescore_user
 from applify.services.profile_diff import apply_changes, compute_changes
 from applify.services.profile_store import load_profile, normalize_profile, save_profile
 from applify.services.skills import SkillTaxonomy
@@ -51,6 +52,7 @@ def apply_additions(
     if ids:
         updated = apply_changes(profile, suggestion, ids)
         save_profile(session, user_id, normalize_profile(updated, taxonomy))
+        rescore_user(session, user_id)
 
 
 def fail_interrupted_jobs(session: Session) -> None:

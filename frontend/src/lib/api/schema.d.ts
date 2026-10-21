@@ -206,7 +206,7 @@ export interface paths {
 		};
 		/**
 		 * List Jobs
-		 * @description Newest first; ranking per profile follows in M3.
+		 * @description Most recently published first; ranking per profile follows in M3.
 		 */
 		get: operations['list_jobs_api_jobs_get'];
 		put?: never;
@@ -234,6 +234,100 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/matches': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * List Matches
+		 * @description Ranked list (F11); hidden jobs only with excluded=true, each with its reason.
+		 */
+		get: operations['list_matches_api_matches_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/matches/{job_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get Match */
+		get: operations['get_match_api_matches__job_id__get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/matches/{job_id}/seen': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * Mark Seen
+		 * @description Opened in the detail view: no longer new (F10).
+		 */
+		post: operations['mark_seen_api_matches__job_id__seen_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/matches/seen': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Mark All Seen */
+		post: operations['mark_all_seen_api_matches_seen_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/matches/{job_id}/text': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		/**
+		 * Paste Text
+		 * @description Posting text pasted by the user (F8); the job is rated again.
+		 */
+		put: operations['paste_text_api_matches__job_id__text_put'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -254,6 +348,19 @@ export interface components {
 			type: 'cv' | 'certificate' | 'sample_letter';
 			/** File */
 			file: string;
+		};
+		/** Breakdown */
+		Breakdown: {
+			/**
+			 * Low Data
+			 * @default false
+			 */
+			low_data: boolean;
+			/**
+			 * Components
+			 * @default []
+			 */
+			components: components['schemas']['ComponentOut'][];
 		};
 		/** ChangeItem */
 		ChangeItem: {
@@ -292,6 +399,21 @@ export interface components {
 			status: 'ok' | 'error';
 			/** Detail */
 			detail?: string | null;
+		};
+		/** ComponentOut */
+		ComponentOut: {
+			/** Key */
+			key: string;
+			/** Label */
+			label: string;
+			/** Weight */
+			weight: number;
+			/** Value */
+			value: number | null;
+			/** Points */
+			points: number | null;
+			/** Evidence */
+			evidence: components['schemas']['EvidenceOut'][];
 		};
 		/** Contact */
 		'Contact-Input': {
@@ -409,6 +531,16 @@ export interface components {
 			/** End */
 			end: string | null;
 		};
+		/** EvidenceOut */
+		EvidenceOut: {
+			/**
+			 * Kind
+			 * @enum {string}
+			 */
+			kind: 'hit' | 'miss' | 'unknown';
+			/** Text */
+			text: string;
+		};
 		/** HTTPValidationError */
 		HTTPValidationError: {
 			/** Detail */
@@ -522,6 +654,48 @@ export interface components {
 			 * @default 30
 			 */
 			radius_km: number;
+		};
+		/** MatchDetail */
+		MatchDetail: {
+			/** Score */
+			score: number;
+			/** Excluded Reason */
+			excluded_reason: string | null;
+			/** Status */
+			status: string;
+			/** Seen At */
+			seen_at: string | null;
+			breakdown: components['schemas']['Breakdown'];
+			job: components['schemas']['JobDetail'];
+		};
+		/** MatchOut */
+		MatchOut: {
+			/** Score */
+			score: number;
+			/** Excluded Reason */
+			excluded_reason: string | null;
+			/** Status */
+			status: string;
+			/** Seen At */
+			seen_at: string | null;
+			breakdown: components['schemas']['Breakdown'];
+			job: components['schemas']['JobOut'];
+		};
+		/** MatchPage */
+		MatchPage: {
+			/** Total */
+			total: number;
+			/** New */
+			new: number;
+			/** Excluded */
+			excluded: number;
+			/** Items */
+			items: components['schemas']['MatchOut'][];
+		};
+		/** PastedText */
+		PastedText: {
+			/** Text */
+			text: string;
 		};
 		/** ProfileData */
 		'ProfileData-Input': {
@@ -1287,6 +1461,156 @@ export interface operations {
 				};
 				content: {
 					'application/json': components['schemas']['JobDetail'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	list_matches_api_matches_get: {
+		parameters: {
+			query?: {
+				only_new?: boolean;
+				excluded?: boolean;
+				sort?: 'score' | 'date';
+				limit?: number;
+				offset?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MatchPage'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	get_match_api_matches__job_id__get: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				job_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MatchDetail'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	mark_seen_api_matches__job_id__seen_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				job_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MatchDetail'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	mark_all_seen_api_matches_seen_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			204: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	paste_text_api_matches__job_id__text_put: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				job_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['PastedText'];
+			};
+		};
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MatchDetail'];
 				};
 			};
 			/** @description Validation Error */

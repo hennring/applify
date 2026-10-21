@@ -86,7 +86,11 @@ def db_session(db_engine: Engine) -> Iterator[Session]:
 
 
 class FakeSource:
-    """JobSource with prepared postings per search term; complete() adds a full text."""
+    """JobSource with prepared postings per search term.
+
+    complete() adds a generic full text, or the text from `texts` if that is set
+    (postings without an entry there stay short info).
+    """
 
     name = "ba"
     label = "Bundesagentur für Arbeit"
@@ -96,6 +100,7 @@ class FakeSource:
         self.errors: dict[str, Exception] = {}
         self.queries: list[SearchQuery] = []
         self.completed: list[str] = []
+        self.texts: dict[str, str] | None = None
 
     def search(self, query: SearchQuery) -> list[JobPosting]:
         self.queries.append(query)
@@ -105,8 +110,11 @@ class FakeSource:
 
     def complete(self, posting: JobPosting) -> JobPosting:
         self.completed.append(posting.external_id)
-        posting.description = f"Volltext zu {posting.title}. " * 20
-        posting.has_full_text = True
+        if self.texts is None:
+            posting.description = f"Volltext zu {posting.title}. " * 20
+        else:
+            posting.description = self.texts.get(posting.external_id, "")
+        posting.has_full_text = len(posting.description) >= 200
         return posting
 
 

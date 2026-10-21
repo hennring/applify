@@ -9,6 +9,7 @@ from applify.db.models import Document
 from applify.db.session import get_session
 from applify.schemas.profile import ChangeItem, CvSuggestion, ProfileData
 from applify.services.documents import get_document, latest_extracted_cv
+from applify.services.match_store import rescore_user
 from applify.services.profile_diff import apply_changes, compute_changes
 from applify.services.profile_store import load_profile, normalize_profile, save_profile
 from applify.services.skills import SkillTaxonomy, get_taxonomy
@@ -50,6 +51,7 @@ def put_profile(
     data: ProfileData, session: SessionDep, user_id: UserDep, taxonomy: TaxonomyDep
 ) -> ProfileData:
     profile = save_profile(session, user_id, normalize_profile(data, taxonomy))
+    rescore_user(session, user_id)
     session.commit()
     return profile
 
@@ -88,5 +90,6 @@ def apply_cv_changes(
         load_profile(session, user_id), _suggestion(document), set(body.change_ids)
     )
     profile = save_profile(session, user_id, normalize_profile(updated, taxonomy))
+    rescore_user(session, user_id)
     session.commit()
     return profile

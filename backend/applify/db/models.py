@@ -125,6 +125,8 @@ class Job(Base):
     title_norm: Mapped[str] = mapped_column(String(300))
     city_norm: Mapped[str] = mapped_column(String(100), server_default="")
     fingerprint: Mapped[str] = mapped_column(String(40), index=True)
+    # Canonical skills mentioned in title and text; None = not scanned since the last change.
+    skills: Mapped[list[str] | None] = mapped_column(ARRAY(String))
     first_seen_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
@@ -173,3 +175,28 @@ class SearchRun(Base):
     errors: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, server_default="[]")
     started_at: Mapped[datetime] = mapped_column(server_default=func.now())
     finished_at: Mapped[datetime | None]
+
+
+class JobMatch(Base):
+    """A job rated against one user's profile (§5.3)."""
+
+    __tablename__ = "job_matches"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), index=True)
+    score: Mapped[int]
+    # Points and evidence per component, the basis of the explanation in the UI (F12).
+    breakdown: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default="{}")
+    # Set if a hard filter hides the job.
+    excluded_reason: Mapped[str | None] = mapped_column(String(300))
+    status: Mapped[str] = mapped_column(String(20), server_default="new")  # new / seen
+    seen_at: Mapped[datetime | None]
+    # The run that found the job for this user first.
+    run_id: Mapped[int | None] = mapped_column(ForeignKey("search_runs.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    scored_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    job: Mapped[Job] = relationship()
+
+    __table_args__ = (UniqueConstraint("user_id", "job_id"),)

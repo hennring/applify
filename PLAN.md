@@ -2,7 +2,7 @@
 
 > Persönlicher Bewerbungsassistent: findet täglich passende Stellen, bewertet sie gegen das eigene Profil und erzeugt auf Zusage ein fertiges Bewerbungspaket.
 
-Stand: 21.10.2026 (Spike M2: Quellen geprüft, BA-API auf v6) · Status: M0–M2 umgesetzt
+Stand: 21.10.2026 (Spike M2: Quellen geprüft, BA-API auf v6) · Status: M0–M3 umgesetzt
 
 ---
 
