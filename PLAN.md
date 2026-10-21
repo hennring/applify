@@ -27,7 +27,7 @@ Fullstack-Webentwickler, 2,5 Jahre Erfahrung · Orte: Leipzig, Dresden, Berlin, 
 
 **Profil & Dokumente**
 - F1 Upload von Lebenslauf (PDF), Zeugnissen (PDF, mehrere) und optional einem Beispielanschreiben (PDF oder Text).
-- F2 Nach dem Lebenslauf-Upload liest das **lokale LLM** den Lebenslauf aus und liefert einen strukturierten Profilvorschlag (Kontaktdaten, Wunschrollen, Skills, Sprachen, Stationen, Berufsjahre). Code prüft und normalisiert das Ergebnis (siehe §5.4). Der Vorschlag wird vor dem Speichern angezeigt; alle Felder bleiben editierbar und erweiterbar.
+- F2 Nach dem Lebenslauf-Upload liest das **lokale LLM** den Lebenslauf aus und liefert einen strukturierten Profilvorschlag (Kontaktdaten, Wunschrollen, Skills, Sprachen, Stationen, Berufsjahre). Code prüft und normalisiert das Ergebnis (siehe §5.4). Neue Angaben werden direkt ins Profil eingetragen; Werte, die von bestehenden Angaben abweichen, erscheinen als Diff (F4). Alle Felder bleiben editierbar und erweiterbar.
 - F3 Das Profil umfasst:
   - Wunschrollen (mehrere, z. B. „Fullstack Developer“, „Frontend Developer“)
   - Skills mit **Gewichtung** (`Pflicht` / `gern` / `will ich nicht`) und optional Level

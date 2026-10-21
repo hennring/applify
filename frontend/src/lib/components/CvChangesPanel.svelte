@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Schemas } from '#lib/api/client.ts';
 	import { changeFieldLabels, changeLabel, changeValue, formatDateTime } from '#lib/labels.ts';
+	import Icon from './Icon.svelte';
 
 	let {
 		changes,
@@ -35,11 +36,12 @@
 </script>
 
 <section class="card suggestions">
-	<h2>Vorschläge aus dem Lebenslauf</h2>
+	<h2><Icon name="file-text" /> Abweichungen zum Lebenslauf</h2>
 	<p class="muted">
 		{changes.filename}{changes.extracted_at
 			? `, ausgelesen ${formatDateTime(changes.extracted_at)}`
-			: ''}. Nur neue oder geänderte Angaben; nichts wird ohne deine Auswahl überschrieben.
+			: ''}. Neue Angaben wurden direkt eingetragen; diese hier weichen von deinem Profil ab und
+		werden nur mit deiner Auswahl übernommen.
 	</p>
 
 	{#each groups as [field, items] (field)}
@@ -100,6 +102,11 @@
 <style>
 	.suggestions {
 		border-color: var(--accent);
+	}
+	h2 {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 	h3 {
 		font-size: 0.85rem;

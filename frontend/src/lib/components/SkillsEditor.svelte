@@ -1,23 +1,27 @@
 <script lang="ts">
 	import type { Schemas } from '#lib/api/client.ts';
 	import { skillLevelLabels, weightLabels } from '#lib/labels.ts';
+	import ChipList from './ChipList.svelte';
+	import Icon from './Icon.svelte';
+	import SectionHead from './SectionHead.svelte';
 
 	type Skill = Schemas['Skill-Output'];
+	type Weight = NonNullable<Skill['weight']>;
 	let { skills = $bindable() }: { skills: Skill[] } = $props();
 
-	let draft = $state('');
-	let filter = $state<'all' | NonNullable<Skill['weight']>>('all');
+	const groups: { weight: Weight; title: string }[] = [
+		{ weight: 'must', title: 'Pflicht' },
+		{ weight: 'nice', title: 'Gern' },
+		{ weight: 'avoid', title: 'Will ich nicht' }
+	];
 
-	const counts = $derived({
-		all: skills.length,
-		must: skills.filter((s) => s.weight === 'must').length,
-		nice: skills.filter((s) => s.weight === 'nice').length,
-		avoid: skills.filter((s) => s.weight === 'avoid').length
-	});
+	let editing = $state(false);
+	let selectedKey = $state<string | null>(null);
+	const skillKey = (s: Skill) => s.name.toLowerCase();
+	const selected = $derived(skills.find((s) => skillKey(s) === selectedKey) ?? null);
 
-	function add() {
-		const name = draft.trim();
-		if (name && !skills.some((s) => s.name.toLowerCase() === name.toLowerCase())) {
+	function add(name: string) {
+		if (!skills.some((s) => skillKey(s) === name.toLowerCase())) {
 			skills.push({
 				name,
 				weight: 'must',
@@ -27,7 +31,6 @@
 				level: null
 			});
 		}
-		draft = '';
 	}
 
 	function remove(skill: Skill) {
@@ -35,99 +38,156 @@
 	}
 </script>
 
-<div class="row toolbar">
-	<div class="row" role="radiogroup" aria-label="Filter">
-		{#each ['all', 'must', 'nice', 'avoid'] as const as key (key)}
-			<button
-				type="button"
-				class:active={filter === key}
-				aria-pressed={filter === key}
-				onclick={() => (filter = key)}
-			>
-				{key === 'all' ? 'Alle' : weightLabels[key]} ({counts[key]})
-			</button>
-		{/each}
-	</div>
-	<form
-		class="row"
-		onsubmit={(e) => {
-			e.preventDefault();
-			add();
-		}}
-	>
-		<input bind:value={draft} placeholder="Skill hinzufügen" aria-label="Neuer Skill" />
-		<button type="submit">+</button>
-	</form>
-</div>
+<SectionHead
+	icon="wrench"
+	title="Skills"
+	bind:editing
+	onadd={add}
+	addPlaceholder="z. B. TypeScript"
+/>
 
-<table>
-	<thead>
-		<tr><th>Skill</th><th>Gewichtung</th><th>Level</th><th></th></tr>
-	</thead>
-	<tbody>
-		{#each skills.filter((s) => filter === 'all' || s.weight === filter) as skill (skill.name)}
-			<tr>
-				<td>
-					{skill.name}
-					{#if skill.source === 'cv'}<span class="badge" title="aus dem Lebenslauf">CV</span>{/if}
-					{#if !skill.canonical}<span class="badge" title="nicht in der Skill-Liste">frei</span
-						>{/if}
-				</td>
-				<td>
-					<select bind:value={skill.weight} aria-label="Gewichtung {skill.name}">
-						{#each Object.entries(weightLabels) as [value, text] (value)}
-							<option {value}>{text}</option>
-						{/each}
-					</select>
-				</td>
-				<td>
-					<select bind:value={skill.level} aria-label="Level {skill.name}">
-						<option value={null}>–</option>
-						{#each Object.entries(skillLevelLabels) as [value, text] (value)}
-							<option {value}>{text}</option>
-						{/each}
-					</select>
-				</td>
-				<td>
-					<button
-						type="button"
-						class="icon"
-						aria-label="{skill.name} entfernen"
-						onclick={() => remove(skill)}>×</button
-					>
-				</td>
-			</tr>
-		{:else}
-			<tr><td colspan="4" class="muted">Keine Skills.</td></tr>
-		{/each}
-	</tbody>
-</table>
+{#each groups as group (group.weight)}
+	{@const items = skills.filter((s) => (s.weight ?? 'nice') === group.weight)}
+	<h3>{group.title} <span class="count">{items.length}</span></h3>
+	<ChipList
+		{items}
+		key={skillKey}
+		text={(s) => s.name}
+		{editing}
+		{selectedKey}
+		empty="Keine."
+		onremove={remove}
+		onselect={(s) => (selectedKey = selectedKey === skillKey(s) ? null : skillKey(s))}
+	>
+		{#snippet extra(skill)}
+			{#if skill.level}<span class="level">{skillLevelLabels[skill.level]}</span>{/if}
+			{#if skill.source === 'cv'}<span class="src" title="aus dem Lebenslauf"
+					><Icon name="file-text" size={14} /></span
+				>{/if}
+		{/snippet}
+	</ChipList>
+{/each}
+
+{#if selected}
+	<div class="detail">
+		<strong class="name">{selected.name}</strong>
+		{#if selected.source === 'cv'}
+			<span class="badge"><Icon name="file-text" size={12} /> aus Lebenslauf</span>
+		{/if}
+		{#if !selected.canonical}<span class="badge" title="nicht in der Skill-Liste">frei</span>{/if}
+
+		<div class="segmented" role="radiogroup" aria-label="Gewichtung">
+			{#each Object.entries(weightLabels) as [value, label] (value)}
+				<button
+					type="button"
+					role="radio"
+					aria-checked={selected.weight === value}
+					class:on={selected.weight === value}
+					onclick={() => (selected.weight = value as Weight)}>{label}</button
+				>
+			{/each}
+		</div>
+
+		<div class="segmented" role="radiogroup" aria-label="Level">
+			{#each [[null, '–'], ...Object.entries(skillLevelLabels)] as [value, label] (value)}
+				<button
+					type="button"
+					role="radio"
+					aria-checked={selected.level === value}
+					class:on={selected.level === value}
+					onclick={() => (selected.level = value as Skill['level'])}>{label}</button
+				>
+			{/each}
+		</div>
+
+		<button
+			type="button"
+			class="icon danger"
+			aria-label="{selected.name} entfernen"
+			title="Entfernen"
+			onclick={() => remove(selected)}><Icon name="trash" size={16} /></button
+		>
+		<button
+			type="button"
+			class="icon"
+			aria-label="Auswahl schließen"
+			onclick={() => (selectedKey = null)}><Icon name="x" size={16} /></button
+		>
+	</div>
+{:else if skills.length}
+	<p class="muted hint">Skill anklicken, um Gewichtung und Level zu ändern.</p>
+{/if}
 
 <style>
-	.toolbar {
-		justify-content: space-between;
-		margin-bottom: 0.5rem;
+	h3 {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 1rem;
+		margin: 1.1rem 0 0.6rem;
 	}
-	button.active {
-		border-color: var(--accent);
-		color: var(--accent);
+	h3:first-of-type {
+		margin-top: 0;
 	}
-	table {
-		width: 100%;
-		border-collapse: collapse;
-	}
-	th {
-		text-align: left;
+	.count {
+		font-size: 0.8rem;
 		font-weight: 500;
 		color: var(--muted);
+	}
+	.level {
+		font-size: 0.75rem;
+		color: var(--muted);
+	}
+	.src {
+		display: inline-flex;
+		color: var(--accent);
+	}
+	.detail {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.6rem;
+		margin-top: 1.25rem;
+		padding: 0.75rem 1rem;
+		border: 1px solid var(--accent);
+		border-radius: 8px;
+		background: var(--bg);
+	}
+	.name {
+		margin-right: 0.25rem;
+	}
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+	.segmented {
+		display: inline-flex;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		overflow: hidden;
+	}
+	.segmented button {
+		border: none;
+		border-radius: 0;
+		padding: 0.25rem 0.75rem;
+		background: none;
+	}
+	.segmented button + button {
+		border-left: 1px solid var(--border);
+	}
+	.segmented button.on {
+		background: var(--accent);
+		color: var(--accent-text);
+	}
+	.danger:hover {
+		color: var(--error);
+	}
+	.detail .icon:first-of-type {
+		margin-left: auto;
+	}
+	.hint {
+		margin: 1rem 0 0;
 		font-size: 0.85rem;
-	}
-	th,
-	td {
-		padding: 0.3rem 0.4rem;
-		border-bottom: 1px solid var(--border);
-	}
-	td:last-child {
-		width: 1%;
 	}
 </style>

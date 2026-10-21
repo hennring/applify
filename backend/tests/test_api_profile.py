@@ -100,6 +100,25 @@ def test_cv_changes_and_apply(api: TestClient, fake_llm: FakeLLM) -> None:
     assert "contact:name" not in remaining
 
 
+def test_extraction_fills_profile_but_keeps_conflicts_as_changes(
+    api: TestClient, fake_llm: FakeLLM
+) -> None:
+    api.put("/api/profile", json={"contact": {"name": "Lena"}, "roles": ["Frontend Developer"]})
+    fake_llm.result = LLM_RESULT
+    upload(api, "cv", "cv.pdf", CV_PDF)
+
+    profile = api.get("/api/profile").json()
+    # New values are taken over directly; the existing name is not overwritten.
+    assert profile["contact"]["name"] == "Lena"
+    assert profile["contact"]["email"] == "lena.beispiel@example.org"
+    assert profile["roles"] == ["Frontend Developer", "Fullstack Developer"]
+    assert {s["name"] for s in profile["skills"]} >= {"Vue", "TypeScript", "Python"}
+    assert [s["employer"] for s in profile["experience"]] == ["Pixelwerk GmbH"]
+
+    changes = api.get("/api/profile/cv-changes").json()["changes"]
+    assert [c["id"] for c in changes] == ["contact:name"]
+
+
 def test_cv_changes_for_unfinished_extraction(api: TestClient) -> None:
     doc = upload(api, "certificate", "z.pdf", CV_PDF)
     response = api.get("/api/profile/cv-changes", params={"document_id": doc["id"]})

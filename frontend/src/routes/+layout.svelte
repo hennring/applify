@@ -49,6 +49,12 @@
 		min-height: 100vh;
 	}
 	nav {
+		position: sticky;
+		top: 0;
+		align-self: start;
+		height: 100vh;
+		box-sizing: border-box;
+		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
 		gap: 0.15rem;
@@ -74,7 +80,7 @@
 	}
 	main {
 		padding: 1.5rem 2rem;
-		max-width: 70rem;
+		max-width: 110rem;
 		min-width: 0;
 	}
 	@media (max-width: 700px) {
@@ -82,6 +88,8 @@
 			grid-template-columns: 1fr;
 		}
 		nav {
+			position: static;
+			height: auto;
 			flex-direction: row;
 			flex-wrap: wrap;
 			border-right: none;

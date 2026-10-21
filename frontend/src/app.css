@@ -10,6 +10,7 @@
 	--warn: #a86a00;
 	--error: #c0392b;
 	--chip: #eef1f8;
+	--chip-border: #c9ccd4;
 	color-scheme: light dark;
 	font-family: system-ui, sans-serif;
 	font-size: 15px;
@@ -28,6 +29,7 @@
 		--warn: #e0a83a;
 		--error: #ef6b5c;
 		--chip: #2b3040;
+		--chip-border: #4a4f5c;
 	}
 }
 
@@ -120,8 +122,29 @@ button.primary {
 	color: var(--accent-text);
 }
 button.icon {
+	display: inline-flex;
+	align-items: center;
 	padding: 0.2rem 0.5rem;
 	color: var(--muted);
+}
+button.round {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.1rem;
+	height: 2.1rem;
+	padding: 0;
+	border-radius: 50%;
+	border-color: var(--accent);
+	background: var(--accent);
+	color: var(--accent-text);
+}
+button.round:hover:not(:disabled) {
+	filter: brightness(1.12);
+}
+button.round.on {
+	background: var(--surface);
+	color: var(--accent);
 }
 
 .grid {
