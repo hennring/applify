@@ -11,7 +11,7 @@
 		runStatusLabels,
 		sourceLabels
 	} from '#lib/labels.ts';
-	import { PAGE_SIZE } from './+page.ts';
+	import { JOB_PAGE_SIZE } from '#lib/jobs.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -62,7 +62,7 @@
 	async function loadMore() {
 		loadingMore = true;
 		const { data: page } = await api.GET('/api/jobs', {
-			params: { query: { limit: PAGE_SIZE, offset: jobs.length } }
+			params: { query: { limit: JOB_PAGE_SIZE, offset: jobs.length } }
 		});
 		loadingMore = false;
 		if (page) more = [...more, ...page.items];
