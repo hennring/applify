@@ -37,6 +37,21 @@ export const stationKindLabels: Labels<Schemas['Station-Output']['kind'] & strin
 	internship: 'Praktikum'
 };
 
+export const jobRemoteLabels: Record<string, string> = {
+	hybrid: 'Hybrid',
+	remote: 'Remote'
+};
+
+export const sourceLabels: Record<string, string> = {
+	ba: 'Arbeitsagentur'
+};
+
+export const runStatusLabels: Record<string, string> = {
+	running: 'läuft',
+	done: 'fertig',
+	failed: 'fehlgeschlagen'
+};
+
 export const documentTypeLabels: Labels<Schemas['DocumentOut']['type']> = {
 	cv: 'Lebenslauf',
 	certificate: 'Zeugnis',
@@ -64,6 +79,28 @@ export function formatBytes(bytes: number): string {
 	if (bytes < 1024) return `${bytes} B`;
 	if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
 	return `${(bytes / 1024 / 1024).toFixed(1).replace('.', ',')} MB`;
+}
+
+const euro = new Intl.NumberFormat('de-DE', {
+	style: 'currency',
+	currency: 'EUR',
+	maximumFractionDigits: 0
+});
+
+/** "50.000 – 60.000 €", "ab 50.000 €", "bis 60.000 €" or null if unknown. */
+export function formatSalary(min: number | null, max: number | null): string | null {
+	if (min !== null && max !== null) {
+		return min === max
+			? euro.format(min)
+			: `${euro.format(min).replace(/\s?€$/, '')} – ${euro.format(max)}`;
+	}
+	if (min !== null) return `ab ${euro.format(min)}`;
+	if (max !== null) return `bis ${euro.format(max)}`;
+	return null;
+}
+
+export function formatDate(iso: string): string {
+	return new Date(iso).toLocaleDateString('de-DE', { dateStyle: 'medium' });
 }
 
 export function formatDateTime(iso: string): string {

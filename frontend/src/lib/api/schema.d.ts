@@ -146,6 +146,94 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/runs': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Start Run */
+		post: operations['start_run_api_runs_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/runs/latest': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Latest Run */
+		get: operations['latest_run_api_runs_latest_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/runs/{run_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get Run */
+		get: operations['get_run_api_runs__run_id__get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/jobs': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * List Jobs
+		 * @description Newest first; ranking per profile follows in M3.
+		 */
+		get: operations['list_jobs_api_jobs_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/jobs/{job_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get Job */
+		get: operations['get_job_api_jobs__job_id__get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -336,6 +424,75 @@ export interface components {
 			database: components['schemas']['ComponentHealth'];
 			ollama: components['schemas']['ComponentHealth'];
 		};
+		/** JobDetail */
+		JobDetail: {
+			/** Id */
+			id: number;
+			/** Title */
+			title: string;
+			/** Company */
+			company: string;
+			/** Location Raw */
+			location_raw: string;
+			/** Remote Type */
+			remote_type: string | null;
+			/** Salary Min */
+			salary_min: number | null;
+			/** Salary Max */
+			salary_max: number | null;
+			/** Has Full Text */
+			has_full_text: boolean;
+			/** Posted At */
+			posted_at: string | null;
+			/**
+			 * First Seen At
+			 * Format: date-time
+			 */
+			first_seen_at: string;
+			/** Sources */
+			sources: components['schemas']['SourceLink'][];
+			/** Description */
+			description: string;
+			/** Lat */
+			lat: number | null;
+			/** Lon */
+			lon: number | null;
+		};
+		/** JobOut */
+		JobOut: {
+			/** Id */
+			id: number;
+			/** Title */
+			title: string;
+			/** Company */
+			company: string;
+			/** Location Raw */
+			location_raw: string;
+			/** Remote Type */
+			remote_type: string | null;
+			/** Salary Min */
+			salary_min: number | null;
+			/** Salary Max */
+			salary_max: number | null;
+			/** Has Full Text */
+			has_full_text: boolean;
+			/** Posted At */
+			posted_at: string | null;
+			/**
+			 * First Seen At
+			 * Format: date-time
+			 */
+			first_seen_at: string;
+			/** Sources */
+			sources: components['schemas']['SourceLink'][];
+		};
+		/** JobPage */
+		JobPage: {
+			/** Total */
+			total: number;
+			/** Items */
+			items: components['schemas']['JobOut'][];
+		};
 		/** Language */
 		Language: {
 			/** Language */
@@ -520,6 +677,39 @@ export interface components {
 			 */
 			education: components['schemas']['Education-Output'][];
 		};
+		/** RunError */
+		RunError: {
+			/** Source */
+			source: string;
+			/** Query */
+			query: string;
+			/** Message */
+			message: string;
+		};
+		/** RunOut */
+		RunOut: {
+			/** Id */
+			id: number;
+			/** Status */
+			status: string;
+			/** Progress */
+			progress: number;
+			/** Step */
+			step: string;
+			/** Stats */
+			stats: {
+				[key: string]: components['schemas']['SourceStats'];
+			};
+			/** Errors */
+			errors: components['schemas']['RunError'][];
+			/**
+			 * Started At
+			 * Format: date-time
+			 */
+			started_at: string;
+			/** Finished At */
+			finished_at: string | null;
+		};
 		/** Skill */
 		'Skill-Input': {
 			/** Name */
@@ -571,6 +761,28 @@ export interface components {
 			 * @enum {string}
 			 */
 			source: 'cv' | 'user';
+		};
+		/** SourceLink */
+		SourceLink: {
+			/** Source */
+			source: string;
+			/** Url */
+			url: string;
+		};
+		/** SourceStats */
+		SourceStats: {
+			/** Label */
+			label: string;
+			/** Found */
+			found: number;
+			/** New */
+			new: number;
+			/** Duplicate */
+			duplicate: number;
+			/** Known */
+			known: number;
+			/** Errors */
+			errors: number;
 		};
 		/** Station */
 		'Station-Input': {
@@ -941,6 +1153,140 @@ export interface operations {
 				};
 				content: {
 					'application/json': components['schemas']['ProfileData-Output'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	start_run_api_runs_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			202: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['RunOut'];
+				};
+			};
+		};
+	};
+	latest_run_api_runs_latest_get: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['RunOut'] | null;
+				};
+			};
+		};
+	};
+	get_run_api_runs__run_id__get: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				run_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['RunOut'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	list_jobs_api_jobs_get: {
+		parameters: {
+			query?: {
+				limit?: number;
+				offset?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['JobPage'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	get_job_api_jobs__job_id__get: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				job_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['JobDetail'];
 				};
 			};
 			/** @description Validation Error */

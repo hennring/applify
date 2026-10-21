@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable
 from contextlib import AbstractContextManager
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 
 from sqlalchemy import update
 from sqlalchemy.orm import Session
@@ -38,7 +38,7 @@ def run_cv_extraction(
             document.extraction_error = None
             document.extraction_result = suggestion.model_dump(mode="json")
             apply_additions(session, document.user_id, suggestion, taxonomy)
-        document.extracted_at = datetime.now()
+        document.extracted_at = datetime.now(UTC)
         session.commit()
 
 

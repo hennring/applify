@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     ollama_num_ctx: int = 8192
     data_dir: Path = Path("../data/files")
     max_upload_mb: int = 15
+    # Contact for the User-Agent of outgoing requests (N6), e.g. a mail address or URL.
+    http_contact: str = ""
+    # Seconds between two requests to the same host (N6).
+    http_interval: float = 1.0
     # Built SvelteKit SPA; only served if the directory exists.
     static_dir: Path = Path("../frontend/build")
 

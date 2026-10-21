@@ -11,6 +11,7 @@ from applify.schemas.profile import (
     Skill,
     Station,
 )
+from applify.services.geo import get_gazetteer
 from applify.services.skills import SkillTaxonomy, match_key
 
 
@@ -123,15 +124,16 @@ def save_profile(session: Session, user_id: int, data: ProfileData) -> ProfileDa
     ]
     row.locations = []
     for i, loc in enumerate(data.locations):
-        # Keep coordinates (filled from GeoNames in M2) of locations that still exist.
+        # Coordinates from the offline geo data (D11); unknown places stay without.
         old = previous_locations.get(loc.name.casefold())
+        place = None if old and old.lat is not None else get_gazetteer().locate(loc.name)
         row.locations.append(
             ProfileLocation(
                 position=i,
                 name=loc.name.strip(),
                 radius_km=loc.radius_km,
-                lat=old.lat if old else None,
-                lon=old.lon if old else None,
+                lat=place.lat if place else old.lat if old else None,
+                lon=place.lon if place else old.lon if old else None,
             )
         )
     row.languages = [

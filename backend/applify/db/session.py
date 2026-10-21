@@ -1,14 +1,18 @@
 from collections.abc import Iterator
+from datetime import datetime
 from functools import lru_cache
+from typing import Any, ClassVar
 
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import DateTime, Engine, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from applify.config import get_settings
 
 
 class Base(DeclarativeBase):
-    pass
+    # timestamptz everywhere: the API then sends times with offset, and DB defaults (UTC)
+    # and times set in Python compare correctly.
+    type_annotation_map: ClassVar[dict[Any, Any]] = {datetime: DateTime(timezone=True)}
 
 
 @lru_cache

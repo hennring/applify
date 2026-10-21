@@ -1,0 +1,151 @@
+{
+ "ergebnisliste": [
+  {
+   "stellenangebotsart": "ARBEIT",
+   "stellenangebotsTitel": "Fullstack Entwickler (m/w/d)",
+   "quereinstiegGeeignet": false,
+   "arbeitszeitSchichtNachtWochenende": false,
+   "arbeitszeitTeilzeitAbend": false,
+   "arbeitszeitTeilzeitNachmittag": false,
+   "arbeitszeitTeilzeitVormittag": false,
+   "arbeitszeitTeilzeitFlexibel": false,
+   "arbeitszeitVollzeit": false,
+   "eintrittszeitraum": {
+    "von": "2026-10-01"
+   },
+   "verguetungsangabe": "KEINE_ANGABEN",
+   "vertragsdauer": "KEINE_ANGABE",
+   "istGeringfuegigeBeschaeftigung": false,
+   "stellenlokationen": [
+    {
+     "adresse": {
+      "plz": "04109",
+      "ort": "Leipzig",
+      "region": "SACHSEN",
+      "land": "DEUTSCHLAND"
+     },
+     "breite": 51.3390296,
+     "laenge": 12.3665008
+    }
+   ],
+   "homeofficemoeglich": false,
+   "chiffrenummer": "312454",
+   "veroeffentlichungszeitraum": {
+    "von": "2026-10-01"
+   },
+   "datumErsteVeroeffentlichung": "2026-10-01",
+   "aenderungsdatum": "2026-10-01T07:24:10.244",
+   "externeURL": "https://www.get-in-it.de/jobsuche/p312454?utm_source=arbeitsagentur&utm_medium=organic&utm_campaign=launch-basic",
+   "hauptberuf": "Anwendungsprogrammierer/in",
+   "firma": "mgm technology partners",
+   "referenznummer": "13644-312454-S",
+   "entfernung": 1,
+   "alleBerufe": [
+    "Anwendungsprogrammierer/in"
+   ]
+  },
+  {
+   "stellenangebotsart": "ARBEIT",
+   "stellenangebotsTitel": "mgm technology partners GmbH: Fullstack Entwickler (m/w/d)",
+   "quereinstiegGeeignet": false,
+   "arbeitszeitSchichtNachtWochenende": false,
+   "arbeitszeitTeilzeitAbend": false,
+   "arbeitszeitTeilzeitNachmittag": false,
+   "arbeitszeitTeilzeitVormittag": false,
+   "arbeitszeitTeilzeitFlexibel": false,
+   "arbeitszeitVollzeit": true,
+   "eintrittszeitraum": {
+    "von": "2026-10-07"
+   },
+   "verguetungsangabe": "JAHRESGEHALT",
+   "artDerVerguetung": "GEHALTSSPANNE",
+   "gehaltsspanneVon": 46000.0,
+   "gehaltsspanneBis": 100000.0,
+   "vertragsdauer": "KEINE_ANGABE",
+   "istGeringfuegigeBeschaeftigung": false,
+   "stellenlokationen": [
+    {
+     "adresse": {
+      "plz": "04109",
+      "ort": "Leipzig",
+      "region": "SACHSEN",
+      "land": "DEUTSCHLAND"
+     },
+     "breite": 51.3390296,
+     "laenge": 12.3665008
+    }
+   ],
+   "homeofficemoeglich": true,
+   "homeofficetyp": "NACH_VEREINBARUNG",
+   "veroeffentlichungszeitraum": {
+    "von": "2026-10-07"
+   },
+   "datumErsteVeroeffentlichung": "2026-10-07",
+   "aenderungsdatum": "2026-10-07T07:02:01.629",
+   "externeURL": "https://www.empfehlungsbund.de/job/306501",
+   "hauptberuf": "Fullstack-Entwickler/in",
+   "firma": "mgm technology partners GmbH",
+   "referenznummer": "11956-3065011791324001-S",
+   "entfernung": 1,
+   "alleBerufe": [
+    "Fullstack-Entwickler/in"
+   ]
+  },
+  {
+   "stellenangebotsart": "ARBEIT",
+   "stellenangebotsTitel": "Senior (Cloud) Fullstack Entwickler (all genders)",
+   "arbeitszeitVollzeit": true,
+   "eintrittszeitraum": {
+    "von": "2026-10-06"
+   },
+   "verguetungsangabe": "KEINE_ANGABEN",
+   "vertragsdauer": "UNBEFRISTET",
+   "stellenlokationen": [
+    {
+     "adresse": {
+      "strasse": "Petersstraße",
+      "hausnummer": "35",
+      "plz": "04109",
+      "ort": "Leipzig",
+      "region": "SACHSEN",
+      "land": "DEUTSCHLAND"
+     },
+     "breite": 51.337647,
+     "laenge": 12.374973
+    }
+   ],
+   "homeofficemoeglich": true,
+   "homeofficetyp": "NACH_VEREINBARUNG",
+   "veroeffentlichungszeitraum": {
+    "von": "2026-10-06"
+   },
+   "datumErsteVeroeffentlichung": "2026-10-06",
+   "aenderungsdatum": "2026-10-06T12:43:25.992",
+   "hauptberuf": "Fullstack-Entwickler/in",
+   "alternativBeruf1": "Cloud-Consultant",
+   "alternativBeruf2": "Softwareentwickler/in",
+   "firma": "cronos Unternehmensberatung GmbH",
+   "arbeitgeberKundennummerHash": "5O5yVZeETqCNa8KpMf-7VOF7kiHSpscAJaj3XOc7veo=",
+   "referenznummer": "10001-1003809672-S",
+   "entfernung": 1,
+   "alleBerufe": [
+    "Fullstack-Entwickler/in",
+    "Softwareentwickler/in",
+    "Cloud-Consultant"
+   ]
+  }
+ ],
+ "maxErgebnisse": 3,
+ "page": 1,
+ "size": 3,
+ "woOutput": {
+  "bereinigterOrt": "Leipzig",
+  "suchmodus": "UMKREISSUCHE",
+  "koordinaten": [
+   {
+    "lat": 51.3455991,
+    "lon": 12.38259685
+   }
+  ]
+ }
+}

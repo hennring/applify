@@ -378,6 +378,187 @@
 					}
 				}
 			}
+		},
+		"/api/runs": {
+			"post": {
+				"tags": ["runs"],
+				"summary": "Start Run",
+				"operationId": "start_run_api_runs_post",
+				"responses": {
+					"202": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RunOut"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/runs/latest": {
+			"get": {
+				"tags": ["runs"],
+				"summary": "Latest Run",
+				"operationId": "latest_run_api_runs_latest_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/RunOut"
+										},
+										{
+											"type": "null"
+										}
+									],
+									"title": "Response Latest Run Api Runs Latest Get"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/runs/{run_id}": {
+			"get": {
+				"tags": ["runs"],
+				"summary": "Get Run",
+				"operationId": "get_run_api_runs__run_id__get",
+				"parameters": [
+					{
+						"name": "run_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Run Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RunOut"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/jobs": {
+			"get": {
+				"tags": ["jobs"],
+				"summary": "List Jobs",
+				"description": "Newest first; ranking per profile follows in M3.",
+				"operationId": "list_jobs_api_jobs_get",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 200,
+							"minimum": 1,
+							"default": 50,
+							"title": "Limit"
+						}
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 0,
+							"default": 0,
+							"title": "Offset"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/JobPage"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/jobs/{job_id}": {
+			"get": {
+				"tags": ["jobs"],
+				"summary": "Get Job",
+				"operationId": "get_job_api_jobs__job_id__get",
+				"parameters": [
+					{
+						"name": "job_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Job Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/JobDetail"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"components": {
@@ -775,6 +956,245 @@
 				"required": ["status", "database", "ollama"],
 				"title": "Health"
 			},
+			"JobDetail": {
+				"properties": {
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"title": {
+						"type": "string",
+						"title": "Title"
+					},
+					"company": {
+						"type": "string",
+						"title": "Company"
+					},
+					"location_raw": {
+						"type": "string",
+						"title": "Location Raw"
+					},
+					"remote_type": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Remote Type"
+					},
+					"salary_min": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Salary Min"
+					},
+					"salary_max": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Salary Max"
+					},
+					"has_full_text": {
+						"type": "boolean",
+						"title": "Has Full Text"
+					},
+					"posted_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Posted At"
+					},
+					"first_seen_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "First Seen At"
+					},
+					"sources": {
+						"items": {
+							"$ref": "#/components/schemas/SourceLink"
+						},
+						"type": "array",
+						"title": "Sources"
+					},
+					"description": {
+						"type": "string",
+						"title": "Description"
+					},
+					"lat": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Lat"
+					},
+					"lon": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Lon"
+					}
+				},
+				"type": "object",
+				"required": [
+					"id",
+					"title",
+					"company",
+					"location_raw",
+					"remote_type",
+					"salary_min",
+					"salary_max",
+					"has_full_text",
+					"posted_at",
+					"first_seen_at",
+					"sources",
+					"description",
+					"lat",
+					"lon"
+				],
+				"title": "JobDetail"
+			},
+			"JobOut": {
+				"properties": {
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"title": {
+						"type": "string",
+						"title": "Title"
+					},
+					"company": {
+						"type": "string",
+						"title": "Company"
+					},
+					"location_raw": {
+						"type": "string",
+						"title": "Location Raw"
+					},
+					"remote_type": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Remote Type"
+					},
+					"salary_min": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Salary Min"
+					},
+					"salary_max": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Salary Max"
+					},
+					"has_full_text": {
+						"type": "boolean",
+						"title": "Has Full Text"
+					},
+					"posted_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Posted At"
+					},
+					"first_seen_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "First Seen At"
+					},
+					"sources": {
+						"items": {
+							"$ref": "#/components/schemas/SourceLink"
+						},
+						"type": "array",
+						"title": "Sources"
+					}
+				},
+				"type": "object",
+				"required": [
+					"id",
+					"title",
+					"company",
+					"location_raw",
+					"remote_type",
+					"salary_min",
+					"salary_max",
+					"has_full_text",
+					"posted_at",
+					"first_seen_at",
+					"sources"
+				],
+				"title": "JobOut"
+			},
+			"JobPage": {
+				"properties": {
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"items": {
+						"items": {
+							"$ref": "#/components/schemas/JobOut"
+						},
+						"type": "array",
+						"title": "Items"
+					}
+				},
+				"type": "object",
+				"required": ["total", "items"],
+				"title": "JobPage"
+			},
 			"Language": {
 				"properties": {
 					"language": {
@@ -1112,6 +1532,88 @@
 				],
 				"title": "ProfileData"
 			},
+			"RunError": {
+				"properties": {
+					"source": {
+						"type": "string",
+						"title": "Source"
+					},
+					"query": {
+						"type": "string",
+						"title": "Query"
+					},
+					"message": {
+						"type": "string",
+						"title": "Message"
+					}
+				},
+				"type": "object",
+				"required": ["source", "query", "message"],
+				"title": "RunError"
+			},
+			"RunOut": {
+				"properties": {
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"status": {
+						"type": "string",
+						"title": "Status"
+					},
+					"progress": {
+						"type": "number",
+						"title": "Progress"
+					},
+					"step": {
+						"type": "string",
+						"title": "Step"
+					},
+					"stats": {
+						"additionalProperties": {
+							"$ref": "#/components/schemas/SourceStats"
+						},
+						"type": "object",
+						"title": "Stats"
+					},
+					"errors": {
+						"items": {
+							"$ref": "#/components/schemas/RunError"
+						},
+						"type": "array",
+						"title": "Errors"
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Started At"
+					},
+					"finished_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Finished At"
+					}
+				},
+				"type": "object",
+				"required": [
+					"id",
+					"status",
+					"progress",
+					"step",
+					"stats",
+					"errors",
+					"started_at",
+					"finished_at"
+				],
+				"title": "RunOut"
+			},
 			"Skill-Input": {
 				"properties": {
 					"name": {
@@ -1217,6 +1719,52 @@
 				"type": "object",
 				"required": ["name", "canonical", "category", "weight", "level", "source"],
 				"title": "Skill"
+			},
+			"SourceLink": {
+				"properties": {
+					"source": {
+						"type": "string",
+						"title": "Source"
+					},
+					"url": {
+						"type": "string",
+						"title": "Url"
+					}
+				},
+				"type": "object",
+				"required": ["source", "url"],
+				"title": "SourceLink"
+			},
+			"SourceStats": {
+				"properties": {
+					"label": {
+						"type": "string",
+						"title": "Label"
+					},
+					"found": {
+						"type": "integer",
+						"title": "Found"
+					},
+					"new": {
+						"type": "integer",
+						"title": "New"
+					},
+					"duplicate": {
+						"type": "integer",
+						"title": "Duplicate"
+					},
+					"known": {
+						"type": "integer",
+						"title": "Known"
+					},
+					"errors": {
+						"type": "integer",
+						"title": "Errors"
+					}
+				},
+				"type": "object",
+				"required": ["label", "found", "new", "duplicate", "known", "errors"],
+				"title": "SourceStats"
 			},
 			"Station-Input": {
 				"properties": {

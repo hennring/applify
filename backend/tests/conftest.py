@@ -1,3 +1,4 @@
+import copy
 import os
 from collections.abc import Iterator
 from contextlib import nullcontext
@@ -18,7 +19,9 @@ from applify.db.session import get_session, get_session_factory
 from applify.llm import get_llm
 from applify.llm.base import T
 from applify.main import create_app
-from applify.services.background import get_task_runner
+from applify.services.background import get_search_runner, get_task_runner
+from applify.sources import get_sources_factory
+from applify.sources.base import JobPosting, SearchQuery
 
 BACKEND_DIR = Path(__file__).parents[1]
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -82,13 +85,45 @@ def db_session(db_engine: Engine) -> Iterator[Session]:
         transaction.rollback()
 
 
+class FakeSource:
+    """JobSource with prepared postings per search term; complete() adds a full text."""
+
+    name = "ba"
+    label = "Bundesagentur für Arbeit"
+
+    def __init__(self) -> None:
+        self.postings: dict[str, list[JobPosting]] = {}
+        self.errors: dict[str, Exception] = {}
+        self.queries: list[SearchQuery] = []
+        self.completed: list[str] = []
+
+    def search(self, query: SearchQuery) -> list[JobPosting]:
+        self.queries.append(query)
+        if query.term in self.errors:
+            raise self.errors[query.term]
+        return [copy.deepcopy(p) for p in self.postings.get(query.term, [])]
+
+    def complete(self, posting: JobPosting) -> JobPosting:
+        self.completed.append(posting.external_id)
+        posting.description = f"Volltext zu {posting.title}. " * 20
+        posting.has_full_text = True
+        return posting
+
+
+@pytest.fixture
+def fake_source() -> FakeSource:
+    return FakeSource()
+
+
 @pytest.fixture
 def fake_llm() -> FakeLLM:
     return FakeLLM()
 
 
 @pytest.fixture
-def api(db_session: Session, fake_llm: FakeLLM, tmp_path: Path) -> Iterator[TestClient]:
+def api(
+    db_session: Session, fake_llm: FakeLLM, fake_source: FakeSource, tmp_path: Path
+) -> Iterator[TestClient]:
     """API client on the test database; background jobs run synchronously."""
     app = create_app(run_startup_tasks=False)
     settings = Settings(data_dir=tmp_path, static_dir=tmp_path / "no-spa")
@@ -97,5 +132,7 @@ def api(db_session: Session, fake_llm: FakeLLM, tmp_path: Path) -> Iterator[Test
     app.dependency_overrides[get_settings] = lambda: settings
     app.dependency_overrides[get_llm] = lambda: fake_llm
     app.dependency_overrides[get_task_runner] = lambda: lambda fn, *args: fn(*args)
+    app.dependency_overrides[get_search_runner] = lambda: lambda fn, *args: fn(*args)
+    app.dependency_overrides[get_sources_factory] = lambda: lambda: [fake_source]
     with TestClient(app) as client:
         yield client

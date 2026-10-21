@@ -8,10 +8,11 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
-from applify.api import documents, health, profile
+from applify.api import documents, health, jobs, profile, runs
 from applify.config import get_settings
 from applify.db.session import get_sessionmaker
 from applify.services.cv_jobs import fail_interrupted_jobs
+from applify.services.search_runner import fail_interrupted_runs
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         with get_sessionmaker()() as session:
             fail_interrupted_jobs(session)
+            fail_interrupted_runs(session)
     except SQLAlchemyError:
         log.warning("could not reset interrupted jobs", exc_info=True)
     yield
@@ -45,7 +47,7 @@ def create_app(*, run_startup_tasks: bool = True) -> FastAPI:
     app = FastAPI(
         title="Applify", version="0.1.0", lifespan=lifespan if run_startup_tasks else None
     )
-    for module in (health, documents, profile):
+    for module in (health, documents, profile, runs, jobs):
         app.include_router(module.router, prefix="/api")
     mount_spa(app, get_settings().static_dir)
     return app

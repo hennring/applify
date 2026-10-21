@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ARRAY, ForeignKey, Integer, String, Text, func
+from sqlalchemy import ARRAY, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -101,3 +101,75 @@ class ProfileLanguage(Base):
     position: Mapped[int]
     language: Mapped[str] = mapped_column(String(50))
     level: Mapped[str] = mapped_column(String(10))  # A1-C2 / native
+
+
+class Job(Base):
+    """A posting, shared by all users; one row per real job across sources (F9)."""
+
+    __tablename__ = "jobs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(300))
+    company: Mapped[str] = mapped_column(String(300))
+    location_raw: Mapped[str] = mapped_column(String(300), server_default="")
+    lat: Mapped[float | None]
+    lon: Mapped[float | None]
+    remote_type: Mapped[str | None] = mapped_column(String(10))  # hybrid / remote
+    salary_min: Mapped[int | None]
+    salary_max: Mapped[int | None]
+    description: Mapped[str] = mapped_column(Text, server_default="")
+    has_full_text: Mapped[bool] = mapped_column(server_default="false")
+    posted_at: Mapped[datetime | None]
+    # Dedup keys (§5.2).
+    company_norm: Mapped[str] = mapped_column(String(300))
+    title_norm: Mapped[str] = mapped_column(String(300))
+    city_norm: Mapped[str] = mapped_column(String(100), server_default="")
+    fingerprint: Mapped[str] = mapped_column(String(40), index=True)
+    first_seen_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+    sources: Mapped[list["JobSource"]] = relationship(
+        back_populates="job", cascade="all, delete-orphan", order_by="JobSource.id"
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_jobs_dedup_trgm",
+            "company_norm",
+            "title_norm",
+            postgresql_using="gin",
+            postgresql_ops={"company_norm": "gin_trgm_ops", "title_norm": "gin_trgm_ops"},
+        ),
+    )
+
+
+class JobSource(Base):
+    __tablename__ = "job_sources"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), index=True)
+    source: Mapped[str] = mapped_column(String(30))  # ba / adzuna / ats:personio / ...
+    external_id: Mapped[str] = mapped_column(String(200))
+    url: Mapped[str] = mapped_column(String(1000), server_default="")
+    raw: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default="{}")
+    fetched_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    job: Mapped[Job] = relationship(back_populates="sources")
+
+    __table_args__ = (UniqueConstraint("source", "external_id"),)
+
+
+class SearchRun(Base):
+    __tablename__ = "search_runs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    status: Mapped[str] = mapped_column(String(20))  # running / done / failed
+    # 0..1 and the step currently running, for the progress display (F5).
+    progress: Mapped[float] = mapped_column(server_default="0")
+    step: Mapped[str] = mapped_column(String(300), server_default="")
+    # Per source: found / new / duplicates / errors (F7d).
+    stats: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default="{}")
+    errors: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, server_default="[]")
+    started_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    finished_at: Mapped[datetime | None]

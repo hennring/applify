@@ -2,7 +2,7 @@
 
 > Persönlicher Bewerbungsassistent: findet täglich passende Stellen, bewertet sie gegen das eigene Profil und erzeugt auf Zusage ein fertiges Bewerbungspaket.
 
-Stand: 20.10.2026 (Gmail-Quelle verworfen; Quellen erweitert: Karriereseiten, Aggregatoren, öffentlicher Dienst, Firmen-Discovery; Abdeckungsmessung) · Status: Planung abgeschlossen, MVP-Umsetzung ausstehend
+Stand: 21.10.2026 (Spike M2: Quellen geprüft, BA-API auf v6) · Status: M0–M2 umgesetzt
 
 ---
 
@@ -101,7 +101,7 @@ Automatischer Zeitplan · Versand per Mail · Quellen der Stufe 2 und 3 (§5.1) 
 | D8 | **Frontend: SvelteKit im SPA-Modus** (`adapter-static`), TypeScript | Passt zum Web-Dev-Hintergrund, skaliert mit wachsender Komplexität. Typen werden per `openapi-typescript` aus dem Backend generiert. | HTMX (weniger flexibel), React |
 | D9 | **PostgreSQL 16** in Docker, Daten in `./data/postgres` | Mehrnutzer-tauglich, JSONB für Rohdaten und Score-Aufschlüsselung, `pg_trgm` für Fuzzy-Dedup. | SQLite (Umzug später nötig) |
 | D10 | **Hintergrundjobs im MVP in-process** (Thread + Tabelle `search_runs` mit Status/Fortschritt, Polling aus dem UI) | Keine zusätzliche Infrastruktur. Schnittstelle so geschnitten, dass später ein Worker (arq/Redis) oder Scheduler (APScheduler) übernimmt. Gilt auch für CV-Extraktion und Anschreiben-Generierung (dauern Sekunden bis eine Minute). | Celery/Redis im MVP |
-| D11 | **Geodaten offline**: GeoNames-Datensatz DE (Orte + PLZ) einmalig importiert, Distanz per Haversine | Keine externen Geocoding-Aufrufe, keine Rate-Limits, schnell. | Nominatim/Google Geocoding |
+| D11 | **Geodaten offline**: GeoNames-Datensatz DE (Orte + PLZ), per `python -m applify.build_geonames` zu zwei kompakten TSV-Dateien in `resources/` aufbereitet (~0,8 MB, CC BY 4.0) und beim Start in den Speicher geladen; Distanz per Haversine | Keine externen Geocoding-Aufrufe, keine Rate-Limits, schnell. | Nominatim/Google Geocoding |
 | D12 | **Skill-Taxonomie als YAML** im Repo (kanonischer Name, Synonyme, Kategorie) | Gemeinsame Sprache für CV-Extraktion und Matching: LLM-Ausgabe wird darauf normalisiert („JS“ → „JavaScript“, „Vue.js“ → „Vue“), Stellentexte ebenso. Unbekannte Skills bleiben als Freitext erhalten. | ESCO komplett (zu groß für MVP, aber später als Quelle nutzbar) |
 | D13 | **PDF-Erzeugung: HTML-Template + WeasyPrint** im Container | Anschreiben-Layout mit Jinja2/CSS gestaltbar; WeasyPrint läuft unter Linux problemlos. | LaTeX, reportlab |
 | D14 | **PDF-Textextraktion: `pdfplumber`** (Fallback `pypdf`), Text geht dann ans LLM | Gute Ergebnisse bei Text-PDFs, auch mit Spalten-Layout; OCR bewusst ausgelassen. | Tesseract im MVP; PDF direkt an ein Vision-Modell |
@@ -222,10 +222,27 @@ applify/
 Die Reihenfolge innerhalb von Stufe 2 richtet sich nach den verpassten Stellen der Abdeckungsmessung (§5.7).
 
 **Bundesagentur für Arbeit**
-- REST: `GET https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs`, Header `X-API-Key: jobboerse-jobsuche` (öffentlicher Schlüssel, Doku: bund.dev / github.com/bundesAPI/jobsuche-api).
-- Parameter: `was` (Suchbegriff), `wo` (Ort), `umkreis` (km), `angebotsart=1` (Arbeit), `veroeffentlichtseit` (Tage), `page`, `size`.
-- Pro Lauf: Kreuzprodukt aus abgeleiteten Suchbegriffen × Orten, Ergebnis über `refnr` dedupliziert.
-- Detail-/Volltext-Abruf: **im Spike (M2) verifizieren** – der Detail-Endpunkt hat sich in der Vergangenheit geändert. Fallback: Kurzinfo + Link.
+- Suche: `GET https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs`, Header `X-API-Key: jobboerse-jobsuche` (öffentlicher Schlüssel, Doku: bund.dev / github.com/bundesAPI/jobsuche-api). **Spike 21.10.2026:** `v4/jobs` antwortet inzwischen mit 403, `v6` funktioniert (Liste heißt jetzt `ergebnisliste`).
+- Parameter: `was` (Suchbegriff), `wo` (Ort), `umkreis` (km), `angebotsart=1` (Arbeit), `veroeffentlichtseit` (Tage), `page`, `size` (≤ 100 sinnvoll; zu tiefe Seiten → 400 „Ergebnismenge überschritten“).
+- Die Suche liefert bereits Koordinaten (`breite`/`laenge`), Gehalt (`festgehalt` bzw. `gehaltsspanneVon/Bis` mit `verguetungsangabe` Jahr/Monat/Stunde), Homeoffice (`homeofficemoeglich`, `homeofficeprozent`), `externeURL` und `istArbeitnehmerUeberlassung` (Zeitarbeit).
+- Pro Lauf: Kreuzprodukt aus abgeleiteten Suchbegriffen × Orten, Ergebnis über `referenznummer` dedupliziert.
+- Detail/Volltext: `GET …/pc/v4/jobdetails/{base64(referenznummer)}` liefert `stellenangebotsBeschreibung` (Markdown, meist mehrere tausend Zeichen), auch für Anzeigen mit externer URL. `v6/jobdetails` antwortet mit 403. Abruf nur für neue Anzeigen; bei Fehler bleibt die Kurzinfo + Link.
+
+**Spike-Ergebnis (M2, 21.10.2026) für die übrigen Quellen**
+
+| Quelle | Ergebnis |
+|---|---|
+| Arbeitnow | `GET https://www.arbeitnow.com/api/job-board-api?page=N` → 200, 300 Stellen pro Seite, `description` als HTML (escaped), Felder `remote`, `location`, `tags`, `created_at`. Nutzungsbedingung: „free public API, please do not abuse“, Rücklink erwünscht. |
+| Adzuna | Ohne Key 400 (erwartet) – Key beantragen. |
+| service.bund.de | Von hier aus nicht erreichbar (Verbindungs-Timeout auf IPv4, DNS ok). In M4 erneut prüfen, ggf. aus dem Container. |
+| Greenhouse | `boards-api.greenhouse.io/v1/boards/{token}/jobs` → 200 (gitlab, n26, celonis). |
+| Lever | `api.lever.co/v0/postings/{token}?mode=json` → 200 (spotify, palantir), Volltext als `descriptionPlain`. |
+| Personio | `{token}.jobs.personio.de/xml` → 200 (chrono24, 1komma5grad); falsche Tokens → 404 – Token muss aus der Karriereseite erkannt werden. |
+| Recruitee | `{token}.recruitee.com/api/offers` → 200 (bunq). |
+| SmartRecruiters | `api.smartrecruiters.com/v1/companies/{id}/postings` → 200 (BoschGroup; unbekannte Firma: 200 mit leerer Liste). |
+| Workday | `POST …/wday/cxs/{tenant}/{site}/jobs` → 200 (Deutsche Bank `db/DBWebsite`), 401 bei falscher Site – Site-Name muss erkannt werden. |
+| GitHub | `/search/users?q=type:org+location:Leipzig` → 200 ohne Token (257 Orgs, viele Forschungs-/Open-Source-Orgs). |
+| Wikidata | SPARQL `P159` (Hauptsitz) + `P856` (Website) → 200 in < 1 s; ohne Filter auf Unternehmen (`P31/P279* Q4830453`) kommen auch Vereine/Parteien – der Unterklassen-Pfad lief in den Timeout, daher in M4 mit konkreten Klassen (z. B. `Q4830453`, `Q6881511`) filtern. |
 
 **Aggregator-APIs**
 - **Adzuna**: kostenloser API-Key, Land `de`, Suche nach Begriff + Ort + Distanz; liefert meist nur einen Textauszug → Kurzinfo, Volltext ggf. per Dedup mit Karriereseite.
@@ -392,9 +409,9 @@ Jeder Meilenstein endet mit etwas Lauffähigem. Die LLM-Schicht wandert wegen de
 ---
 
 ## 9. Offene Punkte (in der Umsetzung klären)
-- Verfügbarkeit/Format des BA-Detail-Endpunkts (Spike M2)
-- Ob alle MVP-Quellen (Adzuna, Arbeitnow, service.bund.de-RSS, ATS-Endpunkte, GitHub, Wikidata) wie in §5.1 antworten, inkl. Limits und Nutzungsbedingungen (Spike M2)
+- ~~Verfügbarkeit/Format des BA-Detail-Endpunkts~~ → geklärt im Spike M2 (§5.1)
+- service.bund.de-RSS war im Spike nicht erreichbar; in M4 erneut prüfen
 - Adzuna-API-Key und ggf. GitHub-Token beantragen
-- Kontaktadresse für den User-Agent (N6)
+- Kontaktadresse für den User-Agent (N6): per `APPLIFY_HTTP_CONTACT` konfigurierbar, Standard leer
 - Layout/Design des Anschreiben-PDFs (eigene Vorlage vorhanden?)
 - Feintuning der Score-Gewichte nach den ersten echten Läufen

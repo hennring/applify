@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { changeLabel, changeValue, formatBytes } from './labels.ts';
+import { changeLabel, changeValue, formatBytes, formatSalary } from './labels.ts';
 
 describe('formatBytes', () => {
 	it('uses German decimal separator', () => {
@@ -45,5 +45,17 @@ describe('change labels', () => {
 			suggested: '4.3'
 		} as const;
 		expect(changeValue(change, change.suggested)).toBe('4,3 Jahre');
+	});
+});
+
+describe('formatSalary', () => {
+	it('formats ranges, single values and open ends', () => {
+		// Intl uses a narrow no-break space before the euro sign.
+		const plain = (s: string | null) => s?.replace(/\s/g, ' ');
+		expect(plain(formatSalary(50000, 60000))).toBe('50.000 – 60.000 €');
+		expect(plain(formatSalary(60000, 60000))).toBe('60.000 €');
+		expect(plain(formatSalary(48000, null))).toBe('ab 48.000 €');
+		expect(plain(formatSalary(null, 70000))).toBe('bis 70.000 €');
+		expect(formatSalary(null, null)).toBeNull();
 	});
 });
