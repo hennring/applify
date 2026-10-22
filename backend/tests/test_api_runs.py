@@ -63,6 +63,24 @@ def test_fully_remote_profile_also_searches_all_of_germany(
     assert [m["job"]["location_raw"] for m in items] == ["80331 München"]
 
 
+def test_duplicates_within_one_result_are_rated_once(
+    api: TestClient, fake_source: FakeSource
+) -> None:
+    api.put("/api/profile", json=LEIPZIG_ONLY)
+    fake_source.postings = {
+        "Fullstack Entwickler": [
+            ba("1", "Fullstack Entwickler (m/w/d)"),
+            ba("2", "Fullstack Entwickler*in"),
+        ]
+    }
+    run = api.post("/api/runs").json()
+
+    run = api.get(f"/api/runs/{run['id']}").json()
+    assert run["status"] == "done", run["step"]
+    assert (run["stats"]["ba"]["new"], run["stats"]["ba"]["duplicate"]) == (1, 1)
+    assert api.get("/api/matches").json()["total"] == 1
+
+
 def test_run_stores_jobs_without_duplicates(api: TestClient, fake_source: FakeSource) -> None:
     api.put("/api/profile", json=PROFILE)
     fake_source.postings = {

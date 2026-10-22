@@ -63,7 +63,8 @@ class Scorer:
         self.places = profile_places(session, user_id, gazetteer)
 
     def score(self, jobs: Iterable[Job], run_id: int | None = None) -> None:
-        jobs = list(jobs)
+        # Dedup can merge several postings of one batch into the same job; rate it once.
+        jobs = list({job.id: job for job in jobs}.values())
         existing = {
             m.job_id: m
             for m in self.session.scalars(
