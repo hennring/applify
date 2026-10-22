@@ -11,7 +11,7 @@ from typing import Any, Literal
 from applify.schemas.profile import LanguageLevel, ProfileData, Skill
 from applify.services.geo import distance_km
 from applify.services.normalize import normalize_company, normalize_title
-from applify.services.skills import SkillTaxonomy, alias_pattern, mentions
+from applify.services.skills import SkillTaxonomy, alias_pattern, match_key, mentions
 
 WEIGHTS = {"skills": 45, "role": 20, "seniority": 15, "location": 10, "salary": 10}
 LABELS = {
@@ -21,8 +21,24 @@ LABELS = {
     "location": "Ort/Remote",
     "salary": "Gehalt",
 }
-# Three wanted skills in a posting already give full points.
+# Three wanted skills in a posting already give full points for coverage ("reach").
 SKILL_TARGET = 3.0
+# Skill value = share of the asked technologies the profile covers (counts most) and how
+# many wanted skills the posting names; each skill marked "avoid" costs a fixed amount.
+SHARE_WEIGHT = 0.6
+AVOID_PENALTY = 0.35
+# Skill value of a full posting that names no technologies at all.
+NEUTRAL_SKILLS = 0.5
+# How much an asked technology outside the profile weighs against the hits, per category.
+# Tools, methods and design rarely decide whether a job fits.
+FOREIGN_WEIGHT = {
+    "tool": 0.0,
+    "methodology": 0.0,
+    "design": 0.0,
+    "cloud": 0.5,
+    "devops": 0.5,
+    "testing": 0.5,
+}
 
 EvidenceKind = Literal["hit", "miss", "unknown"]
 
@@ -227,6 +243,13 @@ def hard_filter(
 
 
 def score_skills(job: JobFacts, profile: ProfileData, taxonomy: SkillTaxonomy) -> Component:
+    """How well the technologies a posting asks for fit the profile.
+
+    A posting that names no technologies says nothing about the fit, so the component is
+    unknown rather than zero. Otherwise the share of the asked technologies the profile
+    covers counts most; core technologies outside the profile pull it down, generic ones
+    (tools, methods, design) do not.
+    """
     wanted = [s for s in profile.skills if s.weight in ("must", "nice")]
     avoid = [s for s in profile.skills if s.weight == "avoid"]
     if not wanted:
@@ -241,22 +264,43 @@ def score_skills(job: JobFacts, profile: ProfileData, taxonomy: SkillTaxonomy) -
     must = [s.name for s in wanted if s.weight == "must" and found(s)]
     nice = [s.name for s in wanted if s.weight == "nice" and found(s)]
     bad = [s.name for s in avoid if found(s)]
-    if not (must or nice or bad) and not job.has_full_text:
-        return Component("skills", None, [Evidence("unknown", "Keine Skills erkennbar (Kurzinfo)")])
+    own = {match_key(s.name) for s in profile.skills}
+    foreign: list[tuple[str, float]] = []
+    generic: list[str] = []
+    for name in job.skills:
+        if match_key(name) in own:
+            continue
+        known = taxonomy.lookup(name)
+        weight = FOREIGN_WEIGHT.get(known.category if known else "", 1.0)
+        (foreign.append((name, weight)) if weight else generic.append(name))
+
+    if not (must or nice or bad or foreign):
+        if not job.has_full_text:
+            return Component(
+                "skills", None, [Evidence("unknown", "Keine Skills erkennbar (Kurzinfo)")]
+            )
+        # A full text without technologies: neither a reason to rank down nor to rank up.
+        evidence = [Evidence("unknown", "Keine konkreten Technologien genannt – neutral bewertet")]
+        if generic:
+            evidence.append(Evidence("unknown", "Allgemein: " + ", ".join(generic[:6])))
+        return Component("skills", NEUTRAL_SKILLS, evidence)
 
     evidence = [Evidence("hit", f"{name} (Pflicht)") for name in must]
     evidence += [Evidence("hit", f"{name} (gern)") for name in nice]
     evidence += [Evidence("miss", f"{name} (will ich nicht)") for name in bad]
-    own = {s.name.casefold() for s in profile.skills}
-    other = [name for name in job.skills if name.casefold() not in own]
-    if other:
-        evidence.append(Evidence("unknown", "Außerdem gefragt: " + ", ".join(other[:6])))
-    if not (must or nice):
-        evidence.insert(0, Evidence("miss", "Keine gewünschten Skills im Text"))
+    if foreign:
+        names = ", ".join(name for name, _ in foreign[:6])
+        evidence.append(Evidence("miss", f"Nicht in deinem Profil: {names}"))
+    if generic:
+        evidence.append(Evidence("unknown", "Allgemein: " + ", ".join(generic[:6])))
 
+    hits = len(must) + 0.5 * len(nice)
+    other = sum(weight for _, weight in foreign)
+    share = hits / (hits + other) if hits + other else 0.0
     target = min(SKILL_TARGET, sum(1.0 if s.weight == "must" else 0.5 for s in wanted))
-    points = len(must) + 0.5 * len(nice) - len(bad)
-    return Component("skills", max(0.0, min(1.0, points / target)), evidence)
+    reach = min(1.0, hits / target)
+    value = SHARE_WEIGHT * share + (1 - SHARE_WEIGHT) * reach - AVOID_PENALTY * len(bad)
+    return Component("skills", max(0.0, min(1.0, value)), evidence)
 
 
 # Role words with the same meaning; compounds are split ("Webentwickler" → web entwickler).

@@ -299,7 +299,7 @@ Die Reihenfolge innerhalb von Stufe 2 richtet sich nach den verpassten Stellen d
 
 | Komponente | Gewicht | Berechnung |
 |---|---|---|
-| Skills | 45 | Treffer der Pflicht-Skills (voll), gern-Skills (halb), avoid-Skills (Abzug) im Stellentext, über Synonyme |
+| Skills | 45 | Vor allem der Anteil der geforderten Technologien, die zum Profil passen (Pflicht voll, gern halb); fremde Kerntechnologien ziehen runter, Cloud/DevOps/Testing halb, Tools/Methoden/Design gar nicht. Dazu, wie viele Wunsch-Skills genannt sind; avoid-Skills geben Abzug. Volltext ohne konkrete Technologien → neutral (50 %), Kurzinfo → unbekannt |
 | Rolle/Titel | 20 | Ähnlichkeit Titel ↔ Wunschrollen (Token-Overlap + Synonyme) |
 | Seniorität | 15 | Junior/Mid passt zu 2,5 J.; „Senior/Lead/Principal“ oder „5+ Jahre“ → Abzug |
 | Ort/Remote | 10 | Distanz innerhalb Radius, Bonus für passende Remote-Option |

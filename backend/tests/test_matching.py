@@ -120,15 +120,41 @@ def test_only_explicit_language_requirements_count() -> None:
 
 def test_skills_component() -> None:
     assert values(match())["skills"] == 1.0
-    # One must skill; the target is what the profile can reach: 2 must + 0.5 nice.
+    # All asked skills are wanted (share 1); one of a reachable 2 must + 0.5 nice.
     only_python = match(skills=("Python",), description="Python " * 50)
-    assert values(only_python)["skills"] == pytest.approx(1 / 2.5)
+    assert values(only_python)["skills"] == pytest.approx(0.6 + 0.4 / 2.5)
     with_avoid = match(skills=("Python", "SAP"), description="Python und SAP " * 30)
-    assert values(with_avoid)["skills"] == 0.0
+    assert values(with_avoid)["skills"] == pytest.approx(0.6 + 0.4 / 2.5 - 0.35)
     # Short info without recognizable skills: unknown, not zero.
     short = match(skills=(), description="", has_full_text=False)
     assert values(short)["skills"] is None
     assert short.low_data
+
+
+def test_generic_posting_is_neutral_on_skills() -> None:
+    """No technologies named says nothing about the fit: half the points, not zero."""
+    generic = match(skills=("Scrum", "Git"), description="Wir suchen Verstärkung. " * 20)
+    skills = next(c for c in generic.components if c.key == "skills")
+    assert skills.value == 0.5
+    assert skills.evidence[0].text.startswith("Keine konkreten Technologien")
+    foreign = match(skills=("Java", "Spring Boot"), description="Java " * 50)
+    # Between a posting with foreign technologies and one with the wanted ones.
+    assert foreign.score < generic.score < match().score
+
+
+def test_foreign_technologies_pull_down() -> None:
+    foreign = match(skills=("Java", "Spring Boot", "Angular"), description="Java " * 50)
+    assert values(foreign)["skills"] == 0.0
+    skills = next(c for c in foreign.components if c.key == "skills")
+    assert skills.evidence[0].kind == "miss"
+    assert "Java" in skills.evidence[0].text
+
+    # Python and Vue wanted, Java foreign: share 2/3, reach 2/2.5.
+    mixed = match(skills=("Python", "Vue", "Java", "Git"), description="Python " * 50)
+    assert values(mixed)["skills"] == pytest.approx(0.6 * 2 / 3 + 0.4 * 2 / 2.5)
+    # Supporting technologies weigh half.
+    with_cloud = match(skills=("Python", "AWS"), description="Python " * 50)
+    assert values(with_cloud)["skills"] == pytest.approx(0.6 * 1 / 1.5 + 0.4 / 2.5)
 
 
 def test_role_component() -> None:
