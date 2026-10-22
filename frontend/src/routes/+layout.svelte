@@ -78,7 +78,11 @@
 		font-size: 1.15rem;
 		margin-bottom: 1rem;
 	}
+	/* Centered in the space beside the nav. */
 	main {
+		justify-self: center;
+		width: 100%;
+		box-sizing: border-box;
 		padding: 1.5rem 2rem;
 		max-width: 110rem;
 		min-width: 0;

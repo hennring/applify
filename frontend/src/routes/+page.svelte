@@ -410,14 +410,15 @@
 </div>
 
 <style>
+	/* The list keeps its width when the panel opens; the panel takes the rest. */
 	.master {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr);
+		grid-template-columns: minmax(0, 56rem);
 		gap: 1rem;
 		align-items: start;
 	}
 	.master.split {
-		grid-template-columns: minmax(0, 1fr) minmax(30rem, 1.15fr);
+		grid-template-columns: minmax(0, 56rem) minmax(30rem, 1fr);
 	}
 	/* Below the sticky page header, scrolling on its own. */
 	.panel {
@@ -432,7 +433,7 @@
 	}
 	@media (max-width: 1100px) {
 		.master.split {
-			grid-template-columns: minmax(0, 1fr);
+			grid-template-columns: minmax(0, 56rem);
 		}
 		.panel {
 			display: none;
