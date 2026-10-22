@@ -43,7 +43,42 @@ export const jobRemoteLabels: Record<string, string> = {
 };
 
 export const sourceLabels: Record<string, string> = {
-	ba: 'Arbeitsagentur'
+	ba: 'Arbeitsagentur',
+	arbeitnow: 'Arbeitnow',
+	adzuna: 'Adzuna',
+	service_bund: 'service.bund.de',
+	careers: 'Karriereseiten',
+	'ats:personio': 'Karriereseite (Personio)',
+	'ats:greenhouse': 'Karriereseite (Greenhouse)',
+	'ats:lever': 'Karriereseite (Lever)',
+	'ats:recruitee': 'Karriereseite (Recruitee)',
+	'ats:smartrecruiters': 'Karriereseite (SmartRecruiters)',
+	'ats:workday': 'Karriereseite (Workday)',
+	jsonld: 'Karriereseite'
+};
+
+export const atsLabels: Record<string, string> = {
+	personio: 'Personio',
+	greenhouse: 'Greenhouse',
+	lever: 'Lever',
+	recruitee: 'Recruitee',
+	smartrecruiters: 'SmartRecruiters',
+	workday: 'Workday',
+	jsonld: 'JSON-LD',
+	unknown: 'nicht erkannt'
+};
+
+export const companyStatusLabels: Labels<Schemas['CompanyOut']['status']> = {
+	candidate: 'Kandidat',
+	watch: 'beobachtet',
+	ignore: 'ignoriert'
+};
+
+export const discoveredLabels: Record<string, string> = {
+	jobs: 'aus Stellen',
+	github: 'GitHub',
+	wikidata: 'Wikidata',
+	user: 'manuell'
 };
 
 export const runStatusLabels: Record<string, string> = {

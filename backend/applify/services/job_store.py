@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from applify.db.models import Job, JobSource
 from applify.services.geo import Gazetteer
 from applify.services.normalize import (
+    REMOTE_LOCATION,
     clean_title,
     detect_remote,
     fingerprint,
@@ -32,7 +33,10 @@ def enrich(posting: JobPosting, gazetteer: Gazetteer) -> JobPosting:
     if posting.salary_min is None and posting.salary_max is None and posting.description:
         posting.salary_min, posting.salary_max = parse_salary(posting.description)
     if posting.remote_type is None:
-        posting.remote_type = detect_remote(f"{posting.title}\n{posting.location_raw}")
+        if REMOTE_LOCATION.search(posting.location_raw):
+            posting.remote_type = "remote"
+        else:
+            posting.remote_type = detect_remote(f"{posting.title}\n{posting.location_raw}")
     place = gazetteer.locate(posting.location_raw) if posting.lat is None else None
     if place is not None:
         posting.lat, posting.lon = place.lat, place.lon

@@ -1,0 +1,483 @@
+{
+ "offset": 0,
+ "limit": 3,
+ "totalFound": 771,
+ "content": [
+  {
+   "id": "744000157147873",
+   "name": "Sales Manager (w/m/div.) für die Neukundenakquise in der Sicherheitstechnik",
+   "uuid": "b0c68aec-cf37-489d-a447-6b3c4ad20ea1",
+   "jobAdId": "4672c671-13cc-4bf7-abb0-b56b156bbd02",
+   "defaultJobAd": true,
+   "refNumber": "REF299003Q",
+   "company": {
+    "identifier": "BoschGroup",
+    "name": "Bosch Group"
+   },
+   "releasedDate": "2026-10-22T14:12:48.189Z",
+   "location": {
+    "city": "Köln",
+    "region": "NRW",
+    "country": "de",
+    "address": "Toyota-Allee 42A",
+    "postalCode": "50858",
+    "remote": false,
+    "hybrid": true,
+    "latitude": "50.915306",
+    "longitude": "6.8571225",
+    "fullLocation": "Köln, NRW, Germany"
+   },
+   "industry": {
+    "id": "facilities_services",
+    "label": "Facilities Services"
+   },
+   "department": {},
+   "function": {
+    "id": "sales",
+    "label": "Sales"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "associate",
+    "label": "Associate"
+   },
+   "customField": [
+    {
+     "fieldId": "5abe2a4ab60a5e486a2d9b1d",
+     "fieldLabel": "Contract type",
+     "valueId": "1e46492b-d24f-460c-b095-38cf08a778d8",
+     "valueLabel": "Unlimited"
+    },
+    {
+     "fieldId": "5abe28e96d8bc56863dd9746",
+     "fieldLabel": "Tariff Area",
+     "valueId": "45a4fe7c-ec96-4eda-907f-4aa0356a7704",
+     "valueLabel": "Not tariff-bound / non-tariff / SLx"
+    },
+    {
+     "fieldId": "5aca30e46d8bc56863dd98d8",
+     "fieldLabel": "Tags",
+     "valueId": "f8aadd7e-9952-41c5-af48-02debb3e9010",
+     "valueLabel": "Please enter Career Site Tags"
+    },
+    {
+     "fieldId": "586a997ee4b05fd937b86098",
+     "fieldLabel": "Legal Entity(acronym)",
+     "valueId": "4a388a8d-c332-4cba-b749-992d1753e8dd",
+     "valueLabel": "ST"
+    },
+    {
+     "fieldId": "6463ee88f4ba4e3063baf201",
+     "fieldLabel": "Do you want to publish on StepStone?",
+     "valueId": "2237b973-e7eb-4ef8-af79-18f23b23d8a3",
+     "valueLabel": "Yes"
+    },
+    {
+     "fieldId": "586a99b5e4b0daa006ae1079",
+     "fieldLabel": "Working Location",
+     "valueId": "be316c86-fd7b-4403-8d8e-987fce50af7c",
+     "valueLabel": "Köln"
+    },
+    {
+     "fieldId": "5abe295a6d8bc56863dd9747",
+     "fieldLabel": "Global Salary Level",
+     "valueId": "f7d1bb24-614b-4890-bceb-5a77a4d98279",
+     "valueLabel": "SL1"
+    },
+    {
+     "fieldId": "69ca83a2489188782a1e9f87",
+     "fieldLabel": "Direct Or Indirect",
+     "valueId": "1aefbf4c-c10a-422e-a975-a504a7117792",
+     "valueLabel": "Indirect"
+    },
+    {
+     "fieldId": "5abe29f9b60a5e486a2d9b1c",
+     "fieldLabel": "Working hours",
+     "valueId": "ff7c69f3-f89c-498c-9a0e-25f4dad301d4",
+     "valueLabel": "Full-time and/or part-time"
+    },
+    {
+     "fieldId": "586a9995e4b0daa006ae1078",
+     "fieldLabel": "Legal Entity",
+     "valueId": "5bddc7d7-b8b0-48f4-b9f3-cc129e2a7b6b",
+     "valueLabel": "Bosch Sicherheitssysteme GmbH"
+    },
+    {
+     "fieldId": "691cf1c93001c782b9560ab7",
+     "fieldLabel": "Division full name",
+     "valueId": "9129badf-927e-44a3-a58b-fcfd9c21f2a1",
+     "valueLabel": "Building Technologies"
+    },
+    {
+     "fieldId": "5abe27936d8bc56863dd9745",
+     "fieldLabel": "Position type",
+     "valueId": "c7b4da31-6f38-405a-b2e8-08a76e3c3f2c",
+     "valueLabel": "Professional"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "de",
+     "valueLabel": "Germany"
+    },
+    {
+     "fieldId": "6463ef12c9dd3a37c45b3d41",
+     "fieldLabel": "Select one of the following StepStone products",
+     "valueId": "5cf7d1e9-c770-440a-861c-7ed6ed1e126a",
+     "valueLabel": "Graduates / Professionals: Pro"
+    },
+    {
+     "fieldId": "586a971ee4b0daa006ae1077",
+     "fieldLabel": "Brands",
+     "valueId": "default",
+     "valueLabel": "Bosch Group"
+    },
+    {
+     "fieldId": "586a996ce4b05fd937b86097",
+     "fieldLabel": "Working Country",
+     "valueId": "34525254-83b2-42bc-9932-cf9f16db5281",
+     "valueLabel": "Germany"
+    },
+    {
+     "fieldId": "586a9b22e4b05fd937b8609a",
+     "fieldLabel": "Local Grade",
+     "valueId": "6a5751cd-b6be-4b16-8eb7-aab3f11ff746",
+     "valueLabel": "SL1 / Analog SL1"
+    },
+    {
+     "fieldId": "586a99a5e4b05fd937b86099",
+     "fieldLabel": "Division",
+     "valueId": "d7b54d05-61b3-4242-bd3d-cde1ec339e50",
+     "valueLabel": "BT"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/BoschGroup/postings/744000157147873",
+   "language": {
+    "code": "de",
+    "label": "German",
+    "labelNative": "Deutsch"
+   }
+  },
+  {
+   "id": "744000157100839",
+   "name": "Mitarbeiter im Bereich Technische Zeichnungen mit AutoCAD-Kenntnissen (w/m/div.)",
+   "uuid": "a4c52a08-b884-45d5-b98b-55366ec593c5",
+   "jobAdId": "b39769c1-14e2-40e8-8412-f9a215b98dba",
+   "defaultJobAd": true,
+   "refNumber": "REF282284Y",
+   "company": {
+    "identifier": "BoschGroup",
+    "name": "Bosch Group"
+   },
+   "releasedDate": "2026-10-22T11:07:23.593Z",
+   "location": {
+    "city": "Magdeburg",
+    "region": "SA",
+    "country": "de",
+    "address": "Otto-von-Guericke-Straße 13",
+    "postalCode": "39104",
+    "remote": false,
+    "hybrid": true,
+    "latitude": "52.1301421",
+    "longitude": "11.6295959",
+    "fullLocation": "Magdeburg, SA, Germany"
+   },
+   "industry": {
+    "id": "information_services",
+    "label": "Information Services"
+   },
+   "department": {},
+   "function": {
+    "id": "customer_service",
+    "label": "Customer Service"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "associate",
+    "label": "Associate"
+   },
+   "customField": [
+    {
+     "fieldId": "5abe2a4ab60a5e486a2d9b1d",
+     "fieldLabel": "Contract type",
+     "valueId": "1e46492b-d24f-460c-b095-38cf08a778d8",
+     "valueLabel": "Unlimited"
+    },
+    {
+     "fieldId": "5abe28e96d8bc56863dd9746",
+     "fieldLabel": "Tariff Area",
+     "valueId": "45a4fe7c-ec96-4eda-907f-4aa0356a7704",
+     "valueLabel": "Not tariff-bound / non-tariff / SLx"
+    },
+    {
+     "fieldId": "5aca30e46d8bc56863dd98d8",
+     "fieldLabel": "Tags",
+     "valueId": "f8aadd7e-9952-41c5-af48-02debb3e9010",
+     "valueLabel": "Please enter Career Site Tags"
+    },
+    {
+     "fieldId": "586a997ee4b05fd937b86098",
+     "fieldLabel": "Legal Entity(acronym)",
+     "valueId": "e0ead468-9f61-4679-a513-a4a3dce5d20f",
+     "valueLabel": "SODM"
+    },
+    {
+     "fieldId": "6463ee88f4ba4e3063baf201",
+     "fieldLabel": "Do you want to publish on StepStone?",
+     "valueId": "2237b973-e7eb-4ef8-af79-18f23b23d8a3",
+     "valueLabel": "Yes"
+    },
+    {
+     "fieldId": "586a99b5e4b0daa006ae1079",
+     "fieldLabel": "Working Location",
+     "valueId": "473ea224-cd0d-46ea-aa13-51f7b028e365",
+     "valueLabel": "Magdeburg"
+    },
+    {
+     "fieldId": "5abe295a6d8bc56863dd9747",
+     "fieldLabel": "Global Salary Level",
+     "valueId": "80ae06a1-4738-48e8-8aea-4613f58ecd57",
+     "valueLabel": "Others"
+    },
+    {
+     "fieldId": "69ca83a2489188782a1e9f87",
+     "fieldLabel": "Direct Or Indirect",
+     "valueId": "0d8b2ae9-fc67-447b-9165-201f59f71e90",
+     "valueLabel": "Direct"
+    },
+    {
+     "fieldId": "5abe29f9b60a5e486a2d9b1c",
+     "fieldLabel": "Working hours",
+     "valueId": "60756b3e-dbab-4353-ac3a-0064d2bb27d8",
+     "valueLabel": "Full-time"
+    },
+    {
+     "fieldId": "586a9995e4b0daa006ae1078",
+     "fieldLabel": "Legal Entity",
+     "valueId": "a779b786-e95c-4b32-952b-06aee2332706",
+     "valueLabel": "Bosch Service Solutions Magdeburg GmbH"
+    },
+    {
+     "fieldId": "691cf1c93001c782b9560ab7",
+     "fieldLabel": "Division full name",
+     "valueId": "010db496-f6ec-4416-90a5-6f15534b537e",
+     "valueLabel": "Bosch Global Service Solutions"
+    },
+    {
+     "fieldId": "5abe27936d8bc56863dd9745",
+     "fieldLabel": "Position type",
+     "valueId": "c7b4da31-6f38-405a-b2e8-08a76e3c3f2c",
+     "valueLabel": "Professional"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "de",
+     "valueLabel": "Germany"
+    },
+    {
+     "fieldId": "6463ef12c9dd3a37c45b3d41",
+     "fieldLabel": "Select one of the following StepStone products",
+     "valueId": "5399d0d4-956e-436e-ba81-842047ab2b2f",
+     "valueLabel": "Blue Collar: Select Plus"
+    },
+    {
+     "fieldId": "586a971ee4b0daa006ae1077",
+     "fieldLabel": "Brands",
+     "valueId": "default",
+     "valueLabel": "Bosch Group"
+    },
+    {
+     "fieldId": "586a996ce4b05fd937b86097",
+     "fieldLabel": "Working Country",
+     "valueId": "34525254-83b2-42bc-9932-cf9f16db5281",
+     "valueLabel": "Germany"
+    },
+    {
+     "fieldId": "586a9b22e4b05fd937b8609a",
+     "fieldLabel": "Local Grade",
+     "valueId": "3830e7ee-7637-48d4-8c1a-45ff4d10910c",
+     "valueLabel": "Others"
+    },
+    {
+     "fieldId": "586a99a5e4b05fd937b86099",
+     "fieldLabel": "Division",
+     "valueId": "SO",
+     "valueLabel": "SO"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/BoschGroup/postings/744000157100839",
+   "language": {
+    "code": "de",
+    "label": "German",
+    "labelNative": "Deutsch"
+   }
+  },
+  {
+   "id": "744000157086850",
+   "name": "Praktikum Softwareentwicklung für Bosch eBike Systems ABS",
+   "uuid": "f9a15e23-44fc-4885-8713-4dd3e0d13666",
+   "jobAdId": "df3a69cd-b9f4-47a5-84aa-2ef3a3f6d7a0",
+   "defaultJobAd": true,
+   "refNumber": "REF299201V",
+   "company": {
+    "identifier": "BoschGroup",
+    "name": "Bosch Group"
+   },
+   "releasedDate": "2026-10-22T09:46:33.749Z",
+   "location": {
+    "city": "Reutlingen",
+    "region": "BW",
+    "country": "de",
+    "address": "Markwiesenstraße 58",
+    "postalCode": "72770",
+    "remote": false,
+    "hybrid": true,
+    "latitude": "48.4950381",
+    "longitude": "9.1376823",
+    "fullLocation": "Reutlingen, BW, Germany"
+   },
+   "industry": {
+    "id": "automotive",
+    "label": "Automotive"
+   },
+   "department": {},
+   "function": {
+    "id": "engineering",
+    "label": "Engineering"
+   },
+   "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+   },
+   "experienceLevel": {
+    "id": "internship",
+    "label": "Internship"
+   },
+   "customField": [
+    {
+     "fieldId": "5abe2a4ab60a5e486a2d9b1d",
+     "fieldLabel": "Contract type",
+     "valueId": "98487475-2a49-44f5-a615-408b525b3821",
+     "valueLabel": "Limited"
+    },
+    {
+     "fieldId": "5abe28e96d8bc56863dd9746",
+     "fieldLabel": "Tariff Area",
+     "valueId": "45a4fe7c-ec96-4eda-907f-4aa0356a7704",
+     "valueLabel": "Not tariff-bound / non-tariff / SLx"
+    },
+    {
+     "fieldId": "586a99b5e4b0daa006ae1079",
+     "fieldLabel": "Working Location",
+     "valueId": "b6c39aef-8930-4643-81c4-d6265f6bcbcc",
+     "valueLabel": "Reutlingen - Kusterdingen"
+    },
+    {
+     "fieldId": "5abe295a6d8bc56863dd9747",
+     "fieldLabel": "Global Salary Level",
+     "valueId": "80ae06a1-4738-48e8-8aea-4613f58ecd57",
+     "valueLabel": "Others"
+    },
+    {
+     "fieldId": "69ca83a2489188782a1e9f87",
+     "fieldLabel": "Direct Or Indirect",
+     "valueId": "1aefbf4c-c10a-422e-a975-a504a7117792",
+     "valueLabel": "Indirect"
+    },
+    {
+     "fieldId": "COUNTRY",
+     "fieldLabel": "Country/Region",
+     "valueId": "de",
+     "valueLabel": "Germany"
+    },
+    {
+     "fieldId": "586a9b22e4b05fd937b8609a",
+     "fieldLabel": "Local Grade",
+     "valueId": "3830e7ee-7637-48d4-8c1a-45ff4d10910c",
+     "valueLabel": "Others"
+    },
+    {
+     "fieldId": "5aca30e46d8bc56863dd98d8",
+     "fieldLabel": "Tags",
+     "valueId": "f8aadd7e-9952-41c5-af48-02debb3e9010",
+     "valueLabel": "Please enter Career Site Tags"
+    },
+    {
+     "fieldId": "586a997ee4b05fd937b86098",
+     "fieldLabel": "Legal Entity(acronym)",
+     "valueId": "de1f1b31-787f-43b1-88fd-4eb5428a9db8",
+     "valueLabel": "RB"
+    },
+    {
+     "fieldId": "6463ee88f4ba4e3063baf201",
+     "fieldLabel": "Do you want to publish on StepStone?",
+     "valueId": "5449f11a-cf85-46db-80b7-8540bb088d65",
+     "valueLabel": "No"
+    },
+    {
+     "fieldId": "5abe29f9b60a5e486a2d9b1c",
+     "fieldLabel": "Working hours",
+     "valueId": "60756b3e-dbab-4353-ac3a-0064d2bb27d8",
+     "valueLabel": "Full-time"
+    },
+    {
+     "fieldId": "586a9995e4b0daa006ae1078",
+     "fieldLabel": "Legal Entity",
+     "valueId": "09a12231-6c9c-4061-a114-3ac523872781",
+     "valueLabel": "Robert Bosch GmbH"
+    },
+    {
+     "fieldId": "691cf1c93001c782b9560ab7",
+     "fieldLabel": "Division full name",
+     "valueId": "422d3be6-d33d-4dda-8fee-583c0eb4c450",
+     "valueLabel": "eBike Systems"
+    },
+    {
+     "fieldId": "5abe27936d8bc56863dd9745",
+     "fieldLabel": "Position type",
+     "valueId": "f524b939-fe55-407b-a0b0-e8f4eec28997",
+     "valueLabel": "Intern"
+    },
+    {
+     "fieldId": "586a971ee4b0daa006ae1077",
+     "fieldLabel": "Brands",
+     "valueId": "default",
+     "valueLabel": "Bosch Group"
+    },
+    {
+     "fieldId": "586a996ce4b05fd937b86097",
+     "fieldLabel": "Working Country",
+     "valueId": "34525254-83b2-42bc-9932-cf9f16db5281",
+     "valueLabel": "Germany"
+    },
+    {
+     "fieldId": "586a99a5e4b05fd937b86099",
+     "fieldLabel": "Division",
+     "valueId": "ab5b11d2-972b-484f-91af-e7b9d31e98c1",
+     "valueLabel": "EB"
+    },
+    {
+     "fieldId": "5aca31126d8bc56863dd98d9",
+     "fieldLabel": "Career Site Tags",
+     "valueLabel": "Safety,Testing"
+    }
+   ],
+   "visibility": "PUBLIC",
+   "ref": "https://api.smartrecruiters.com/v1/companies/BoschGroup/postings/744000157086850",
+   "language": {
+    "code": "de",
+    "label": "German",
+    "labelNative": "Deutsch"
+   }
+  }
+ ]
+}

@@ -328,6 +328,167 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/companies': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** List Companies */
+		get: operations['list_companies_api_companies_get'];
+		put?: never;
+		/**
+		 * Add Company
+		 * @description Careers page entered by the user (F7a); detected right away and watched.
+		 */
+		post: operations['add_company_api_companies_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/companies/{company_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		/** Update Company */
+		patch: operations['update_company_api_companies__company_id__patch'];
+		trace?: never;
+	};
+	'/api/companies/{company_id}/detect': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Redetect */
+		post: operations['redetect_api_companies__company_id__detect_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/coverage': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get Coverage */
+		get: operations['get_coverage_api_coverage_get'];
+		put?: never;
+		/** Add Sample */
+		post: operations['add_sample_api_coverage_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/coverage/check': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * Recheck
+		 * @description Check every sample again, e.g. after a search run.
+		 */
+		post: operations['recheck_api_coverage_check_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/coverage/{sample_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		/** Delete Sample */
+		delete: operations['delete_sample_api_coverage__sample_id__delete'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/settings/sources': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get Sources */
+		get: operations['get_sources_api_settings_sources_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/settings/sources/{key}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		/** Update Source */
+		put: operations['update_source_api_settings_sources__key__put'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/settings/general': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		/** Update General */
+		put: operations['update_general_api_settings_general_put'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -389,6 +550,69 @@ export interface components {
 			current: string | null;
 			/** Suggested */
 			suggested: string;
+		};
+		/** CompanyIn */
+		CompanyIn: {
+			/** Url */
+			url: string;
+			/**
+			 * Name
+			 * @default
+			 */
+			name: string;
+		};
+		/** CompanyOut */
+		CompanyOut: {
+			/** Id */
+			id: number;
+			/** Name */
+			name: string;
+			/** Website */
+			website: string | null;
+			/** Careers Url */
+			careers_url: string | null;
+			/** Ats Type */
+			ats_type: string;
+			/** Ats Token */
+			ats_token: string | null;
+			/** Discovered From */
+			discovered_from: string;
+			/** Detection Status */
+			detection_status: string;
+			/** Last Checked At */
+			last_checked_at: string | null;
+			/** Last Error */
+			last_error: string | null;
+			/**
+			 * Status
+			 * @enum {string}
+			 */
+			status: 'candidate' | 'watch' | 'ignore';
+			/** Jobs */
+			jobs: number;
+			/** Visible Jobs */
+			visible_jobs: number;
+		};
+		/** CompanyPage */
+		CompanyPage: {
+			/** Total */
+			total: number;
+			/** With Feed */
+			with_feed: number;
+			/** Watched */
+			watched: number;
+			/** Pending */
+			pending: number;
+			/** Items */
+			items: components['schemas']['CompanyOut'][];
+		};
+		/** CompanyPatch */
+		CompanyPatch: {
+			/**
+			 * Status
+			 * @enum {string}
+			 */
+			status: 'candidate' | 'watch' | 'ignore';
 		};
 		/** ComponentHealth */
 		ComponentHealth: {
@@ -460,6 +684,31 @@ export interface components {
 			 * @default
 			 */
 			address: string;
+		};
+		/** CoverageOut */
+		CoverageOut: {
+			/** Total */
+			total: number;
+			/** Found */
+			found: number;
+			/** Visible */
+			visible: number;
+			/** Rate */
+			rate: number | null;
+			/** By Source */
+			by_source: {
+				[key: string]: components['schemas']['SourceShareOut'];
+			};
+			/** Reasons */
+			reasons: {
+				[key: string]: number;
+			};
+			/** Reason Labels */
+			reason_labels: {
+				[key: string]: string;
+			};
+			/** Samples */
+			samples: components['schemas']['SampleOut'][];
 		};
 		/** CvChanges */
 		CvChanges: {
@@ -540,6 +789,14 @@ export interface components {
 			kind: 'hit' | 'miss' | 'unknown';
 			/** Text */
 			text: string;
+		};
+		/** GeneralPatch */
+		GeneralPatch: {
+			/**
+			 * Contact
+			 * @default
+			 */
+			contact: string;
 		};
 		/** HTTPValidationError */
 		HTTPValidationError: {
@@ -884,6 +1141,67 @@ export interface components {
 			/** Finished At */
 			finished_at: string | null;
 		};
+		/** SampleIn */
+		SampleIn: {
+			/**
+			 * Url
+			 * @default
+			 */
+			url: string;
+			/** Company */
+			company: string;
+			/** Title */
+			title: string;
+			/**
+			 * Location
+			 * @default
+			 */
+			location: string;
+			/**
+			 * Found Via
+			 * @default
+			 */
+			found_via: string;
+		};
+		/** SampleOut */
+		SampleOut: {
+			/** Id */
+			id: number;
+			/** Url */
+			url: string;
+			/** Company */
+			company: string;
+			/** Title */
+			title: string;
+			/** Location */
+			location: string;
+			/** Found Via */
+			found_via: string;
+			/** Matched Job Id */
+			matched_job_id: number | null;
+			/** Matched Title */
+			matched_title: string | null;
+			/** Matched Sources */
+			matched_sources: string[];
+			/** Miss Reason */
+			miss_reason: string | null;
+			/** Checked At */
+			checked_at: string | null;
+			/**
+			 * Created At
+			 * Format: date-time
+			 */
+			created_at: string;
+		};
+		/** SettingsOut */
+		SettingsOut: {
+			/** Contact */
+			contact: string;
+			/** Contact From Env */
+			contact_from_env: boolean;
+			/** Sources */
+			sources: components['schemas']['SourceOut'][];
+		};
 		/** Skill */
 		'Skill-Input': {
 			/** Name */
@@ -943,6 +1261,48 @@ export interface components {
 			/** Url */
 			url: string;
 		};
+		/** SourceOut */
+		SourceOut: {
+			/** Key */
+			key: string;
+			/** Label */
+			label: string;
+			/** Kind */
+			kind: string;
+			/** Description */
+			description: string;
+			/** Enabled */
+			enabled: boolean;
+			/** Fields */
+			fields: {
+				[key: string]: string;
+			};
+			/** Secrets */
+			secrets: {
+				[key: string]: boolean;
+			};
+			/** Missing */
+			missing: string[];
+			/** Count */
+			count: number;
+			last_run: components['schemas']['SourceStats'] | null;
+		};
+		/** SourcePatch */
+		SourcePatch: {
+			/** Enabled */
+			enabled?: boolean | null;
+			/** Config */
+			config?: {
+				[key: string]: string;
+			};
+		};
+		/** SourceShareOut */
+		SourceShareOut: {
+			/** Count */
+			count: number;
+			/** Only */
+			only: number;
+		};
 		/** SourceStats */
 		SourceStats: {
 			/** Label */
@@ -955,6 +1315,11 @@ export interface components {
 			duplicate: number;
 			/** Known */
 			known: number;
+			/**
+			 * Filtered
+			 * @default 0
+			 */
+			filtered: number;
 			/** Errors */
 			errors: number;
 		};
@@ -1611,6 +1976,331 @@ export interface operations {
 				};
 				content: {
 					'application/json': components['schemas']['MatchDetail'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	list_companies_api_companies_get: {
+		parameters: {
+			query?: {
+				status?: ('candidate' | 'watch' | 'ignore') | null;
+				/** @description Only companies with a detected feed */
+				feed?: boolean;
+				q?: string;
+				limit?: number;
+				offset?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CompanyPage'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	add_company_api_companies_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CompanyIn'];
+			};
+		};
+		responses: {
+			/** @description Successful Response */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CompanyOut'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	update_company_api_companies__company_id__patch: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				company_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CompanyPatch'];
+			};
+		};
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CompanyOut'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	redetect_api_companies__company_id__detect_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				company_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CompanyOut'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	get_coverage_api_coverage_get: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CoverageOut'];
+				};
+			};
+		};
+	};
+	add_sample_api_coverage_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['SampleIn'];
+			};
+		};
+		responses: {
+			/** @description Successful Response */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SampleOut'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	recheck_api_coverage_check_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CoverageOut'];
+				};
+			};
+		};
+	};
+	delete_sample_api_coverage__sample_id__delete: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				sample_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			204: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	get_sources_api_settings_sources_get: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SettingsOut'];
+				};
+			};
+		};
+	};
+	update_source_api_settings_sources__key__put: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				key: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['SourcePatch'];
+			};
+		};
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SettingsOut'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	update_general_api_settings_general_put: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['GeneralPatch'];
+			};
+		};
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SettingsOut'];
 				};
 			};
 			/** @description Validation Error */

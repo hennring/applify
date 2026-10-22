@@ -789,6 +789,445 @@
 					}
 				}
 			}
+		},
+		"/api/companies": {
+			"get": {
+				"tags": ["companies"],
+				"summary": "List Companies",
+				"operationId": "list_companies_api_companies_get",
+				"parameters": [
+					{
+						"name": "status",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"enum": ["candidate", "watch", "ignore"],
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Status"
+						}
+					},
+					{
+						"name": "feed",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"description": "Only companies with a detected feed",
+							"default": false,
+							"title": "Feed"
+						},
+						"description": "Only companies with a detected feed"
+					},
+					{
+						"name": "q",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"maxLength": 100,
+							"default": "",
+							"title": "Q"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 500,
+							"minimum": 1,
+							"default": 200,
+							"title": "Limit"
+						}
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 0,
+							"default": 0,
+							"title": "Offset"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CompanyPage"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["companies"],
+				"summary": "Add Company",
+				"description": "Careers page entered by the user (F7a); detected right away and watched.",
+				"operationId": "add_company_api_companies_post",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CompanyIn"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CompanyOut"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/companies/{company_id}": {
+			"patch": {
+				"tags": ["companies"],
+				"summary": "Update Company",
+				"operationId": "update_company_api_companies__company_id__patch",
+				"parameters": [
+					{
+						"name": "company_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Company Id"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CompanyPatch"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CompanyOut"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/companies/{company_id}/detect": {
+			"post": {
+				"tags": ["companies"],
+				"summary": "Redetect",
+				"operationId": "redetect_api_companies__company_id__detect_post",
+				"parameters": [
+					{
+						"name": "company_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Company Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CompanyOut"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/coverage": {
+			"get": {
+				"tags": ["coverage"],
+				"summary": "Get Coverage",
+				"operationId": "get_coverage_api_coverage_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CoverageOut"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["coverage"],
+				"summary": "Add Sample",
+				"operationId": "add_sample_api_coverage_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SampleIn"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SampleOut"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/coverage/check": {
+			"post": {
+				"tags": ["coverage"],
+				"summary": "Recheck",
+				"description": "Check every sample again, e.g. after a search run.",
+				"operationId": "recheck_api_coverage_check_post",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CoverageOut"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/coverage/{sample_id}": {
+			"delete": {
+				"tags": ["coverage"],
+				"summary": "Delete Sample",
+				"operationId": "delete_sample_api_coverage__sample_id__delete",
+				"parameters": [
+					{
+						"name": "sample_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Sample Id"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Successful Response"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/settings/sources": {
+			"get": {
+				"tags": ["settings"],
+				"summary": "Get Sources",
+				"operationId": "get_sources_api_settings_sources_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SettingsOut"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/settings/sources/{key}": {
+			"put": {
+				"tags": ["settings"],
+				"summary": "Update Source",
+				"operationId": "update_source_api_settings_sources__key__put",
+				"parameters": [
+					{
+						"name": "key",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Key"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SourcePatch"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SettingsOut"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/settings/general": {
+			"put": {
+				"tags": ["settings"],
+				"summary": "Update General",
+				"operationId": "update_general_api_settings_general_put",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/GeneralPatch"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SettingsOut"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"components": {
@@ -901,6 +1340,177 @@
 				"type": "object",
 				"required": ["id", "field", "kind", "key", "current", "suggested"],
 				"title": "ChangeItem"
+			},
+			"CompanyIn": {
+				"properties": {
+					"url": {
+						"type": "string",
+						"maxLength": 1000,
+						"minLength": 4,
+						"title": "Url"
+					},
+					"name": {
+						"type": "string",
+						"maxLength": 300,
+						"title": "Name",
+						"default": ""
+					}
+				},
+				"type": "object",
+				"required": ["url"],
+				"title": "CompanyIn"
+			},
+			"CompanyOut": {
+				"properties": {
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"website": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Website"
+					},
+					"careers_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Careers Url"
+					},
+					"ats_type": {
+						"type": "string",
+						"title": "Ats Type"
+					},
+					"ats_token": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Ats Token"
+					},
+					"discovered_from": {
+						"type": "string",
+						"title": "Discovered From"
+					},
+					"detection_status": {
+						"type": "string",
+						"title": "Detection Status"
+					},
+					"last_checked_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Last Checked At"
+					},
+					"last_error": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Last Error"
+					},
+					"status": {
+						"type": "string",
+						"enum": ["candidate", "watch", "ignore"],
+						"title": "Status"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"visible_jobs": {
+						"type": "integer",
+						"title": "Visible Jobs"
+					}
+				},
+				"type": "object",
+				"required": [
+					"id",
+					"name",
+					"website",
+					"careers_url",
+					"ats_type",
+					"ats_token",
+					"discovered_from",
+					"detection_status",
+					"last_checked_at",
+					"last_error",
+					"status",
+					"jobs",
+					"visible_jobs"
+				],
+				"title": "CompanyOut"
+			},
+			"CompanyPage": {
+				"properties": {
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"with_feed": {
+						"type": "integer",
+						"title": "With Feed"
+					},
+					"watched": {
+						"type": "integer",
+						"title": "Watched"
+					},
+					"pending": {
+						"type": "integer",
+						"title": "Pending"
+					},
+					"items": {
+						"items": {
+							"$ref": "#/components/schemas/CompanyOut"
+						},
+						"type": "array",
+						"title": "Items"
+					}
+				},
+				"type": "object",
+				"required": ["total", "with_feed", "watched", "pending", "items"],
+				"title": "CompanyPage"
+			},
+			"CompanyPatch": {
+				"properties": {
+					"status": {
+						"type": "string",
+						"enum": ["candidate", "watch", "ignore"],
+						"title": "Status"
+					}
+				},
+				"type": "object",
+				"required": ["status"],
+				"title": "CompanyPatch"
 			},
 			"ComponentHealth": {
 				"properties": {
@@ -1025,6 +1635,73 @@
 				"type": "object",
 				"required": ["name", "email", "phone", "address"],
 				"title": "Contact"
+			},
+			"CoverageOut": {
+				"properties": {
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"found": {
+						"type": "integer",
+						"title": "Found"
+					},
+					"visible": {
+						"type": "integer",
+						"title": "Visible"
+					},
+					"rate": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Rate"
+					},
+					"by_source": {
+						"additionalProperties": {
+							"$ref": "#/components/schemas/SourceShareOut"
+						},
+						"type": "object",
+						"title": "By Source"
+					},
+					"reasons": {
+						"additionalProperties": {
+							"type": "integer"
+						},
+						"type": "object",
+						"title": "Reasons"
+					},
+					"reason_labels": {
+						"additionalProperties": {
+							"type": "string"
+						},
+						"type": "object",
+						"title": "Reason Labels"
+					},
+					"samples": {
+						"items": {
+							"$ref": "#/components/schemas/SampleOut"
+						},
+						"type": "array",
+						"title": "Samples"
+					}
+				},
+				"type": "object",
+				"required": [
+					"total",
+					"found",
+					"visible",
+					"rate",
+					"by_source",
+					"reasons",
+					"reason_labels",
+					"samples"
+				],
+				"title": "CoverageOut"
 			},
 			"CvChanges": {
 				"properties": {
@@ -1237,6 +1914,18 @@
 				"type": "object",
 				"required": ["kind", "text"],
 				"title": "EvidenceOut"
+			},
+			"GeneralPatch": {
+				"properties": {
+					"contact": {
+						"type": "string",
+						"maxLength": 200,
+						"title": "Contact",
+						"default": ""
+					}
+				},
+				"type": "object",
+				"title": "GeneralPatch"
 			},
 			"HTTPValidationError": {
 				"properties": {
@@ -2054,6 +2743,166 @@
 				],
 				"title": "RunOut"
 			},
+			"SampleIn": {
+				"properties": {
+					"url": {
+						"type": "string",
+						"maxLength": 1000,
+						"title": "Url",
+						"default": ""
+					},
+					"company": {
+						"type": "string",
+						"maxLength": 300,
+						"minLength": 1,
+						"title": "Company"
+					},
+					"title": {
+						"type": "string",
+						"maxLength": 300,
+						"minLength": 1,
+						"title": "Title"
+					},
+					"location": {
+						"type": "string",
+						"maxLength": 200,
+						"title": "Location",
+						"default": ""
+					},
+					"found_via": {
+						"type": "string",
+						"maxLength": 50,
+						"title": "Found Via",
+						"default": ""
+					}
+				},
+				"type": "object",
+				"required": ["company", "title"],
+				"title": "SampleIn"
+			},
+			"SampleOut": {
+				"properties": {
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"url": {
+						"type": "string",
+						"title": "Url"
+					},
+					"company": {
+						"type": "string",
+						"title": "Company"
+					},
+					"title": {
+						"type": "string",
+						"title": "Title"
+					},
+					"location": {
+						"type": "string",
+						"title": "Location"
+					},
+					"found_via": {
+						"type": "string",
+						"title": "Found Via"
+					},
+					"matched_job_id": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Matched Job Id"
+					},
+					"matched_title": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Matched Title"
+					},
+					"matched_sources": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Matched Sources"
+					},
+					"miss_reason": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Miss Reason"
+					},
+					"checked_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Checked At"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Created At"
+					}
+				},
+				"type": "object",
+				"required": [
+					"id",
+					"url",
+					"company",
+					"title",
+					"location",
+					"found_via",
+					"matched_job_id",
+					"matched_title",
+					"matched_sources",
+					"miss_reason",
+					"checked_at",
+					"created_at"
+				],
+				"title": "SampleOut"
+			},
+			"SettingsOut": {
+				"properties": {
+					"contact": {
+						"type": "string",
+						"title": "Contact"
+					},
+					"contact_from_env": {
+						"type": "boolean",
+						"title": "Contact From Env"
+					},
+					"sources": {
+						"items": {
+							"$ref": "#/components/schemas/SourceOut"
+						},
+						"type": "array",
+						"title": "Sources"
+					}
+				},
+				"type": "object",
+				"required": ["contact", "contact_from_env", "sources"],
+				"title": "SettingsOut"
+			},
 			"Skill-Input": {
 				"properties": {
 					"name": {
@@ -2175,6 +3024,118 @@
 				"required": ["source", "url"],
 				"title": "SourceLink"
 			},
+			"SourceOut": {
+				"properties": {
+					"key": {
+						"type": "string",
+						"title": "Key"
+					},
+					"label": {
+						"type": "string",
+						"title": "Label"
+					},
+					"kind": {
+						"type": "string",
+						"title": "Kind"
+					},
+					"description": {
+						"type": "string",
+						"title": "Description"
+					},
+					"enabled": {
+						"type": "boolean",
+						"title": "Enabled"
+					},
+					"fields": {
+						"additionalProperties": {
+							"type": "string"
+						},
+						"type": "object",
+						"title": "Fields"
+					},
+					"secrets": {
+						"additionalProperties": {
+							"type": "boolean"
+						},
+						"type": "object",
+						"title": "Secrets"
+					},
+					"missing": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Missing"
+					},
+					"count": {
+						"type": "integer",
+						"title": "Count"
+					},
+					"last_run": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/SourceStats"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				},
+				"type": "object",
+				"required": [
+					"key",
+					"label",
+					"kind",
+					"description",
+					"enabled",
+					"fields",
+					"secrets",
+					"missing",
+					"count",
+					"last_run"
+				],
+				"title": "SourceOut"
+			},
+			"SourcePatch": {
+				"properties": {
+					"enabled": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Enabled"
+					},
+					"config": {
+						"additionalProperties": {
+							"type": "string"
+						},
+						"type": "object",
+						"title": "Config"
+					}
+				},
+				"type": "object",
+				"title": "SourcePatch"
+			},
+			"SourceShareOut": {
+				"properties": {
+					"count": {
+						"type": "integer",
+						"title": "Count"
+					},
+					"only": {
+						"type": "integer",
+						"title": "Only"
+					}
+				},
+				"type": "object",
+				"required": ["count", "only"],
+				"title": "SourceShareOut"
+			},
 			"SourceStats": {
 				"properties": {
 					"label": {
@@ -2196,6 +3157,11 @@
 					"known": {
 						"type": "integer",
 						"title": "Known"
+					},
+					"filtered": {
+						"type": "integer",
+						"title": "Filtered",
+						"default": 0
 					},
 					"errors": {
 						"type": "integer",

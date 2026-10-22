@@ -1,0 +1,38 @@
+{
+  "__CLASS__": "Adzuna::API::Response::JobSearchResults",
+  "count": 2,
+  "mean": 61000,
+  "results": [
+    {
+      "__CLASS__": "Adzuna::API::Response::Job",
+      "id": "4711000001",
+      "adref": "eyJhbGciOiJIUzI1NiJ9",
+      "title": "Fullstack Entwickler (m/w/d) Python / Vue",
+      "description": "Wir suchen einen Fullstack Entwickler mit Erfahrung in Python und Vue.js für unser Team in Leipzig …",
+      "created": "2026-10-20T08:15:00Z",
+      "redirect_url": "https://www.adzuna.de/land/ad/4711000001?se=abc&v=1",
+      "company": {"__CLASS__": "Adzuna::API::Response::Company", "display_name": "Pixelwerk GmbH"},
+      "location": {"__CLASS__": "Adzuna::API::Response::Location", "display_name": "Leipzig, Sachsen", "area": ["Deutschland", "Sachsen", "Leipzig"]},
+      "latitude": 51.3397,
+      "longitude": 12.3731,
+      "salary_min": 55000,
+      "salary_max": 65000,
+      "salary_is_predicted": "0",
+      "category": {"__CLASS__": "Adzuna::API::Response::Category", "tag": "it-jobs", "label": "IT-Stellen"},
+      "contract_type": "permanent"
+    },
+    {
+      "__CLASS__": "Adzuna::API::Response::Job",
+      "id": "4711000002",
+      "title": "Frontend Developer",
+      "description": "Frontend Developer gesucht …",
+      "created": "2026-10-18T10:00:00Z",
+      "redirect_url": "https://www.adzuna.de/land/ad/4711000002",
+      "company": {"display_name": "Datenhaus AG"},
+      "location": {"display_name": "Halle (Saale)"},
+      "salary_min": 48213.47,
+      "salary_max": 48213.47,
+      "salary_is_predicted": "1"
+    }
+  ]
+}

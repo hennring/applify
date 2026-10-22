@@ -29,6 +29,8 @@ class SourceStats(BaseModel):
     new: int
     duplicate: int
     known: int
+    # Dropped by the location/remote prefilter (feeds, careers pages).
+    filtered: int = 0
     errors: int
 
 

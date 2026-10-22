@@ -166,3 +166,52 @@ button.round.on {
 	background: var(--chip);
 	color: var(--muted);
 }
+
+/* Sticky page header with title and actions; cancels main's top padding (+layout.svelte). */
+.pagehead {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem 1rem;
+	margin: -1.5rem 0 1rem;
+	padding: 1.25rem 0 0.9rem;
+	background: var(--bg);
+	border-bottom: 1px solid var(--border);
+}
+.pagehead h1 {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	margin: 0 0.5rem 0 0;
+	/* As high as a primary action, so the header does not jump when one appears. */
+	min-height: 2.7rem;
+}
+@media (max-width: 700px) {
+	.pagehead {
+		margin-top: -1rem;
+		padding-top: 0.75rem;
+	}
+}
+
+.segmented {
+	display: inline-flex;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	overflow: hidden;
+}
+.segmented button {
+	border: none;
+	border-radius: 0;
+	padding: 0.35rem 0.9rem;
+	background: var(--surface);
+}
+.segmented button + button {
+	border-left: 1px solid var(--border);
+}
+.segmented button.on {
+	background: var(--accent);
+	color: var(--accent-text);
+}

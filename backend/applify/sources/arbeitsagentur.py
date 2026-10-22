@@ -75,6 +75,7 @@ def parse_posting(item: dict[str, Any]) -> JobPosting:
 class ArbeitsagenturSource:
     name = "ba"
     label = "Bundesagentur für Arbeit"
+    located = True
 
     def __init__(self, client: PoliteClient, *, max_pages: int = 2) -> None:
         self.client = client

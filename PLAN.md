@@ -2,7 +2,7 @@
 
 > Persönlicher Bewerbungsassistent: findet täglich passende Stellen, bewertet sie gegen das eigene Profil und erzeugt auf Zusage ein fertiges Bewerbungspaket.
 
-Stand: 21.10.2026 (Spike M2: Quellen geprüft, BA-API auf v6) · Status: M0–M3 umgesetzt
+Stand: 22.10.2026 · Status: M0–M3 umgesetzt, M4 umgesetzt (Abnahme offen: ≥ 50 Firmen mit Feed, Abdeckungsmessung)
 
 ---
 
@@ -234,7 +234,7 @@ Die Reihenfolge innerhalb von Stufe 2 richtet sich nach den verpassten Stellen d
 |---|---|
 | Arbeitnow | `GET https://www.arbeitnow.com/api/job-board-api?page=N` → 200, 300 Stellen pro Seite, `description` als HTML (escaped), Felder `remote`, `location`, `tags`, `created_at`. Nutzungsbedingung: „free public API, please do not abuse“, Rücklink erwünscht. |
 | Adzuna | Ohne Key 400 (erwartet) – Key beantragen. |
-| service.bund.de | Von hier aus nicht erreichbar (Verbindungs-Timeout auf IPv4, DNS ok). In M4 erneut prüfen, ggf. aus dem Container. |
+| service.bund.de | M2 nicht erreichbar; **M4 (22.10.2026):** RSS über das Suchformular mit `jobsrss=true` und `templateQueryString=<Begriff>` → 200, bis 100 Einträge. Der Begriff filtert, die Ortsparameter nicht → lokaler Vorfilter. Einträge enthalten nur Arbeitgeber, PLZ/Ort und Frist; die Detailseiten haben kein JSON-LD → Kurzinfo. |
 | Greenhouse | `boards-api.greenhouse.io/v1/boards/{token}/jobs` → 200 (gitlab, n26, celonis). |
 | Lever | `api.lever.co/v0/postings/{token}?mode=json` → 200 (spotify, palantir), Volltext als `descriptionPlain`. |
 | Personio | `{token}.jobs.personio.de/xml` → 200 (chrono24, 1komma5grad); falsche Tokens → 404 – Token muss aus der Karriereseite erkannt werden. |
@@ -242,7 +242,7 @@ Die Reihenfolge innerhalb von Stufe 2 richtet sich nach den verpassten Stellen d
 | SmartRecruiters | `api.smartrecruiters.com/v1/companies/{id}/postings` → 200 (BoschGroup; unbekannte Firma: 200 mit leerer Liste). |
 | Workday | `POST …/wday/cxs/{tenant}/{site}/jobs` → 200 (Deutsche Bank `db/DBWebsite`), 401 bei falscher Site – Site-Name muss erkannt werden. |
 | GitHub | `/search/users?q=type:org+location:Leipzig` → 200 ohne Token (257 Orgs, viele Forschungs-/Open-Source-Orgs). |
-| Wikidata | SPARQL `P159` (Hauptsitz) + `P856` (Website) → 200 in < 1 s; ohne Filter auf Unternehmen (`P31/P279* Q4830453`) kommen auch Vereine/Parteien – der Unterklassen-Pfad lief in den Timeout, daher in M4 mit konkreten Klassen (z. B. `Q4830453`, `Q6881511`) filtern. |
+| Wikidata | SPARQL `P159` (Hauptsitz) + `P856` (Website) → 200 in < 1 s; ohne Filter auf Unternehmen (`P31/P279* Q4830453`) kommen auch Vereine/Parteien – der Unterklassen-Pfad lief in den Timeout, daher in M4 mit konkreten Klassen (z. B. `Q4830453`, `Q6881511`) filtern. **M4:** Umkreissuche (`wikibase:around` auf die Koordinaten des Hauptsitzes) funktioniert; der Endpunkt antwortet 403, wenn der User-Agent keine Kontaktadresse enthält → Wikidata-Discovery nur mit Kontaktadresse (Einstellungen). |
 
 **Aggregator-APIs**
 - **Adzuna**: kostenloser API-Key, Land `de`, Suche nach Begriff + Ort + Distanz; liefert meist nur einen Textauszug → Kurzinfo, Volltext ggf. per Dedup mit Karriereseite.
@@ -410,7 +410,7 @@ Jeder Meilenstein endet mit etwas Lauffähigem. Die LLM-Schicht wandert wegen de
 
 ## 9. Offene Punkte (in der Umsetzung klären)
 - ~~Verfügbarkeit/Format des BA-Detail-Endpunkts~~ → geklärt im Spike M2 (§5.1)
-- service.bund.de-RSS war im Spike nicht erreichbar; in M4 erneut prüfen
+- ~~service.bund.de-RSS~~ → in M4 erreichbar (§5.1)
 - Adzuna-API-Key und ggf. GitHub-Token beantragen
 - Kontaktadresse für den User-Agent (N6): per `APPLIFY_HTTP_CONTACT` konfigurierbar, Standard leer
 - Layout/Design des Anschreiben-PDFs (eigene Vorlage vorhanden?)

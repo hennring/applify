@@ -431,27 +431,6 @@
 </form>
 
 <style>
-	.pagehead {
-		position: sticky;
-		top: 0;
-		z-index: 10;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.75rem 1rem;
-		margin: -1.5rem 0 1rem;
-		padding: 1.25rem 0 0.9rem;
-		background: var(--bg);
-		border-bottom: 1px solid var(--border);
-	}
-	h1 {
-		display: flex;
-		align-items: center;
-		gap: 0.6rem;
-		margin: 0 0.5rem 0 0;
-		/* Same height as the save button, so the header does not jump when it appears. */
-		min-height: 2.7rem;
-	}
 	.save {
 		display: inline-flex;
 		align-items: center;
@@ -491,13 +470,6 @@
 	}
 	.layout:disabled {
 		opacity: 0.6;
-	}
-	/* Cancel main's top padding (see +layout.svelte) so nothing scrolls above the header. */
-	@media (max-width: 700px) {
-		.pagehead {
-			margin-top: -1rem;
-			padding-top: 0.75rem;
-		}
 	}
 	@media (max-width: 1100px) {
 		.layout {

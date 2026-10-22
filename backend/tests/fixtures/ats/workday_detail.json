@@ -1,0 +1,161 @@
+{
+ "jobPostingInfo": {
+  "id": "e00ea3acacbe103cd5b296d9e2870000",
+  "title": "Senior Java Developer",
+  "jobDescription": "<span><span><span><span><span><span><span><h2><u><b>Job Description:</b></u></h2></span></span></span></span></span></span></span><p>DB Global Technology is Deutsche Bank’s technology center in Central and Eastern Europe. Since its set-up in 2013, Bucharest Technology Centre (BEX) has constantly proven its capacity to deliver global technology products and services, playing a dynamic role in the Bank’s technology transformation.</p><p>We have a robust, hands-on engineering culture dedicated to continuous learning, knowledge-sharing, technical skill development and networking. We are an essential part of the Bank’s technology platform and develop applications for many important business areas.</p><p></p><p>We&#39;re seeking a talented and enthusiastic Java Back-End Engineer with a strong background in the Spring Framework and microservices architecture. In this role, you&#39;ll be a key player in designing, developing, and deploying robust back-end systems that power our cutting-edge applications. Experience with cloud deployments is a big plus!</p><p><br /><b>Responsibilities</b></p><p>· Maintain high standards of software quality within the team by following good practices and habits</p><p>· Develop, test and document Java-based software components in accordance with requirements</p><p>· Contribute to all stages of software development lifecycle</p><p>· Identify and resolve any technical issue arising</p><p>· Write unit tests for robustness, edge cases and general reliability</p><p>· Participate in peer-reviews of solution designs and related code</p><p>· Create design documentation</p><p>· Plan and support releases</p><p>· Support QA team to provide high quality</p><p>· Work in a scaled Agile working environment</p><p></p><p><b>Skills</b></p><p>· A minimum of 4-5 years of development experience within Java projects</p><p>· Good understanding of various protocols: HTTP, TCP, SFTP</p><p>· Good skills in developing new REST services</p><p>· Good understanding of design patterns and SOLID principles</p><p>· Experience with multiple application servers</p><p>· Experience with Spring, Hibernate and other Java frameworks /open source libraries</p><p>· Experience with SOA and Web Services (REST/SOAP)</p><p>· Good understanding of security protocols (SSL, TLS, certificates handling)</p><p>· Used with Agile development methodologies and tools: Jira, Git, Maven, Teamcity, Jenkins, Artifactory and other continuous integration tools</p><p>· Experience with Kubernates, Openshift and Docker</p><p>· Google Cloud can be a plus</p><p>· Experienced with unit testing</p><p></p><p><i>Proven ability to leverage AI tools to enhance productivity, optimise workflows to solve business problems, while applying critical judgment to ensure responsible and ethical use of data and AI outputs.</i></p><p></p><p><b>Well-being &amp; Benefits</b></p><p><b>Emotionally and mentally balanced: </b>We support you in dealing with life crises, maintaining stability through illness, and maintaining good mental health.</p><ul><li><p>Empowering managers who value your ideas and decisions. Show your positive attitude, determination, and open-mindedness.</p></li><li><p>A professional, passionate, and fun workplace.</p></li><li><p>A modern office with fun and relaxing areas to boost creativity.</p></li><li><p>Continuous learning culture with coaching and support from team experts.</p></li><li><p>A culture where you can openly speak about mental health.</p></li></ul><p><b>Physically thriving: </b>We support you in managing your physical health by taking appropriate preventive measures and providing a workplace that helps you thrive. For example, Private healthcare and life insurance with premium benefits for you and discounts for your loved ones, healthier ways of working and check-ups.</p><p><b>Socially connected: </b>We strongly believe in collaboration, inclusion and feeling connected to open up new perspectives and strengthen our self-confidence and well-being.</p><ul><li><p>24 days holiday, loyalty days, and bank holidays (including weekdays for weekend bank holidays).</p></li><li><p>Hybrid working model with 40% remote work.</p></li><li><p>Options for flexible working hours.</p></li><li><p>Enjoy retailer discounts, cultural and CSR activities, workshops, and more.</p></li></ul><p><b>Financially secure: </b>We support you in meeting personal financial goals during your active career and for the future.</p><ul><li><p>Competitive income, performance-based promotions, and a sense of purpose.</p></li><li><p>Meal vouchers, bonuses for referrals</p></li></ul><p style=\"text-align:inherit !important\"></p><p style=\"text-align:left !important\">We strive for a <a target=\"_blank\" href=\"https://careers.db.com/this-is-db/index?language_id&#61;1\"><span style=\"color:#0000ff\"><u>culture</u></span></a> in which we are empowered to excel together every day. This includes acting responsibly, thinking commercially, taking initiative and working collaboratively.</p><p style=\"text-align:left !important\">Together we share and celebrate the successes of our people. Together we are Deutsche Bank Group.</p><p style=\"text-align:inherit !important\"></p><p style=\"text-align:left !important\">We welcome applications from all people and promote a positive, fair and inclusive work environment.</p>",
+  "location": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+  "postedOn": "Posted 30+ Days Ago",
+  "startDate": "2026-09-16",
+  "timeType": "",
+  "jobReqId": "R0412040",
+  "jobPostingId": "Senior-Java-Developer_R0412040",
+  "jobPostingSiteId": "DBWebsite",
+  "country": {
+   "descriptor": "Romania",
+   "id": "f2e609fe92974a55a05fc1cdc2852122"
+  },
+  "canApply": true,
+  "posted": true,
+  "includeResumeParsing": true,
+  "jobRequisitionLocation": {
+   "descriptor": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "country": {
+    "descriptor": "Romania",
+    "id": "f2e609fe92974a55a05fc1cdc2852122",
+    "alpha2Code": "RO"
+   }
+  },
+  "externalUrl": "https://db.wd3.myworkdayjobs.com/DBWebsite/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Senior-Java-Developer_R0412040",
+  "questionnaireId": "ddd043bce22f100188f6d80b9eff0000"
+ },
+ "hiringOrganization": {
+  "name": "F063 DB Global Technology SRL",
+  "url": ""
+ },
+ "similarJobs": [
+  {
+   "title": "L2 Application Support & Release Engineer",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Banking-and-Lending---QA-Engineer_R0425845",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-18"
+  },
+  {
+   "title": "Technical Information Security Officer (TISO) (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/SAS-WF-Senior-Engineer_R0424652-1",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-16"
+  },
+  {
+   "title": "L2 Support / Release Manager (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Engineer-Frontend-Web--f-m-x-_R0424423",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-18"
+  },
+  {
+   "title": "Java Backend Engineer",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Java-Backend-Engineer_R0414227",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-18"
+  },
+  {
+   "title": "DevOps  Engineer (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/DevOps--Engineer--f-m-x-_R0427224-1",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-16"
+  },
+  {
+   "title": "Zero Trust Engineer (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Zscaler-Senior-Engineer--f-m-x-_R0435551",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted Today",
+   "startDate": "2026-10-22"
+  },
+  {
+   "title": "Senior Engineer, Frontend (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Senior-Engineer--Frontend_R0328595",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-18"
+  },
+  {
+   "title": "DevOps Engineer",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/DevOps-Engineer_R0361102",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-18"
+  },
+  {
+   "title": "Senior Security Engineer (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Senior-Security-Engineer--f-m-x-_R0389341",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-16"
+  },
+  {
+   "title": "Production Engineer SAP  (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Production-Engineer--f-m-x-_R0341951-1",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-16"
+  },
+  {
+   "title": "Senior Backend Engineer (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Senior-Backend-Engineer--f-m-x-_R0409251",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-18"
+  },
+  {
+   "title": "Requirements Engineer - eKYC TOM (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Requirements-Engineer---eKYC-TOM--f-m-x-_R0424579",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-18"
+  },
+  {
+   "title": "Senior Backend Engineer (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Senior-Business-Functional-Analyst--f-m-x-_R0424426",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-18"
+  },
+  {
+   "title": "Senior Engineer (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Senior-Engineer--f-m-x-_R0410530",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-16"
+  },
+  {
+   "title": "Senior SOAR Engineer (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Senior-SOAR-Engineer--f-m-x-_R0447661-1",
+   "timeType": "Full time",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "startDate": "2026-09-16"
+  },
+  {
+   "title": "Senior Engineer, iOS (f/m/x)",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Senior-Engineer--iOS_R0328539",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 3 Days Ago",
+   "startDate": "2026-10-19"
+  }
+ ],
+ "userAuthenticated": false
+}

@@ -8,7 +8,17 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
-from applify.api import documents, health, jobs, matches, profile, runs
+from applify.api import (
+    companies,
+    coverage,
+    documents,
+    health,
+    jobs,
+    matches,
+    profile,
+    runs,
+    settings,
+)
 from applify.config import get_settings
 from applify.db.session import get_sessionmaker
 from applify.services.cv_jobs import fail_interrupted_jobs
@@ -47,7 +57,7 @@ def create_app(*, run_startup_tasks: bool = True) -> FastAPI:
     app = FastAPI(
         title="Applify", version="0.1.0", lifespan=lifespan if run_startup_tasks else None
     )
-    for module in (health, documents, profile, runs, jobs, matches):
+    for module in (health, documents, profile, runs, jobs, matches, companies, coverage, settings):
         app.include_router(module.router, prefix="/api")
     mount_spa(app, get_settings().static_dir)
     return app

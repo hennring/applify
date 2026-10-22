@@ -234,8 +234,8 @@
 				<thead>
 					<tr
 						><th>Quelle</th><th>gefunden</th><th>neu</th><th>zusammengeführt</th><th>bekannt</th><th
-							>Fehler</th
-						></tr
+							title="Außerhalb der Radien, nicht remote-kompatibel">Vorfilter</th
+						><th>Fehler</th></tr
 					>
 				</thead>
 				<tbody>
@@ -246,6 +246,7 @@
 							<td><strong>{s.new}</strong></td>
 							<td>{s.duplicate}</td>
 							<td>{s.known}</td>
+							<td>{s.filtered ?? 0}</td>
 							<td class:error={s.errors > 0}>{s.errors}</td>
 						</tr>
 					{/each}
@@ -443,33 +444,6 @@
 		border-color: var(--accent);
 		box-shadow: inset 3px 0 0 var(--accent);
 	}
-	.pagehead {
-		position: sticky;
-		top: 0;
-		z-index: 10;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.75rem 1rem;
-		margin: -1.5rem 0 1rem;
-		padding: 1.25rem 0 0.9rem;
-		background: var(--bg);
-		border-bottom: 1px solid var(--border);
-	}
-	/* Cancel main's top padding (see +layout.svelte) so nothing scrolls above the header. */
-	@media (max-width: 700px) {
-		.pagehead {
-			margin-top: -1rem;
-			padding-top: 0.75rem;
-		}
-	}
-	h1 {
-		display: flex;
-		align-items: center;
-		gap: 0.6rem;
-		margin: 0 0.5rem 0 0;
-		min-height: 2.7rem;
-	}
 	.start {
 		display: inline-flex;
 		align-items: center;
@@ -570,25 +544,6 @@
 		align-items: center;
 		gap: 0.75rem 1rem;
 		margin: 1.5rem 0 0.9rem;
-	}
-	.segmented {
-		display: inline-flex;
-		border: 1px solid var(--border);
-		border-radius: 999px;
-		overflow: hidden;
-	}
-	.segmented button {
-		border: none;
-		border-radius: 0;
-		padding: 0.35rem 0.9rem;
-		background: var(--surface);
-	}
-	.segmented button + button {
-		border-left: 1px solid var(--border);
-	}
-	.segmented button.on {
-		background: var(--accent);
-		color: var(--accent-text);
 	}
 	.count {
 		font-size: 0.8rem;

@@ -1,10 +1,11 @@
 import copy
 import os
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import nullcontext
 from pathlib import Path
 from typing import Any
 
+import httpx
 import psycopg
 import pytest
 from alembic.config import Config
@@ -20,8 +21,9 @@ from applify.llm import get_llm
 from applify.llm.base import T
 from applify.main import create_app
 from applify.services.background import get_search_runner, get_task_runner
-from applify.sources import get_sources_factory
-from applify.sources.base import JobPosting, SearchQuery
+from applify.sources import get_client_factory, get_sources_factory
+from applify.sources.base import JobPosting, RunSources, SearchQuery
+from applify.sources.http import PoliteClient
 
 BACKEND_DIR = Path(__file__).parents[1]
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -94,6 +96,7 @@ class FakeSource:
 
     name = "ba"
     label = "Bundesagentur für Arbeit"
+    located = True
 
     def __init__(self) -> None:
         self.postings: dict[str, list[JobPosting]] = {}
@@ -118,6 +121,39 @@ class FakeSource:
         return posting
 
 
+class FakeWeb:
+    """Mock transport serving prepared responses by URL (query ignored); others get 404."""
+
+    def __init__(self) -> None:
+        self.pages: dict[str, httpx.Response | Callable[[httpx.Request], httpx.Response]] = {}
+        self.requests: list[httpx.Request] = []
+
+    def add(self, url: str, body: str | bytes | dict[str, Any] | list[Any], **kwargs: Any) -> None:
+        if isinstance(body, dict | list):
+            self.pages[url] = httpx.Response(200, json=body, **kwargs)
+        else:
+            self.pages[url] = httpx.Response(200, content=body, **kwargs)
+
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        self.requests.append(request)
+        url = str(request.url).split("?")[0]
+        page = self.pages.get(url)
+        if page is None:
+            return httpx.Response(404)
+        return page(request) if callable(page) else page
+
+    def urls(self) -> list[str]:
+        return [str(r.url).split("?")[0] for r in self.requests]
+
+    def client(self, contact: str = "me@example.org") -> PoliteClient:
+        return PoliteClient(interval=0, transport=httpx.MockTransport(self), contact=contact)
+
+
+@pytest.fixture
+def web() -> FakeWeb:
+    return FakeWeb()
+
+
 @pytest.fixture
 def fake_source() -> FakeSource:
     return FakeSource()
@@ -129,8 +165,18 @@ def fake_llm() -> FakeLLM:
 
 
 @pytest.fixture
+def run_sources(fake_source: FakeSource) -> RunSources:
+    """What a search run in the API tests reaches; tests may add feeds or a web client."""
+    return RunSources([fake_source])
+
+
+@pytest.fixture
 def api(
-    db_session: Session, fake_llm: FakeLLM, fake_source: FakeSource, tmp_path: Path
+    db_session: Session,
+    fake_llm: FakeLLM,
+    run_sources: RunSources,
+    web: FakeWeb,
+    tmp_path: Path,
 ) -> Iterator[TestClient]:
     """API client on the test database; background jobs run synchronously."""
     app = create_app(run_startup_tasks=False)
@@ -141,6 +187,7 @@ def api(
     app.dependency_overrides[get_llm] = lambda: fake_llm
     app.dependency_overrides[get_task_runner] = lambda: lambda fn, *args: fn(*args)
     app.dependency_overrides[get_search_runner] = lambda: lambda fn, *args: fn(*args)
-    app.dependency_overrides[get_sources_factory] = lambda: lambda: [fake_source]
+    app.dependency_overrides[get_sources_factory] = lambda: lambda settings: run_sources
+    app.dependency_overrides[get_client_factory] = lambda: lambda settings: web.client()
     with TestClient(app) as client:
         yield client

@@ -49,6 +49,7 @@ def test_run_stores_jobs_without_duplicates(api: TestClient, fake_source: FakeSo
         "new": 2,
         "duplicate": 1,
         "known": 0,
+        "filtered": 0,
         "errors": 0,
     }
     # Terms × locations, with radius.

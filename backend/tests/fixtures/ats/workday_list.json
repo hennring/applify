@@ -1,0 +1,33 @@
+{
+ "total": 818,
+ "jobPostings": [
+  {
+   "title": "Senior Java Developer",
+   "externalPath": "/job/Bucharest-6A-Dimitrie-Pompeiu-Blvd/Senior-Java-Developer_R0412040",
+   "locationsText": "Bucharest, 6A Dimitrie Pompeiu Blvd",
+   "postedOn": "Posted 30+ Days Ago",
+   "bulletFields": [
+    "R0412040"
+   ]
+  },
+  {
+   "title": "Java Developer, AVP",
+   "externalPath": "/job/Pune---Margarpatta/RPA-Blue-Prism-and-Python-Developer--AVP_R0427625",
+   "locationsText": "Pune - Margarpatta",
+   "postedOn": "Posted Today",
+   "bulletFields": [
+    "R0427625"
+   ]
+  },
+  {
+   "title": ".Net Developer, AS",
+   "externalPath": "/job/Pune---Margarpatta/XMLNAME-Net-Developer--AS_R0420383",
+   "locationsText": "Pune - Margarpatta",
+   "postedOn": "Posted 30+ Days Ago",
+   "bulletFields": [
+    "R0420383"
+   ]
+  }
+ ],
+ "userAuthenticated": false
+}

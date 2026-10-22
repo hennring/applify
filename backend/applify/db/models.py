@@ -127,6 +127,9 @@ class Job(Base):
     fingerprint: Mapped[str] = mapped_column(String(40), index=True)
     # Canonical skills mentioned in title and text; None = not scanned since the last change.
     skills: Mapped[list[str] | None] = mapped_column(ARRAY(String))
+    company_id: Mapped[int | None] = mapped_column(
+        ForeignKey("companies.id", ondelete="SET NULL"), index=True
+    )
     first_seen_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
@@ -159,6 +162,80 @@ class JobSource(Base):
     job: Mapped[Job] = relationship(back_populates="sources")
 
     __table_args__ = (UniqueConstraint("source", "external_id"),)
+
+
+class Company(Base):
+    """An employer, shared by all users; its careers page is read via an ATS feed (F7)."""
+
+    __tablename__ = "companies"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(300))
+    name_norm: Mapped[str] = mapped_column(String(300), unique=True)
+    website: Mapped[str | None] = mapped_column(String(500))
+    careers_url: Mapped[str | None] = mapped_column(String(1000))
+    # personio / greenhouse / lever / recruitee / smartrecruiters / workday / jsonld / unknown
+    ats_type: Mapped[str] = mapped_column(String(20), server_default="unknown")
+    ats_token: Mapped[str | None] = mapped_column(String(200))
+    discovered_from: Mapped[str] = mapped_column(String(20))  # jobs / github / wikidata / user
+    detection_status: Mapped[str] = mapped_column(String(20), server_default="pending")
+    # Leads for the detection: URLs from postings, GitHub login, ...
+    hints: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default="{}")
+    detected_at: Mapped[datetime | None]
+    last_checked_at: Mapped[datetime | None]
+    last_error: Mapped[str | None] = mapped_column(Text)
+    etag: Mapped[str | None] = mapped_column(String(300))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+
+class UserCompany(Base):
+    __tablename__ = "user_companies"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    company_id: Mapped[int] = mapped_column(
+        ForeignKey("companies.id", ondelete="CASCADE"), index=True
+    )
+    status: Mapped[str] = mapped_column(String(20), server_default="candidate")  # watch / ignore
+    added_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    company: Mapped[Company] = relationship()
+
+    __table_args__ = (UniqueConstraint("user_id", "company_id"),)
+
+
+class SourceSetting(Base):
+    """Per user and source: on/off and settings such as API keys (F7d)."""
+
+    __tablename__ = "source_settings"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    source: Mapped[str] = mapped_column(String(30))
+    enabled: Mapped[bool] = mapped_column(server_default="true")
+    config: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default="{}")
+
+    __table_args__ = (UniqueConstraint("user_id", "source"),)
+
+
+class CoverageSample(Base):
+    """A job the user found by hand elsewhere, checked against the stock (F10a, §5.7)."""
+
+    __tablename__ = "coverage_samples"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    url: Mapped[str] = mapped_column(String(1000), server_default="")
+    company: Mapped[str] = mapped_column(String(300))
+    title: Mapped[str] = mapped_column(String(300))
+    location: Mapped[str] = mapped_column(String(200), server_default="")
+    found_via: Mapped[str] = mapped_column(String(50), server_default="")
+    matched_job_id: Mapped[int | None] = mapped_column(ForeignKey("jobs.id", ondelete="SET NULL"))
+    matched_sources: Mapped[list[str]] = mapped_column(ARRAY(String), server_default="{}")
+    # discovery / adapter / missing / filter, None if found and visible
+    miss_reason: Mapped[str | None] = mapped_column(String(20))
+    checked_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 class SearchRun(Base):

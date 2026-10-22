@@ -70,6 +70,10 @@ def normalize_city(city: str) -> str:
     return _fold(re.split(r"[,/(]|\s-\s|-(?=[A-ZÄÖÜ])", city)[0])
 
 
+# A location field that names remote work ("Remote", "Berlin (Remote)", "Homeoffice").
+REMOTE_LOCATION = re.compile(r"\b(remote|home[\s-]?office|anywhere|ortsunabhängig)\b", re.I)
+
+
 def detect_remote(text: str) -> str | None:
     """'remote' or 'hybrid' if the text says so; None means unknown or on site."""
     if REMOTE_WORDS.search(text):

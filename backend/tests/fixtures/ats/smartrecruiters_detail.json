@@ -1,0 +1,192 @@
+{
+ "id": "744000157147873",
+ "name": "Sales Manager (w/m/div.) für die Neukundenakquise in der Sicherheitstechnik",
+ "uuid": "b0c68aec-cf37-489d-a447-6b3c4ad20ea1",
+ "jobId": "af768dc4-577a-4c4c-9b1d-aa8493f85b5b",
+ "jobAdId": "4672c671-13cc-4bf7-abb0-b56b156bbd02",
+ "defaultJobAd": true,
+ "refNumber": "REF299003Q",
+ "company": {
+  "name": "Bosch Group",
+  "identifier": "BoschGroup"
+ },
+ "location": {
+  "city": "Köln",
+  "region": "NRW",
+  "country": "de",
+  "address": "Toyota-Allee 42A",
+  "postalCode": "50858",
+  "remote": false,
+  "hybrid": true,
+  "latitude": "50.915306",
+  "longitude": "6.8571225",
+  "fullLocation": "Köln, NRW, Germany"
+ },
+ "customField": [
+  {
+   "fieldId": "5abe2a4ab60a5e486a2d9b1d",
+   "fieldLabel": "Contract type",
+   "valueId": "1e46492b-d24f-460c-b095-38cf08a778d8",
+   "valueLabel": "Unlimited"
+  },
+  {
+   "fieldId": "5abe28e96d8bc56863dd9746",
+   "fieldLabel": "Tariff Area",
+   "valueId": "45a4fe7c-ec96-4eda-907f-4aa0356a7704",
+   "valueLabel": "Not tariff-bound / non-tariff / SLx"
+  },
+  {
+   "fieldId": "5aca30e46d8bc56863dd98d8",
+   "fieldLabel": "Tags",
+   "valueId": "f8aadd7e-9952-41c5-af48-02debb3e9010",
+   "valueLabel": "Please enter Career Site Tags"
+  },
+  {
+   "fieldId": "586a997ee4b05fd937b86098",
+   "fieldLabel": "Legal Entity(acronym)",
+   "valueId": "4a388a8d-c332-4cba-b749-992d1753e8dd",
+   "valueLabel": "ST"
+  },
+  {
+   "fieldId": "6463ee88f4ba4e3063baf201",
+   "fieldLabel": "Do you want to publish on StepStone?",
+   "valueId": "2237b973-e7eb-4ef8-af79-18f23b23d8a3",
+   "valueLabel": "Yes"
+  },
+  {
+   "fieldId": "586a99b5e4b0daa006ae1079",
+   "fieldLabel": "Working Location",
+   "valueId": "be316c86-fd7b-4403-8d8e-987fce50af7c",
+   "valueLabel": "Köln"
+  },
+  {
+   "fieldId": "5abe295a6d8bc56863dd9747",
+   "fieldLabel": "Global Salary Level",
+   "valueId": "f7d1bb24-614b-4890-bceb-5a77a4d98279",
+   "valueLabel": "SL1"
+  },
+  {
+   "fieldId": "69ca83a2489188782a1e9f87",
+   "fieldLabel": "Direct Or Indirect",
+   "valueId": "1aefbf4c-c10a-422e-a975-a504a7117792",
+   "valueLabel": "Indirect"
+  },
+  {
+   "fieldId": "5abe29f9b60a5e486a2d9b1c",
+   "fieldLabel": "Working hours",
+   "valueId": "ff7c69f3-f89c-498c-9a0e-25f4dad301d4",
+   "valueLabel": "Full-time and/or part-time"
+  },
+  {
+   "fieldId": "586a9995e4b0daa006ae1078",
+   "fieldLabel": "Legal Entity",
+   "valueId": "5bddc7d7-b8b0-48f4-b9f3-cc129e2a7b6b",
+   "valueLabel": "Bosch Sicherheitssysteme GmbH"
+  },
+  {
+   "fieldId": "691cf1c93001c782b9560ab7",
+   "fieldLabel": "Division full name",
+   "valueId": "9129badf-927e-44a3-a58b-fcfd9c21f2a1",
+   "valueLabel": "Building Technologies"
+  },
+  {
+   "fieldId": "5abe27936d8bc56863dd9745",
+   "fieldLabel": "Position type",
+   "valueId": "c7b4da31-6f38-405a-b2e8-08a76e3c3f2c",
+   "valueLabel": "Professional"
+  },
+  {
+   "fieldId": "COUNTRY",
+   "fieldLabel": "Country/Region",
+   "valueId": "de",
+   "valueLabel": "Germany"
+  },
+  {
+   "fieldId": "6463ef12c9dd3a37c45b3d41",
+   "fieldLabel": "Select one of the following StepStone products",
+   "valueId": "5cf7d1e9-c770-440a-861c-7ed6ed1e126a",
+   "valueLabel": "Graduates / Professionals: Pro"
+  },
+  {
+   "fieldId": "586a971ee4b0daa006ae1077",
+   "fieldLabel": "Brands",
+   "valueId": "default",
+   "valueLabel": "Bosch Group"
+  },
+  {
+   "fieldId": "586a996ce4b05fd937b86097",
+   "fieldLabel": "Working Country",
+   "valueId": "34525254-83b2-42bc-9932-cf9f16db5281",
+   "valueLabel": "Germany"
+  },
+  {
+   "fieldId": "586a9b22e4b05fd937b8609a",
+   "fieldLabel": "Local Grade",
+   "valueId": "6a5751cd-b6be-4b16-8eb7-aab3f11ff746",
+   "valueLabel": "SL1 / Analog SL1"
+  },
+  {
+   "fieldId": "586a99a5e4b05fd937b86099",
+   "fieldLabel": "Division",
+   "valueId": "d7b54d05-61b3-4242-bd3d-cde1ec339e50",
+   "valueLabel": "BT"
+  }
+ ],
+ "releasedDate": "2026-10-22T14:12:48.189Z",
+ "creator": {
+  "name": "",
+  "avatarUrl": ""
+ },
+ "postingUrl": "https://jobs.smartrecruiters.com/BoschGroup/744000157147873-sales-manager-w-m-div-fur-die-neukundenakquise-in-der-sicherheitstechnik",
+ "applyUrl": "https://jobs.smartrecruiters.com/BoschGroup/744000157147873-sales-manager-w-m-div-fur-die-neukundenakquise-in-der-sicherheitstechnik?oga=true",
+ "referralUrl": "https://jobs.smartrecruiters.com/external-referrals/company/BoschGroup/publication/b0c68aec-cf37-489d-a447-6b3c4ad20ea1?dcr_ci=BoschGroup",
+ "jobAd": {
+  "sections": {
+   "companyDescription": {
+    "title": "Unternehmensbeschreibung",
+    "text": "<p><strong>Bei Bosch gestalten wir Zukunft mit hochwertigen Technologien und Dienstleistungen, die Begeisterung wecken und das Leben der Menschen verbessern. Unser Versprechen an unsere Mitarbeiterinnen und Mitarbeiter steht dabei felsenfest: Wir wachsen gemeinsam, haben Freude an unserer Arbeit und inspirieren uns gegenseitig. Willkommen bei Bosch. </strong></p><p>Gebäudelösungen für ein besseres Leben – hierfür steht Bosch Energy and Building Solutions. Viele Kunden unterschiedlicher Branchen vertrauen auf uns als langjährigen Partner und täglich werden es mehr! Daher sucht unsere hochmotivierte Mannschaft ein weiteres engagiertes Teammitglied mit Freude an einer vielfältigen Aufgabe.</p><p>Packen Sie mit uns gemeinsam an – Like A Bosch!</p><p>Bosch Energy and Building Solutions freut sich auf Ihre Bewerbung!</p>"
+   },
+   "jobDescription": {
+    "title": "Stellenbeschreibung",
+    "text": "<p>Wir suchen für unser hochmotiviertes Team Zuwachs im Vertrieb:</p><ul><li>Sie ermitteln Interessenten, beraten Kunden und führen Abschlussverhandlungen.</li><li>Sie identifizieren, entwickeln und erweitern Absatzmittler und Neukunden.</li><li>Sie erstellen kundenindividuelle Angebote und arbeiten Konzepte aus im Bereich Safety (Brandmeldesysteme, Sprachalarmierungsanlagen, Elektroakustische Anlagen, Aufschaltungen zur Feuerwehr).</li><li>Sie verfolgen und erreichen die Zielvorgaben und präsentieren die Systeme sowie deren Leistungsmerkmale und Anwendungsmöglichkeiten.</li><li>Sie führen Ist-Analysen durch, entwickeln Sollkonzepte und ermitteln Zielmärkte.</li><li>Sie pflegen Kontakte zu den Bauträgern, Behörden und ähnlichen Stellen.</li><li>Sie bearbeiten die Leistungsverzeichnisse und Ausschreibungsunterlagen.</li></ul>"
+   },
+   "qualifications": {
+    "title": "Qualifikationen",
+    "text": "<ul><li><strong>Ausbildung</strong>: abgeschlossenes technisches/kaufmännisches Studium oder eine vergleichbare Ausbildung</li><li><strong>Erfahrungen und Know-How</strong>: mehrjährige Vertriebserfahrung on the job vorrangig im Verkaufs-Außendienst, der Neukundenakquise oder einer vergleichbaren Aufgabe</li><li><strong>Persönlichkeit</strong>: eigeninitiativ, selbstständig und durchsetzungsfähig</li><li><strong>Arbeitsweise</strong>: teamfähig, analytische Denkweise, schnelle Auffassungsgabe, sicheres Auftreten sowie Verhandlungsgeschick</li><li><strong>Qualifikation</strong>: Führerschein Klasse B für die Nutzung eines Firmenwagens inkl. Privatnutzung und Tankkarte</li></ul>"
+   },
+   "additionalInformation": {
+    "title": "Zusätzliche Informationen",
+    "text": "<p><strong>Willkommen bei Bosch Energy and Building Solutions</strong>&#xa0;</p><p>Werden Sie Teil unseres Teams! Wir bieten Fachkräften deutschlandweit verantwortungsvolle und vielfältige Angebote. Als Berater, Errichter und Dienstleister entwickeln und realisieren wir auf Basis modernster Technologien vernetzte Lösungen in der Gebäudesicherheit, Gebäudeautomation und Energieeffizienz. Täglich setzt sich unser Team von über 3.600 Mitarbeitenden an mehr als 50 Standorten in Deutschland mit Leidenschaft, Engagement und Fachkompetenz dafür ein, unsere Kunden zufrieden zu stellen und Gebäudelösungen für ein besseres Leben zu schaffen.</p><p>Wir bieten flexible Arbeitsmodelle: von unterschiedlichen Teilzeitmöglichkeiten über mobiles Arbeiten bis hin zum Jobsharing. Sprechen Sie uns gerne dazu an.</p><p>Vielfalt und Inklusion sind für uns keine Trends, sondern fest verankert in unserer Unternehmenskultur. Daher freuen wir uns über alle Bewerbungen: unabhängig von Geschlecht, Alter, Behinderung, Religion, ethnischer Herkunft oder sexueller Identität.</p><p>Dieses Stellenangebot gehört vertraglich zur Bosch Sicherheitssysteme GmbH.</p><p><strong>Sie haben Fragen zum Bewerbungsprozess?</strong><br>\nStefanie Haas (Personalabteilung)<br>\n+49 (211) 5073-1154</p><p><strong>Sie haben fachliche Fragen zum Job?</strong><br>\nJörg Niehus (Fachabteilung)<br>\n+49(160)7062428</p>"
+   },
+   "videos": {
+    "title": "Videos To Watch",
+    "urls": [
+     "https://www.youtube.com/watch?v=SijhzzuDk4Y"
+    ]
+   }
+  }
+ },
+ "active": true,
+ "visibility": "PUBLIC",
+ "industry": {
+  "id": "facilities_services",
+  "label": "Facilities Services"
+ },
+ "function": {
+  "id": "sales",
+  "label": "Sales"
+ },
+ "experienceLevel": {
+  "id": "associate",
+  "label": "Associate"
+ },
+ "typeOfEmployment": {
+  "id": "permanent",
+  "label": "Full-time"
+ },
+ "language": {
+  "code": "de",
+  "label": "German",
+  "labelNative": "Deutsch"
+ }
+}
