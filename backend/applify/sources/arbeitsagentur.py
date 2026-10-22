@@ -76,6 +76,8 @@ class ArbeitsagenturSource:
     name = "ba"
     label = "Bundesagentur für Arbeit"
     located = True
+    # Can search all of Germany for fully remote postings (SearchQuery.remote).
+    remote_search = True
 
     def __init__(self, client: PoliteClient, *, max_pages: int = 2) -> None:
         self.client = client
@@ -91,6 +93,10 @@ class ArbeitsagenturSource:
         }
         if query.location:
             params |= {"wo": query.location, "umkreis": query.radius_km}
+        if query.remote:
+            # v6 filter (found in the BA web app, 2026-10-22): minimum home office share.
+            # The v4 parameter arbeitszeit=ho no longer matches anything.
+            params["homeoffice"] = "prozentual_100"
         postings: list[JobPosting] = []
         for page in range(1, self.max_pages + 1):
             data = self.client.get_json(

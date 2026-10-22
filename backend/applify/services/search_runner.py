@@ -73,6 +73,8 @@ def create_run(session: Session, user_id: int) -> SearchRun:
 
 
 def _location_label(query: SearchQuery) -> str:
+    if query.remote:
+        return "deutschlandweit, voll remote"
     return f"{query.location} (+{query.radius_km} km)" if query.location else "ganz Deutschland"
 
 
@@ -236,6 +238,15 @@ class _Run:
                 for name, radius in places
                 for term in self.terms
             ]
+            # Fully remote jobs may be anywhere; the place search only finds those nearby.
+            if (
+                self.profile.remote_pref == "remote"
+                and self.profile.locations
+                and getattr(source, "remote_search", False)
+            ):
+                queries += [
+                    (source, SearchQuery(term, None, 0, remote=True)) for term in self.terms
+                ]
         for i, (source, query) in enumerate(queries):
             step = f"{source.label}: „{query.term}“, {_location_label(query)}"
             self._step(i / len(queries), step)

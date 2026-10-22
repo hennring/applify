@@ -17,6 +17,8 @@ class SearchQuery:
     radius_km: int
     # Only postings published within the last N days.
     days: int = 30
+    # Only fully remote postings (100 % home office); used without a location.
+    remote: bool = False
 
 
 @dataclass

@@ -27,6 +27,15 @@ def source_with(handler: Any) -> tuple[ArbeitsagenturSource, list[httpx.Request]
     return ArbeitsagenturSource(client), requests
 
 
+def test_remote_search_covers_germany_with_full_home_office() -> None:
+    source, requests = source_with(lambda _: httpx.Response(200, json=SEARCH))
+    source.search(SearchQuery("Java Entwickler", None, 0, remote=True))
+
+    params = requests[0].url.params
+    assert params["homeoffice"] == "prozentual_100"
+    assert "wo" not in params and "umkreis" not in params
+
+
 def test_search_maps_postings() -> None:
     source, requests = source_with(lambda _: httpx.Response(200, json=SEARCH))
     postings = source.search(SearchQuery("Fullstack Entwickler", "Leipzig", 30))

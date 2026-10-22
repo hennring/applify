@@ -226,6 +226,7 @@ Die Reihenfolge innerhalb von Stufe 2 richtet sich nach den verpassten Stellen d
 - Parameter: `was` (Suchbegriff), `wo` (Ort), `umkreis` (km), `angebotsart=1` (Arbeit), `veroeffentlichtseit` (Tage), `page`, `size` (≤ 100 sinnvoll; zu tiefe Seiten → 400 „Ergebnismenge überschritten“).
 - Die Suche liefert bereits Koordinaten (`breite`/`laenge`), Gehalt (`festgehalt` bzw. `gehaltsspanneVon/Bis` mit `verguetungsangabe` Jahr/Monat/Stunde), Homeoffice (`homeofficemoeglich`, `homeofficeprozent`), `externeURL` und `istArbeitnehmerUeberlassung` (Zeitarbeit).
 - Pro Lauf: Kreuzprodukt aus abgeleiteten Suchbegriffen × Orten, Ergebnis über `referenznummer` dedupliziert.
+- Bei Remote-Präferenz „voll remote ok“ zusätzlich je Suchbegriff eine deutschlandweite Suche mit `homeoffice=prozentual_100` (v6-Filter: Mindestanteil Homeoffice in Prozent, `nv_true` = „nach Vereinbarung“; das v4-`arbeitszeit=ho` liefert in v6 keine Treffer mehr).
 - Detail/Volltext: `GET …/pc/v4/jobdetails/{base64(referenznummer)}` liefert `stellenangebotsBeschreibung` (Markdown, meist mehrere tausend Zeichen), auch für Anzeigen mit externer URL. `v6/jobdetails` antwortet mit 403. Abruf nur für neue Anzeigen; bei Fehler bleibt die Kurzinfo + Link.
 
 **Spike-Ergebnis (M2, 21.10.2026) für die übrigen Quellen**

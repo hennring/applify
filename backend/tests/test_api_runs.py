@@ -15,6 +15,8 @@ PROFILE = {
     "locations": [{"name": "Leipzig", "radius_km": 30}, {"name": "Dresden", "radius_km": 20}],
 }
 
+LEIPZIG_ONLY = {**PROFILE, "locations": [{"name": "Leipzig", "radius_km": 30}]}
+
 
 def ba(external_id: str, title: str, company: str = "Pixelwerk GmbH") -> JobPosting:
     return JobPosting(
@@ -25,6 +27,40 @@ def ba(external_id: str, title: str, company: str = "Pixelwerk GmbH") -> JobPost
         company=company,
         location_raw="04109 Leipzig",
     )
+
+
+def test_fully_remote_profile_also_searches_all_of_germany(
+    api: TestClient, fake_source: FakeSource
+) -> None:
+    fake_source.remote_search = True  # type: ignore[attr-defined]
+    api.put("/api/profile", json=LEIPZIG_ONLY)
+    run = api.post("/api/runs").json()
+    assert [q.remote for q in fake_source.queries] == [False, False]
+
+    fake_source.queries.clear()
+    remote_job = replace(
+        ba("9", "Fullstack Entwickler Python (100 % remote)"),
+        location_raw="80331 München",
+        remote_type="remote",
+    )
+    fake_source.postings = {"Fullstack Entwickler": [remote_job]}
+    api.put(
+        "/api/profile",
+        json={**LEIPZIG_ONLY, "remote_pref": "remote"},
+    )
+    run = api.post("/api/runs").json()
+
+    queries = [(q.term, q.location, q.remote) for q in fake_source.queries]
+    assert queries == [
+        ("Fullstack Entwickler", "Leipzig", False),
+        ("Fullstack Python", "Leipzig", False),
+        ("Fullstack Entwickler", None, True),
+        ("Fullstack Python", None, True),
+    ]
+    assert api.get(f"/api/runs/{run['id']}").json()["status"] == "done"
+    # Far away but fully remote: in the list, not hidden by the radius.
+    items = api.get("/api/matches").json()["items"]
+    assert [m["job"]["location_raw"] for m in items] == ["80331 München"]
 
 
 def test_run_stores_jobs_without_duplicates(api: TestClient, fake_source: FakeSource) -> None:
