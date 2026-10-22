@@ -12,6 +12,8 @@ from applify.sources.base import SourceError
 USER_AGENT = "Applify/0.1 (personal job search assistant)"
 # Pages larger than this are not read (careers pages, sitemaps).
 MAX_PAGE_BYTES = 5_000_000
+# Unreachable company websites should not hold up a run for long.
+CONNECT_TIMEOUT = 8.0
 
 
 def user_agent(contact: str) -> str:
@@ -31,15 +33,21 @@ class PoliteClient:
         contact: str = "",
         interval: float = 1.0,
         timeout: float = 20.0,
+        ipv4_only: bool = True,
         transport: httpx.BaseTransport | None = None,
     ) -> None:
         self.interval = interval
         self.contact = contact
         self._last: dict[str, float] = {}
         self._robots: dict[str, RobotFileParser | None] = {}
+        if transport is None and ipv4_only:
+            # httpx tries the addresses one after another without "happy eyeballs": without
+            # an IPv6 route every connection to a dual-stack host first waits for the
+            # connect timeout. Binding to an IPv4 address skips the IPv6 attempt.
+            transport = httpx.HTTPTransport(local_address="0.0.0.0")
         self._client = httpx.Client(
             headers={"User-Agent": user_agent(contact)},
-            timeout=timeout,
+            timeout=httpx.Timeout(timeout, connect=CONNECT_TIMEOUT),
             follow_redirects=True,
             transport=transport,
         )

@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     http_contact: str = ""
     # Seconds between two requests to the same host (N6).
     http_interval: float = 1.0
+    # Connect via IPv4 only; set to false on networks with working IPv6.
+    http_ipv4_only: bool = True
     # Built SvelteKit SPA; only served if the directory exists.
     static_dir: Path = Path("../frontend/build")
 

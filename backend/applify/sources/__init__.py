@@ -16,7 +16,12 @@ def contact_of(settings: dict[str, SourceConfig]) -> str:
 
 
 def make_client(settings: dict[str, SourceConfig]) -> PoliteClient:
-    return PoliteClient(contact=contact_of(settings), interval=get_settings().http_interval)
+    config = get_settings()
+    return PoliteClient(
+        contact=contact_of(settings),
+        interval=config.http_interval,
+        ipv4_only=config.http_ipv4_only,
+    )
 
 
 def build_sources(settings: dict[str, SourceConfig]) -> RunSources:
