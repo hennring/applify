@@ -85,6 +85,30 @@ def test_fuzzy_duplicate(db_session: Session) -> None:
     assert merged.id == first.id
 
 
+def test_employer_named_in_more_detail_is_a_duplicate(db_session: Session) -> None:
+    first, _ = store(
+        db_session,
+        posting(title="Softwareentwickler und DevOps Engineer", company="Universität Leipzig"),
+    )
+    detailed = posting(
+        source="service_bund",
+        external_id="1501568",
+        title="Softwareentwickler und DevOps Engineer",
+        company="Universität Leipzig, Universitätsbibliothek Leipzig",
+    )
+    merged, outcome = store(db_session, detailed)
+    assert (outcome, merged.id) == ("duplicate", first.id)
+
+    # Same title elsewhere in the same town, but another employer: stays apart.
+    other = posting(
+        source="service_bund",
+        external_id="2",
+        title="Softwareentwickler und DevOps Engineer",
+        company="Leipziger Stadtwerke",
+    )
+    assert store(db_session, other)[1] == "new"
+
+
 def test_no_fuzzy_match_across_cities_or_after_30_days(db_session: Session) -> None:
     store(
         db_session,

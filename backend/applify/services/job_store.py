@@ -77,7 +77,30 @@ def find_duplicate(session: Session, posting: JobPosting, now: datetime) -> Job 
     )
     if city:
         query = query.where(or_(Job.city_norm == city, Job.city_norm == ""))
-    return session.scalar(query.order_by(similarity.desc(), Job.id).limit(1))
+    if fuzzy := session.scalar(query.order_by(similarity.desc(), Job.id).limit(1)):
+        return fuzzy
+    if not city:
+        return None
+    # Sources name the employer at different depth ("Universität Leipzig" vs. "Universität
+    # Leipzig, Universitätsbibliothek Leipzig"): same title and city, one name in the other.
+    for job in session.scalars(
+        select(Job)
+        .where(
+            Job.title_norm == title,
+            Job.city_norm == city,
+            Job.first_seen_at >= now - FUZZY_WINDOW,
+        )
+        .order_by(Job.id)
+    ):
+        if related_companies(job.company_norm, company):
+            return job
+    return None
+
+
+def related_companies(a: str, b: str) -> bool:
+    """Normalized names where one contains all words of the other, in order at the start."""
+    shorter, longer = sorted((a, b), key=len)
+    return bool(shorter) and (longer == shorter or longer.startswith(f"{shorter} "))
 
 
 def merge(job: Job, posting: JobPosting) -> None:
