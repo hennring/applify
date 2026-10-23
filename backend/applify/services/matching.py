@@ -1,7 +1,8 @@
 """Matching (§5.3): hard filters and a deterministic soft score with explanation (D1, N5).
 
 Pure functions: a job and a profile in, score, exclusion reason and breakdown out.
-Unknown components drop out of the weighting instead of counting as zero (F13).
+Unknown components drop out of the weighting instead of counting as zero (F13); unknown
+skills count as neutral instead, since they carry the most weight.
 """
 
 import re
@@ -27,7 +28,7 @@ SKILL_TARGET = 3.0
 # many wanted skills the posting names; each skill marked "avoid" costs a fixed amount.
 SHARE_WEIGHT = 0.6
 AVOID_PENALTY = 0.35
-# Skill value of a full posting that names no technologies at all.
+# Skill value of a posting that names no technologies (or only short info).
 NEUTRAL_SKILLS = 0.5
 # How much an asked technology outside the profile weighs against the hits, per category.
 # Tools, methods and design rarely decide whether a job fits.
@@ -246,9 +247,9 @@ def score_skills(job: JobFacts, profile: ProfileData, taxonomy: SkillTaxonomy) -
     """How well the technologies a posting asks for fit the profile.
 
     A posting that names no technologies says nothing about the fit, so the component is
-    unknown rather than zero. Otherwise the share of the asked technologies the profile
-    covers counts most; core technologies outside the profile pull it down, generic ones
-    (tools, methods, design) do not.
+    neutral (half the points) rather than zero. Otherwise the share of the asked
+    technologies the profile covers counts most; core technologies outside the profile pull
+    it down, generic ones (tools, methods, design) do not.
     """
     wanted = [s for s in profile.skills if s.weight in ("must", "nice")]
     avoid = [s for s in profile.skills if s.weight == "avoid"]
@@ -275,11 +276,15 @@ def score_skills(job: JobFacts, profile: ProfileData, taxonomy: SkillTaxonomy) -
         (foreign.append((name, weight)) if weight else generic.append(name))
 
     if not (must or nice or bad or foreign):
+        # Nothing known about the asked technologies: neither a reason to rank down nor up.
+        # Counted as half the points rather than left out: skills weigh most, so without
+        # them a matching title and place alone would reach 100.
         if not job.has_full_text:
             return Component(
-                "skills", None, [Evidence("unknown", "Keine Skills erkennbar (Kurzinfo)")]
+                "skills",
+                NEUTRAL_SKILLS,
+                [Evidence("unknown", "Keine Skills erkennbar (Kurzinfo) – neutral bewertet")],
             )
-        # A full text without technologies: neither a reason to rank down nor to rank up.
         evidence = [Evidence("unknown", "Keine konkreten Technologien genannt – neutral bewertet")]
         if generic:
             evidence.append(Evidence("unknown", "Allgemein: " + ", ".join(generic[:6])))

@@ -300,13 +300,13 @@ Die Reihenfolge innerhalb von Stufe 2 richtet sich nach den verpassten Stellen d
 
 | Komponente | Gewicht | Berechnung |
 |---|---|---|
-| Skills | 45 | Vor allem der Anteil der geforderten Technologien, die zum Profil passen (Pflicht voll, gern halb); fremde Kerntechnologien ziehen runter, Cloud/DevOps/Testing halb, Tools/Methoden/Design gar nicht. Dazu, wie viele Wunsch-Skills genannt sind; avoid-Skills geben Abzug. Volltext ohne konkrete Technologien → neutral (50 %), Kurzinfo → unbekannt |
+| Skills | 45 | Vor allem der Anteil der geforderten Technologien, die zum Profil passen (Pflicht voll, gern halb); fremde Kerntechnologien ziehen runter, Cloud/DevOps/Testing halb, Tools/Methoden/Design gar nicht. Dazu, wie viele Wunsch-Skills genannt sind; avoid-Skills geben Abzug. Keine konkreten Technologien erkennbar (Volltext oder Kurzinfo) → neutral (50 %) |
 | Rolle/Titel | 20 | Ähnlichkeit Titel ↔ Wunschrollen (Token-Overlap + Synonyme) |
 | Seniorität | 15 | Junior/Mid passt zu 2,5 J.; „Senior/Lead/Principal“ oder „5+ Jahre“ → Abzug |
 | Ort/Remote | 10 | Distanz innerhalb Radius, Bonus für passende Remote-Option |
 | Gehalt | 10 | Über Mindestgehalt → voll, knapp darunter → teilweise |
 
-- **Neutralität (F13):** Unbekannte Komponente wird **aus der Gewichtung genommen**, die übrigen werden auf 100 renormiert. Die Begründung zeigt „? Gehalt unbekannt“.
+- **Neutralität (F13):** Unbekannte Komponente wird **aus der Gewichtung genommen**, die übrigen werden auf 100 renormiert. Die Begründung zeigt „? Gehalt unbekannt“. Ausnahme Skills: Sie zählen unbekannt mit 50 %, sonst erreichen Kurzinfos allein über Titel und Ort 100.
 - **Kurzinfo-Stellen** (ohne Volltext) bekommen ein Badge „geringe Datenbasis“; Score basiert dann v. a. auf Titel, Ort, Seniorität.
 - `breakdown` (JSONB) speichert pro Komponente Punkte + Belege → Grundlage für UI-Begründung und Tests.
 - **Später optional:** semantische Ähnlichkeit per lokalem Embedding-Modell (z. B. `bge-m3` über Ollama) als zusätzliche Komponente.

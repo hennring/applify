@@ -125,10 +125,17 @@ def test_skills_component() -> None:
     assert values(only_python)["skills"] == pytest.approx(0.6 + 0.4 / 2.5)
     with_avoid = match(skills=("Python", "SAP"), description="Python und SAP " * 30)
     assert values(with_avoid)["skills"] == pytest.approx(0.6 + 0.4 / 2.5 - 0.35)
-    # Short info without recognizable skills: unknown, not zero.
+    # Short info without recognizable skills: neutral, not zero.
     short = match(skills=(), description="", has_full_text=False)
-    assert values(short)["skills"] is None
+    assert values(short)["skills"] == 0.5
     assert short.low_data
+
+
+def test_title_alone_does_not_reach_the_top() -> None:
+    """Unknown skills are neutral; a matching title and place alone must not give 100."""
+    short = match(skills=(), description="", has_full_text=False, salary_min=None, salary_max=None)
+    assert values(short)["role"] == 1.0 and values(short)["location"] == 1.0
+    assert 60 <= short.score <= 80
 
 
 def test_generic_posting_is_neutral_on_skills() -> None:
