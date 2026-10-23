@@ -5,6 +5,7 @@ places. Both run at most weekly per place; GitHub org lookups continue over seve
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from urllib.parse import urlsplit
 
 from applify.services.companies import CompanyRegistry
 from applify.services.matching import ProfilePlace
@@ -35,7 +36,9 @@ def _website(url: str | None) -> str | None:
     url = (url or "").strip()
     if not url or " " in url:
         return None
-    return url if url.startswith("http") else f"https://{url}"
+    url = url if url.startswith("http") else f"https://{url}"
+    # Typos like "https://httt://example.de" leave a host without a domain.
+    return url if "." in (urlsplit(url).hostname or "") else None
 
 
 def discover_github(

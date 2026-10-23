@@ -61,7 +61,8 @@ class PoliteClient:
             response = self._client.request(method, url, **kwargs)
         except httpx.HTTPError as exc:
             raise SourceError(f"{host}: {type(exc).__name__}") from exc
-        except ValueError as exc:  # malformed URL from a page or a user
+        # Malformed URL from a page or a user; httpx.InvalidURL is no ValueError.
+        except (ValueError, httpx.InvalidURL) as exc:
             raise SourceError(f"{url[:100]}: ungültige URL") from exc
         finally:
             self._last[host] = time.monotonic()

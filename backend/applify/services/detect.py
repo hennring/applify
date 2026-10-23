@@ -17,6 +17,8 @@ ANCHOR = re.compile(r"<a\s[^>]*href\s*=\s*[\"']([^\"'#]+)[\"'][^>]*>(.*?)</a>", 
 CAREER_WORDS = re.compile(r"karriere|career|jobs?\b|stellen|offene positionen|join us", re.I)
 TYPICAL_PATHS = ("/karriere", "/jobs", "/careers", "/stellenangebote")
 MAX_CAREER_PAGES = 3
+# Board tokens are subdomains or path segments.
+SLUG = re.compile(r"[a-z0-9][a-z0-9-]*")
 
 
 @dataclass
@@ -66,7 +68,7 @@ def slug_variants(company: Company) -> list[str]:
     variants = [norm.replace(" ", ""), norm.replace(" ", "-")]
     if company.website:
         variants.insert(0, registered_domain(urlsplit(_site(company.website)).netloc).split(".")[0])
-    return [v for v in dict.fromkeys(variants) if len(v) >= 3][:3]
+    return [v for v in dict.fromkeys(variants) if len(v) >= 3 and SLUG.fullmatch(v)][:3]
 
 
 def probe(client: PoliteClient, company: Company) -> Detection | None:

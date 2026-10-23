@@ -6,10 +6,11 @@ import pytest
 from applify.db.models import Company
 from applify.services.companies import domain_fits, posting_hints, registered_domain, same_company
 from applify.services.detect import career_links, detect, slug_variants
+from applify.services.discovery import _website
 from applify.services.geo import get_gazetteer
 from applify.services.matching import ProfilePlace
 from applify.services.prefilter import Prefilter
-from applify.sources.base import JobPosting
+from applify.sources.base import JobPosting, SourceError
 from applify.sources.jsonld import JsonLdCareers, job_links, job_postings, parse_posting
 from tests.conftest import FakeWeb
 
@@ -259,6 +260,18 @@ def test_detect_guesses_board_tokens_and_verifies_the_name(web: FakeWeb) -> None
         "deutschebahn",
         "deutsche-bahn",
     ]
+
+
+def test_detect_survives_a_broken_website(web: FakeWeb) -> None:
+    # A typo in a GitHub profile; once ended the whole run with httpx.InvalidURL.
+    broken = company(name="VR Bits", name_norm="vr bits", website="https://httt://www.vr-bits.de")
+    assert slug_variants(broken) == ["vrbits", "vr-bits"]
+    assert detect(web.client(), broken).ats_type == "unknown"
+    with pytest.raises(SourceError, match="ungültige URL"):
+        web.client().get_ok("https://httt:.jobs.personio.de/xml")
+    # Discovery no longer stores such websites.
+    assert _website("https://httt://www.vr-bits.de") is None
+    assert _website("vr-bits.de") == "https://vr-bits.de"
 
 
 def test_detect_reports_unreachable_websites(web: FakeWeb) -> None:
