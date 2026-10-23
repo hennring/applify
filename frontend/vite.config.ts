@@ -4,7 +4,10 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	server: {
-		proxy: { '/api': 'http://localhost:8000' }
+		// Node binds "localhost" to ::1 only. Browsers that try 127.0.0.1 first (Firefox)
+		// then wait ~2 s on Windows for every new connection, i.e. after each idle pause.
+		host: '127.0.0.1',
+		proxy: { '/api': 'http://127.0.0.1:8000' }
 	},
 	plugins: [
 		sveltekit({
