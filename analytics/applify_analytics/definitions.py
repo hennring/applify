@@ -8,6 +8,8 @@ from dagster import AssetExecutionContext, Definitions
 from dagster_dbt import DbtCliResource, DbtProject, dbt_assets
 
 from applify_analytics.assets import job_features, reference_tables
+from applify_analytics.checks import feature_coverage, llm_failures
+from applify_analytics.sensors import market_pipeline, search_run_finished
 
 DBT_DIR = Path(__file__).resolve().parent.parent / "dbt"
 
@@ -24,5 +26,8 @@ def market_dbt_assets(context: AssetExecutionContext, dbt: DbtCliResource) -> It
 
 defs = Definitions(
     assets=[reference_tables, job_features, market_dbt_assets],
+    asset_checks=[feature_coverage, llm_failures],
+    jobs=[market_pipeline],
+    sensors=[search_run_finished],
     resources={"dbt": DbtCliResource(project_dir=dbt_project)},
 )
