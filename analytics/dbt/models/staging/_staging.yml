@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg_raw__job_sightings
+    columns:
+      - name: sighting_id
+        data_tests: [unique, not_null]
+  - name: stg_raw__job_versions
+    columns:
+      - name: content_hash
+        data_tests: [unique, not_null]
+  - name: stg_app__job_sources
+    columns:
+      - name: job_source_id
+        data_tests: [unique, not_null]
+      - name: job_id
+        data_tests: [not_null]
+  - name: stg_app__jobs
+    columns:
+      - name: job_id
+        data_tests: [unique, not_null]

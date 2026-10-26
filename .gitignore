@@ -22,3 +22,9 @@ build/
 # IDE
 .idea/
 *.iml
+
+# Analytics (dbt, Dagster)
+analytics/dbt/target/
+analytics/dbt/logs/
+analytics/dbt/dbt_packages/
+analytics/dbt/.user.yml

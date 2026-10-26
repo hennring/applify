@@ -1,0 +1,34 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Append-only landing tables written by Applify's search runs (§5.8, D21).
+    schema: raw
+    tables:
+      - name: job_sightings
+        description: One row per posting seen by one search run.
+        columns:
+          - name: id
+            data_tests: [unique, not_null]
+          - name: content_hash
+            data_tests:
+              - not_null
+              - relationships:
+                  arguments:
+                    to: source('raw', 'job_versions')
+                    field: content_hash
+      - name: job_versions
+        description: A posting's content as delivered, once per distinct content hash.
+        columns:
+          - name: content_hash
+            data_tests: [unique, not_null]
+
+  - name: app
+    description: Operational tables of Applify; read only through the staging models.
+    schema: public
+    tables:
+      - name: jobs
+      - name: job_sources
+      - name: profiles
+      - name: profile_skills
+      - name: profile_locations

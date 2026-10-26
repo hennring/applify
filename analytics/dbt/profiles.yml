@@ -1,0 +1,13 @@
+# Same database as the app (D19); credentials as in docker-compose / .env.
+applify:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('APPLIFY_DB_HOST', '127.0.0.1') }}"
+      port: "{{ env_var('APPLIFY_DB_PORT', '5432') | as_number }}"
+      user: "{{ env_var('POSTGRES_USER', 'applify') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD', 'applify') }}"
+      dbname: "{{ env_var('APPLIFY_DBT_DBNAME', env_var('POSTGRES_DB', 'applify')) }}"
+      schema: marts
+      threads: 4

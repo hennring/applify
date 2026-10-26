@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: int_job_lifespans
+    description: "First and last sighting per job (grain: job)."
+    columns:
+      - name: job_id
+        data_tests: [unique, not_null]
+      - name: last_seen_at
+        data_tests: [not_null]
