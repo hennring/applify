@@ -24,6 +24,7 @@ from applify.config import get_settings
 from applify.db.session import get_sessionmaker
 from applify.services.cv_jobs import fail_interrupted_jobs
 from applify.services.search_runner import fail_interrupted_runs
+from applify.services.taxonomy_sync import sync_taxonomy
 
 log = logging.getLogger(__name__)
 
@@ -51,6 +52,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             fail_interrupted_runs(session)
     except SQLAlchemyError:
         log.warning("could not reset interrupted jobs", exc_info=True)
+    try:
+        with get_sessionmaker()() as session:
+            if sync_taxonomy(session, get_settings().data_dir):
+                log.info("skills.yaml changed: profile skills reclassified, jobs rescanned")
+    except SQLAlchemyError:
+        log.warning("could not apply the changed skill taxonomy", exc_info=True)
     yield
 
 

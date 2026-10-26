@@ -183,13 +183,42 @@
 - {name: Shopware, category: cms}
 - {name: Magento, category: cms, synonyms: [Adobe Commerce]}
 
-# --- Data & AI ---
+# --- Data ---
 - {name: Pandas, category: data}
 - {name: NumPy, category: data}
-- {name: Machine Learning, category: data, synonyms: [ML, Maschinelles Lernen]}
-- {name: LLM, category: data, synonyms: [LLMs, Large Language Models, GenAI, Generative AI]}
-- {name: OpenAI API, category: data, synonyms: [ChatGPT API]}
-- {name: LangChain, category: data}
+- {name: Apache Spark, category: data, synonyms: [Spark, PySpark]}
+- {name: Apache Airflow, category: data, synonyms: [Airflow]}
+- {name: dbt, category: data, synonyms: [dbt-core]}
+- {name: Power BI, category: data, synonyms: [PowerBI]}
+- {name: Tableau, category: data}
+
+# --- AI / ML ---
+- {name: Machine Learning, category: ai, synonyms: [ML, Maschinelles Lernen]}
+- {name: Deep Learning, category: ai}
+- {name: LLM, category: ai, synonyms: [LLMs, Large Language Models, GenAI, Generative AI]}
+- {name: OpenAI API, category: ai, synonyms: [ChatGPT API]}
+- {name: LangChain, category: ai}
+- {name: PyTorch, category: ai}
+- {name: TensorFlow, category: ai}
+- {name: Keras, category: ai}
+- {name: scikit-learn, category: ai, synonyms: [sklearn]}
+- {name: Hugging Face, category: ai, synonyms: [HuggingFace]}
+- {name: MLflow, category: ai}
+- {name: MLOps, category: ai}
+
+# --- Security ---
+- {name: OWASP, category: security}
+- {name: Penetration Testing, category: security, synonyms: [Pentesting, Pentest, Pentests]}
+- {name: SIEM, category: security}
+- {name: ISO 27001, category: security, synonyms: [ISO/IEC 27001]}
+- {name: IT-Grundschutz, category: security, synonyms: [BSI IT-Grundschutz, BSI-Grundschutz]}
+
+# --- ERP ---
+- {name: SAP, category: erp}
+- {name: SAP S/4HANA, category: erp, synonyms: [S/4HANA, S4HANA, S/4 HANA]}
+- {name: ABAP, category: erp}
+- {name: SAP Fiori, category: erp, synonyms: [Fiori]}
+- {name: Microsoft Dynamics 365, category: erp, synonyms: [Dynamics 365, Business Central]}
 
 # --- Methods ---
 - {name: Scrum, category: methodology}
@@ -199,3 +228,6 @@
 - {name: Domain-Driven Design, category: methodology, synonyms: [DDD]}
 - {name: Code Review, category: methodology, synonyms: [Code Reviews]}
 - {name: SEO, category: methodology, synonyms: [Suchmaschinenoptimierung]}
+
+# --- Added from the market analysis ---
+- {name: "SOAP", category: backend}

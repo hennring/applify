@@ -152,6 +152,12 @@
 
 	// --- skill candidates -------------------------------------------------------------------
 	let categoryOf = $state<Record<string, string>>({});
+	const categoryLabel = (key: string) => skillCategoryLabels[key] ?? key;
+	const categoryOptions = $derived(
+		[...(market?.categories ?? [])].sort((a, b) =>
+			categoryLabel(a).localeCompare(categoryLabel(b), 'de')
+		)
+	);
 	let accepting = $state<string | null>(null);
 	let candidateMessage = $state<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
@@ -393,9 +399,8 @@
 									<td>
 										<select aria-label="Kategorie für {c.name}" bind:value={categoryOf[c.name]}>
 											<option value={undefined}>wählen …</option>
-											{#each market.categories as category (category)}
-												<option value={category}>{skillCategoryLabels[category] ?? category}</option
-												>
+											{#each categoryOptions as category (category)}
+												<option value={category}>{categoryLabel(category)}</option>
 											{/each}
 										</select>
 									</td>

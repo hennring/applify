@@ -42,7 +42,7 @@ def test_put_profile_normalizes_and_persists(api: TestClient) -> None:
     assert [(s["name"], s["weight"], s["canonical"]) for s in saved["skills"]] == [
         ("Vue", "must", True),
         ("Eigenes Framework", "nice", False),
-        ("SAP", "avoid", False),
+        ("SAP", "avoid", True),
     ]
     assert saved["exclude_keywords"] == ["Zeitarbeit"]
     assert saved["locations"] == FULL_PROFILE["locations"]

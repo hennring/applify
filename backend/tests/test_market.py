@@ -109,9 +109,9 @@ def test_accepted_candidate_joins_the_taxonomy(db_session: Session, skills_file:
     touched = market.accept_candidate(db_session, " Snowflake ", "data", skills_file=skills_file)
 
     assert touched == 1
-    assert skills_file.read_text(encoding="utf-8").endswith(
-        '# --- Added from the market analysis ---\n- {name: "Snowflake", category: data}\n'
-    )
+    content = skills_file.read_text(encoding="utf-8")
+    assert "# --- Added from the market analysis ---\n" in content
+    assert content.endswith('\n- {name: "Snowflake", category: data}\n')
     # Rescanned with the next rating; the other job keeps its skills.
     db_session.refresh(named)
     db_session.refresh(other)
