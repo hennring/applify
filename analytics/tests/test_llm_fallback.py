@@ -56,3 +56,31 @@ def test_foreign_salary_is_recorded_without_eur_values() -> None:
         None,
         None,
     )
+
+
+def test_only_product_names_become_candidates() -> None:
+    names = [
+        "QVAC", "Snowflake", "Spring Boot", "Ruby on Rails", "Azure Functions",
+        "AI", "APIs", "blockchain", "edge AI", "SDK integrations",
+        "privacy-preserving architectures", "system architecture patterns", "CLI tools",
+    ]  # fmt: skip
+    assert [n for n in names if llm.is_candidate(n)] == [
+        "QVAC",
+        "Snowflake",
+        "Spring Boot",
+        "Ruby on Rails",
+        "Azure Functions",
+    ]
+
+
+def test_unclear_role_stays_open() -> None:
+    features = extract(job("Initiativbewerbung in Hamburg"), get_taxonomy())
+    llm.apply(features, llm.LlmJobFeatures(role_family=None), get_taxonomy())
+    assert features.role_family is None and "role_family" not in features.origin
+
+
+def test_no_candidates_from_non_it_postings() -> None:
+    features = extract(job("Head of Underwriting"), get_taxonomy())
+    answer = llm.LlmJobFeatures(role_family="other", technologies=["Liquidity", "BTC"])
+    llm.apply(features, answer, get_taxonomy())
+    assert features.skill_candidates == []

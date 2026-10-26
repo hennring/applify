@@ -27,7 +27,8 @@ class LlmSalary(BaseModel):
 
 
 class LlmJobFeatures(BaseModel):
-    role_family: FamilyKey
+    # None if the posting does not make the role clear; the LLM must not guess.
+    role_family: FamilyKey | None = None
     seniority: Literal["student", "junior", "mid", "senior", "lead"] | None = None
     years_min: int | None = Field(default=None, ge=0, le=rules.MAX_YEARS)
     years_max: int | None = Field(default=None, ge=0, le=rules.MAX_YEARS)
@@ -45,11 +46,33 @@ def system_prompt() -> str:
 
 
 CANDIDATE = re.compile(r"^[\w.+#/ -]{2,40}$")
+# Concepts and fields the LLM tends to list despite the prompt; no product names.
+NOT_A_TECHNOLOGY = frozenset(
+    name.casefold()
+    for name in (
+        "AI", "KI", "ML", "LLM", "LLMs", "GenAI", "API", "APIs", "REST APIs", "SDK", "SDKs",
+        "cloud", "microservices", "blockchain", "databases", "database", "big data",
+        "machine learning", "deep learning", "artificial intelligence", "data science",
+        "DevOps", "CI/CD pipelines", "web", "mobile", "frontend", "backend", "IoT", "SaaS",
+    )
+)  # fmt: skip
+
+
+def is_candidate(name: str) -> bool:
+    """A product-like name: short, not a known concept, not a lower-case phrase."""
+    words = name.split()
+    if not CANDIDATE.match(name) or name.casefold() in NOT_A_TECHNOLOGY or len(words) > 3:
+        return False
+    if len(words) == 1:
+        return True
+    # "privacy-preserving architectures", "edge AI", "SDK integrations": descriptions.
+    # Product names capitalize their words ("Spring Boot"), short joiners aside ("Ruby on Rails").
+    return not words[0].islower() and not any(w.islower() and len(w) > 3 for w in words[1:])
 
 
 def apply(features: Features, result: LlmJobFeatures, taxonomy: SkillTaxonomy) -> None:
     """Fill the features the rules left open; rules always win."""
-    if features.role_family is None:
+    if features.role_family is None and result.role_family is not None:
         features.role_family = result.role_family
         features.origin["role_family"] = "llm"
     if features.years_min is None and result.years_min is not None:
@@ -67,7 +90,9 @@ def apply(features: Features, result: LlmJobFeatures, taxonomy: SkillTaxonomy) -
     if not features.degrees and result.degrees:
         features.degrees = [d for d in rules.DEGREES if d in result.degrees]
         features.origin["degrees"] = "llm"
-    _apply_technologies(features, result.technologies, taxonomy)
+    # Business terms of non-IT postings ("underwriting", "liquidity") are no candidates.
+    it_role = features.role_family not in (None, "other")
+    _apply_technologies(features, result.technologies, taxonomy, candidates=it_role)
 
 
 def _apply_salary(features: Features, salary: LlmSalary) -> None:
@@ -82,11 +107,11 @@ def _apply_salary(features: Features, salary: LlmSalary) -> None:
 
 
 def _apply_technologies(
-    features: Features, technologies: list[str], taxonomy: SkillTaxonomy
+    features: Features, technologies: list[str], taxonomy: SkillTaxonomy, *, candidates: bool
 ) -> None:
     """Known skills the patterns missed join the skills; unknown ones become candidates."""
     known = {name.casefold() for name in features.skills}
-    candidates: dict[str, str] = {}
+    found: dict[str, str] = {}
     for raw in technologies:
         name = raw.strip()
         if not CANDIDATE.match(name):
@@ -96,6 +121,6 @@ def _apply_technologies(
             if skill.name.casefold() not in known:
                 features.skills.append(skill.name)
                 known.add(skill.name.casefold())
-        else:
-            candidates.setdefault(name.casefold(), name)
-    features.skill_candidates = sorted(candidates.values(), key=str.casefold)
+        elif candidates and is_candidate(name):
+            found.setdefault(name.casefold(), name)
+    features.skill_candidates = sorted(found.values(), key=str.casefold)

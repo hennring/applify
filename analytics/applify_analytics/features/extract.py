@@ -13,8 +13,8 @@ from applify_analytics.features import rules
 
 # Bump when the extraction code changes. Changes to roles.yaml, skills.yaml or the LLM
 # prompt are picked up through their content hash, so every job is extracted again.
-RULES_VERSION = 1
-PROMPT_VERSION = "job_features_v1"
+RULES_VERSION = 2
+PROMPT_VERSION = "job_features_v2"
 PROMPT_FILE = Path(__file__).resolve().parents[1] / "prompts" / f"{PROMPT_VERSION}.md"
 
 Origin = Literal["source", "rule", "llm"]
