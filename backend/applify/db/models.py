@@ -1,7 +1,17 @@
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ARRAY, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import (
+    ARRAY,
+    BigInteger,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -277,3 +287,57 @@ class JobMatch(Base):
     job: Mapped[Job] = relationship()
 
     __table_args__ = (UniqueConstraint("user_id", "job_id"),)
+
+
+# --- raw layer of the market analysis (§5.8, D21) ----------------------------------------
+# Append-only landing tables written by search runs and read by the analytics pipeline.
+# No foreign keys: raw data outlives merges and deletions in the app tables.
+
+RAW_SCHEMA = "raw"
+
+
+class JobSighting(Base):
+    """One posting seen by one search run."""
+
+    __tablename__ = "job_sightings"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    run_id: Mapped[int | None] = mapped_column(index=True)
+    seen_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
+    source: Mapped[str] = mapped_column(String(30))
+    external_id: Mapped[str] = mapped_column(String(200))
+    # The job the posting belonged to when seen; dedup merges may change it later.
+    job_id: Mapped[int | None] = mapped_column(index=True)
+    content_hash: Mapped[str] = mapped_column(String(64))
+
+    __table_args__ = (
+        Index("ix_job_sightings_source_external_id", "source", "external_id"),
+        {"schema": RAW_SCHEMA},
+    )
+
+
+class JobVersion(Base):
+    """A posting's content as delivered by its source, stored once per distinct content."""
+
+    __tablename__ = "job_versions"
+
+    content_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    source: Mapped[str] = mapped_column(String(30))
+    external_id: Mapped[str] = mapped_column(String(200))
+    job_id: Mapped[int | None]
+    title: Mapped[str] = mapped_column(Text)
+    company: Mapped[str] = mapped_column(Text)
+    location_raw: Mapped[str] = mapped_column(Text, server_default="")
+    remote_type: Mapped[str | None] = mapped_column(String(10))
+    salary_min: Mapped[int | None]
+    salary_max: Mapped[int | None]
+    description: Mapped[str] = mapped_column(Text, server_default="")
+    has_full_text: Mapped[bool]
+    posted_at: Mapped[datetime | None]
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default="{}")
+    first_seen_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    __table_args__ = (
+        Index("ix_job_versions_source_external_id", "source", "external_id"),
+        {"schema": RAW_SCHEMA},
+    )

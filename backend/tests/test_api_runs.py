@@ -2,9 +2,10 @@ from dataclasses import replace
 from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from applify.db.models import SearchRun
+from applify.db.models import JobSighting, JobVersion, SearchRun
 from applify.services.search_runner import fail_interrupted_runs
 from applify.sources.base import JobPosting, SourceError
 from tests.conftest import FakeSource
@@ -203,3 +204,37 @@ def test_jobs_are_sorted_by_publication_date(api: TestClient, fake_source: FakeS
     titles = [j["title"] for j in api.get("/api/jobs").json()["items"]]
     # Unknown dates last.
     assert titles == ["Frontend Entwickler", "Backend Entwickler", "Data Engineer"]
+
+
+def test_runs_record_what_they_saw(
+    api: TestClient, fake_source: FakeSource, db_session: Session
+) -> None:
+    """Raw layer (§5.8): one sighting per run and posting, one version per content."""
+    api.put("/api/profile", json=LEIPZIG_ONLY)
+    fake_source.postings = {"Fullstack Entwickler": [ba("1", "Fullstack Entwickler")]}
+    runs = [api.post("/api/runs").json()["id"] for _ in range(3)]
+
+    sightings = db_session.execute(
+        select(JobSighting.run_id, JobSighting.content_hash, JobSighting.job_id).order_by(
+            JobSighting.id
+        )
+    ).all()
+    assert [s.run_id for s in sightings] == runs
+    job_id = sightings[0].job_id
+    assert job_id is not None and all(s.job_id == job_id for s in sightings)
+    # As delivered: the first run completed the posting, later runs only see the search
+    # result again (known postings are not completed twice). Same content, same version.
+    versions = db_session.scalars(select(JobVersion).order_by(JobVersion.first_seen_at)).all()
+    assert [v.has_full_text for v in versions] == [True, False]
+    assert versions[0].description.startswith("Volltext")
+    assert [s.content_hash for s in sightings] == [
+        versions[0].content_hash,
+        versions[1].content_hash,
+        versions[1].content_hash,
+    ]
+
+    # Changed content: a new version; the old ones stay.
+    fake_source.postings["Fullstack Entwickler"][0].title = "Fullstack Entwickler (m/w/d)"
+    api.post("/api/runs")
+    assert db_session.scalar(select(func.count()).select_from(JobSighting)) == 4
+    assert db_session.scalar(select(func.count()).select_from(JobVersion)) == 3

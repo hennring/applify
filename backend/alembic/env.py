@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from applify.config import get_settings
-from applify.db import models  # noqa: F401  (registers tables on Base.metadata)
+from applify.db import models  # registers tables on Base.metadata
 from applify.db.session import Base
 
 config = context.config
@@ -16,6 +16,13 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+# Alembic owns the app tables and the raw layer; the analytics schemas belong to the
+# pipeline (features) and dbt (staging, marts).
+OWN_SCHEMAS = {None, "public", models.RAW_SCHEMA}
+
+
+def include_name(name: str | None, type_: str, parent_names: object) -> bool:
+    return name in OWN_SCHEMAS if type_ == "schema" else True
 
 
 def run_migrations_offline() -> None:
@@ -36,7 +43,12 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            include_schemas=True,
+            include_name=include_name,
+        )
         with context.begin_transaction():
             context.run_migrations()
 

@@ -113,15 +113,19 @@ def test_careers_page_reads_linked_postings_once(web: FakeWeb) -> None:
     )
     web.add("https://acme.de/karriere/fullstack-entwickler", page(POSTING))
 
+    listed: set[str] = set()
     postings = JsonLdCareers().fetch(
         web.client(),
         "https://acme.de/karriere",
         "Acme",
-        known={"https://acme.de/karriere/known-job-123"},
+        known={"https://acme.de/karriere/known-job-123", "https://acme.de/karriere/gone"},
+        listed=listed,
     )
 
     assert [p.external_id for p in postings] == ["J-42"]
     assert "https://acme.de/karriere/known-job-123" not in web.urls()
+    # Still linked, so still open; the other known page is gone.
+    assert listed == {"https://acme.de/karriere/known-job-123"}
 
 
 def test_careers_page_falls_back_to_the_sitemap(web: FakeWeb) -> None:

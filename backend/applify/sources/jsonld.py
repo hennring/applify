@@ -204,8 +204,17 @@ class JsonLdCareers:
     label = "Karriereseite (JSON-LD)"
 
     def fetch(
-        self, client: PoliteClient, careers_url: str, company: str, known: set[str]
+        self,
+        client: PoliteClient,
+        careers_url: str,
+        company: str,
+        known: set[str],
+        listed: set[str] | None = None,
     ) -> list[JobPosting]:
+        """Postings on the careers page; known pages are not fetched again.
+
+        Known pages still linked from the careers page are added to `listed`.
+        """
         page = client.get_page(careers_url)
         postings = {
             p.external_id: p
@@ -216,7 +225,11 @@ class JsonLdCareers:
             candidates = sitemap_job_urls(client, careers_url)
         fetched = 0
         for url in candidates:
-            if url in known or url in postings:
+            if url in known:
+                if listed is not None:
+                    listed.add(url)
+                continue
+            if url in postings:
                 continue
             if fetched >= MAX_JOB_PAGES:
                 break

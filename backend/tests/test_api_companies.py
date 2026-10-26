@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from applify.db.models import Company, Job, UserCompany
+from applify.db.models import Company, Job, JobSighting, UserCompany
 from applify.sources.base import JobPosting, RunSources
 from tests.conftest import FIXTURES, FakeSource, FakeWeb
 
@@ -143,6 +143,14 @@ def test_companies_from_hits_are_detected_and_their_feeds_read(
     again = run(api)
     assert seen == ['"v1"']
     assert again["stats"]["ats:personio"]["found"] == 0
+    # Not delivered again, but still listed: seen in the second run with the same content.
+    sightings = db_session.execute(
+        select(JobSighting.run_id, JobSighting.content_hash)
+        .where(JobSighting.source == "ats:personio")
+        .order_by(JobSighting.id)
+    ).all()
+    assert [run_id for run_id, _ in sightings] == [result["id"]] * 2 + [again["id"]] * 2
+    assert {h for _, h in sightings[:2]} == {h for _, h in sightings[2:]}
 
 
 def test_ignored_companies_are_not_read(

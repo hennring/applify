@@ -24,6 +24,7 @@ from applify.services.job_store import find_source, store_posting
 from applify.services.match_store import Scorer, profile_places
 from applify.services.prefilter import Prefilter
 from applify.services.profile_store import load_profile
+from applify.services.raw_store import confirm_sightings, record_sightings
 from applify.services.search_terms import derive_search_terms
 from applify.services.skills import SkillTaxonomy
 from applify.services.source_settings import BY_KEY, load_settings, save_setting
@@ -195,6 +196,8 @@ class _Run:
         postings = [p for p in postings if (p.source, p.external_id) not in self.seen]
         self.seen.update((p.source, p.external_id) for p in postings)
         jobs: list[Job] = []
+        # As delivered, for the raw layer of the market analysis (§5.8).
+        seen: list[tuple[JobPosting, int]] = []
         for n, posting in enumerate(postings, 1):
             stats["found"] += 1
             verdict = self.prefilter.check(posting) if prefilter else True
@@ -213,9 +216,11 @@ class _Run:
             else:
                 self.registry.attach(job, posting)
             jobs.append(job)
+            seen.append((posting, job.id))
             stats[outcome] += 1
             if n % COMMIT_EVERY == 0:
                 self.progress.save(self.fraction, f"{step} – {n}/{len(postings)}")
+        record_sightings(self.session, self.run.id, seen, datetime.now(UTC))
         # Rated right away, so the list is usable while the run continues.
         self.scorer.score(jobs, self.run.id)
 
@@ -357,6 +362,9 @@ class _Run:
                 key, label = f"ats:{adapter.type}", adapter.label
             self.progress.source(key, label)
             complete: Callable[[JobPosting], JobPosting] = _unchanged
+            # Postings still listed without being delivered again (raw layer, §5.8).
+            listed: set[str] = set()
+            unchanged = False
             try:
                 if company.ats_type == "jsonld":
                     known = set(
@@ -367,7 +375,11 @@ class _Run:
                         )
                     )
                     postings = jsonld.fetch(
-                        client, company.careers_url or company.website or "", company.name, known
+                        client,
+                        company.careers_url or company.website or "",
+                        company.name,
+                        known,
+                        listed,
                     )
                 else:
                     # A changed profile may let through postings the prefilter dropped before.
@@ -383,7 +395,7 @@ class _Run:
                         etag=company.etag if fresh else None,
                     )
                     postings = adapter.fetch(client, feed)
-                    company.etag = feed.etag
+                    company.etag, unchanged = feed.etag, feed.unchanged
                     complete = partial(adapter.complete, client)
             except (SourceError, ValueError, KeyError) as exc:
                 message = str(exc) or type(exc).__name__
@@ -392,9 +404,21 @@ class _Run:
                 self.session.commit()
                 continue
             mark_checked(company, now)
+            if listed or unchanged:
+                self._confirm(company, key, listed if listed else None)
             self._ingest(key, postings, complete, prefilter=True, step=step, company=company)
             self.session.commit()
         self._step(1, "Karriereseiten abgeschlossen")
+
+    def _confirm(self, company: Company, key: str, urls: set[str] | None) -> None:
+        """The company's stored postings from this source, or those with the given URLs."""
+        query = (
+            select(JobSource).join(Job).where(Job.company_id == company.id, JobSource.source == key)
+        )
+        if urls is not None:
+            query = query.where(JobSource.url.in_(urls))
+        sources = list(self.session.scalars(query))
+        confirm_sightings(self.session, self.run.id, sources, datetime.now(UTC))
 
 
 def _unchanged(posting: JobPosting) -> JobPosting:
