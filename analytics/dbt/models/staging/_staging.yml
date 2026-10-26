@@ -19,3 +19,18 @@ models:
     columns:
       - name: job_id
         data_tests: [unique, not_null]
+  - name: stg_features__job_features
+    columns:
+      - name: job_id
+        data_tests: [unique, not_null]
+      - name: seniority
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [student, junior, mid, senior, lead]
+      - name: salary_min_eur
+        data_tests:
+          - value_range:
+              arguments:
+                min_value: 15000
+                max_value: 300000

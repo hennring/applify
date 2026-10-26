@@ -23,6 +23,15 @@ sources:
           - name: content_hash
             data_tests: [unique, not_null]
 
+  - name: features
+    description: Features per job, extracted by the Dagster asset job_features (§5.8, D22).
+    schema: features
+    tables:
+      - name: job_features
+        columns:
+          - name: job_id
+            data_tests: [unique, not_null]
+
   - name: app
     description: Operational tables of Applify; read only through the staging models.
     schema: public

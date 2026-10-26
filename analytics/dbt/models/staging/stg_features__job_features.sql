@@ -1,0 +1,21 @@
+select
+    job_id,
+    role_family,
+    seniority,
+    years_min,
+    years_max,
+    salary_min_eur,
+    salary_max_eur,
+    salary_currency,
+    salary_period,
+    skills,
+    skill_candidates,
+    languages,
+    degrees,
+    origin,
+    origin ->> 'role_family' as role_family_origin,
+    origin ->> 'seniority' as seniority_origin,
+    origin ->> 'salary' as salary_origin,
+    extractor_version,
+    extracted_at
+from {{ source('features', 'job_features') }}

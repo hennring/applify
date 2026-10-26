@@ -1,0 +1,6 @@
+{# Values of a column must lie within [min_value, max_value]; nulls are allowed. #}
+{% test value_range(model, column_name, min_value, max_value) %}
+select {{ column_name }}
+from {{ model }}
+where {{ column_name }} < {{ min_value }} or {{ column_name }} > {{ max_value }}
+{% endtest %}

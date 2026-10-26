@@ -1,0 +1,199 @@
+# Role families of the market analysis (§5.8). A job title is matched against the rules
+# from top to bottom; the first match wins, so specific rules come before generic ones
+# (e.g. "Fullstack" before "Java Entwickler", "SAP" before everything).
+# Patterns are case-insensitive regular expressions, matched as whole words where they
+# start and end with letters.
+
+families:
+  - key: fullstack
+    label: Fullstack
+  - key: frontend
+    label: Frontend
+  - key: backend
+    label: Backend
+  - key: mobile
+    label: Mobile
+  - key: data
+    label: Data & KI
+  - key: devops
+    label: DevOps & Cloud
+  - key: embedded
+    label: Embedded & Automatisierung
+  - key: sap
+    label: SAP
+  - key: qa
+    label: Test & QA
+  - key: security
+    label: IT-Sicherheit
+  - key: it_ops
+    label: IT-Betrieb & Support
+  - key: management
+    label: Produkt & Projekt
+  - key: design
+    label: UX & Design
+  - key: consulting
+    label: IT-Beratung & Presales
+  - key: software
+    label: Software (allgemein)
+  - key: other
+    label: Sonstige (nicht IT)
+
+rules:
+  # Clearly outside IT, even with a technical word in the title ("Sales Engineer Cloud").
+  - family: other
+    patterns:
+      - 'sales'
+      - 'vertrieb\w*'
+      - 'account (executive|manager|director)'
+      - 'business development'
+      - 'customer success'
+      - 'marketing'
+      - 'recruit\w*'
+      - 'talent'
+      - 'people partner'
+      - 'personal\w*'
+      - 'finance'
+      - 'buchhalt\w*'
+      - 'controller\w*'
+      - 'legal'
+      - 'jurist\w*'
+      - 'partnerships?'
+      - 'operations'
+      - 'director'
+      - 'counsel'
+      - 'copywriter'
+      - 'content\w*'
+      - 'social media'
+      - 'accounting'
+      - 'accounts? (payable|receivable)'
+      - 'revenue'
+      - 'enablement'
+      - 'gtm'
+      - 'chief of staff'
+      - 'producer'
+      - 'compensation'
+      - 'kundenbetreu\w*'
+      - 'kundenservice'
+      - 'kalkulat\w*'
+      - 'elektrotechni\w*'
+      - 'elektroniker\w*'
+      - 'maschinenbau\w*'
+      - '(hoch|tief|stahl)bau\w*'
+      - 'finanz\w*'
+      - 'office manager'
+      - 'assistenz'
+      - 'executive assistant'
+  # Specific ecosystems and explicit role words first.
+  - family: sap
+    patterns: ['sap', 'abap', 's/4\s?hana']
+  - family: fullstack
+    patterns: ['full[\s-]?stack\w*']
+  - family: frontend
+    patterns: ['front[\s-]?end\w*', 'ui[\s-]?entwickl\w*', 'ui[\s-]?developer']
+  - family: backend
+    patterns: ['back[\s-]?end\w*', 'server[\s-]?entwickl\w*', 'api[\s-]?(developer|entwickl\w*)']
+  - family: mobile
+    patterns: ['mobile', 'ios', 'android', 'flutter', 'react native', 'app[\s-]?entwickl\w*', 'app developer']
+  - family: data
+    patterns:
+      - 'data\s?(engineer|scien\w*|analy\w*|architect|platform)'
+      - 'daten\w*'
+      - 'machine learning'
+      - 'ml(\s?ops)?\s?engineer'
+      - 'ai\s?(engineer|developer|specialist)'
+      - 'ki[\s-]?(entwickl\w*|engineer|spezialist\w*)'
+      - 'künstliche intelligenz'
+      - 'business intelligence'
+      - 'bi[\s-]?(entwickl\w*|developer|analyst|consultant)'
+      - 'analytics engineer'
+  - family: devops
+    patterns:
+      - 'dev\s?(sec)?\s?ops'
+      - 'systems? engineer\w*'
+      - 'plattformbetrieb'
+      - 'sre'
+      - 'site reliability'
+      - 'platform\s?engineer\w*'
+      - 'cloud\w*'
+      - 'kubernetes'
+      - 'infrastructure engineer'
+      - 'infrastruktur\w*'
+  - family: embedded
+    patterns:
+      - 'embedded'
+      - 'hardware\w*'
+      - 'firmware'
+      - 'fpga'
+      - 'hardwarenah\w*'
+      - 'mikrocontroller\w*'
+      - 'steuerung\w*'
+      - 'maschinensteuerung\w*'
+      - 'automatisierung\w*'
+      - 'sps'
+      - 'plc'
+      - 'robotik'
+  - family: qa
+    patterns: ['qa', 'quality assurance', 'sdet', 'test\w*', 'qualitätssicherung']
+  - family: security
+    patterns: ['security', 'it[\s-]?sicherheit\w*', 'informationssicherheit\w*', 'cyber\w*', 'pentest\w*']
+  - family: it_ops
+    patterns:
+      - 'system\s?administrat\w*'
+      - 'sysadmin'
+      - 'administrator\w*'
+      - 'it[\s-]?support\w*'
+      - 'service\s?desk'
+      - 'helpdesk'
+      - 'netzwerk\w*'
+      - 'network engineer'
+      - 'systemtechnik\w*'
+      - 'systemintegration'
+      - 'it[\s-]?administrat\w*'
+      - 'rechenzentrum'
+  - family: management
+    patterns:
+      - 'product\s?(owner|manager)'
+      - 'produkt\s?(owner|manager)\w*'
+      - 'projekt\s?(leit\w*|manager\w*)'
+      - 'project manager'
+      - 'scrum master'
+      - 'agile coach'
+      - 'engineering manager'
+      - 'head of (engineering|it|technology|software)'
+      - 'cto'
+      - 'it[\s-]?leit\w*'
+  - family: design
+    patterns: ['ux', 'ui/ux', '\w*designer\w*', 'user experience']
+  - family: consulting
+    patterns:
+      - 'consultant\w*'
+      - 'consulting'
+      - 'berater\w*'
+      - 'beratung'
+      - 'solutions? (architect|engineer)\w*'
+      - 'forward deployed'
+      - 'implementation (engineer|consultant|specialist)'
+      - 'professional services'
+      - 'deployment strategist'
+      - 'technical account manager'
+  # Technology in the title implies the side of the stack.
+  - family: frontend
+    patterns: ['react', 'angular', 'vue(\.js)?', 'javascript', 'typescript', 'css']
+  - family: backend
+    patterns: ['java', 'kotlin', 'php', 'python', 'golang', 'go', '\.net', 'c#', 'node(\.js)?', 'ruby', 'scala', 'rust']
+  # Generic software roles last.
+  - family: software
+    patterns:
+      - 'software\w*'
+      - 'entwickler\w*'
+      - 'developer'
+      - 'programmier\w*'
+      - 'anwendungsentwickl\w*'
+      - 'fachinformatiker\w*'
+      - 'informatiker\w*'
+      - 'web\s?entwickl\w*'
+      - 'web developer'
+      # Engineers left over after the specific and the non-IT rules.
+      - 'engineer\w*'
+      - 'architect\w*'
+      - 'architekt\w*'
