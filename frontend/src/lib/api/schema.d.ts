@@ -489,6 +489,46 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/market': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get Market
+		 * @description Market dashboard (F23) for the selection; reads the marts of the pipeline (§5.8).
+		 */
+		get: operations['get_market_api_market_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/market/skill-candidates': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * Accept Candidate
+		 * @description Add a skill candidate to skills.yaml (also used by the matching from now on).
+		 */
+		post: operations['accept_candidate_api_market_skill_candidates_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -522,6 +562,20 @@ export interface components {
 			 * @default []
 			 */
 			components: components['schemas']['ComponentOut'][];
+		};
+		/** CandidateAccepted */
+		CandidateAccepted: {
+			/** Name */
+			name: string;
+			/** Jobs Rescanned */
+			jobs_rescanned: number;
+		};
+		/** CandidateIn */
+		CandidateIn: {
+			/** Name */
+			name: string;
+			/** Category */
+			category: string;
 		};
 		/** ChangeItem */
 		ChangeItem: {
@@ -912,6 +966,93 @@ export interface components {
 			 */
 			radius_km: number;
 		};
+		/**
+		 * MarketCoverage
+		 * @description Share of full-text jobs with each feature known (0..1).
+		 */
+		MarketCoverage: {
+			/** Role Family */
+			role_family: number;
+			/** Seniority */
+			seniority: number;
+			/** Years */
+			years: number;
+			/** Salary */
+			salary: number;
+		};
+		/** MarketOptions */
+		MarketOptions: {
+			/** Role Families */
+			role_families: components['schemas']['RoleFamilyOption'][];
+			/** Sources */
+			sources: string[];
+		};
+		/** MarketOverview */
+		MarketOverview: {
+			/** Available */
+			available: boolean;
+			status?: components['schemas']['MarketStatus'] | null;
+			options?: components['schemas']['MarketOptions'] | null;
+			totals?: components['schemas']['MarketTotals'] | null;
+			coverage?: components['schemas']['MarketCoverage'] | null;
+			/**
+			 * Skills
+			 * @default []
+			 */
+			skills: components['schemas']['SkillDemand'][];
+			/**
+			 * Gaps
+			 * @default []
+			 */
+			gaps: components['schemas']['SkillDemand'][];
+			/**
+			 * Pairs
+			 * @default []
+			 */
+			pairs: components['schemas']['SkillPair'][];
+			trend?: components['schemas']['SkillTrend'] | null;
+			/**
+			 * Seniority
+			 * @default []
+			 */
+			seniority: components['schemas']['SeniorityMix'][];
+			/**
+			 * Years
+			 * @default []
+			 */
+			years: components['schemas']['YearsBucket'][];
+			/**
+			 * Salary
+			 * @default []
+			 */
+			salary: components['schemas']['SalaryGroup'][];
+			/**
+			 * Candidates
+			 * @default []
+			 */
+			candidates: components['schemas']['SkillCandidate'][];
+			/**
+			 * Categories
+			 * @default []
+			 */
+			categories: string[];
+		};
+		/** MarketStatus */
+		MarketStatus: {
+			/** Last Seen At */
+			last_seen_at: string | null;
+			/** Extracted At */
+			extracted_at: string | null;
+			/** Jobs With Llm */
+			jobs_with_llm: number;
+		};
+		/** MarketTotals */
+		MarketTotals: {
+			/** Jobs */
+			jobs: number;
+			/** Full Text */
+			full_text: number;
+		};
 		/** MatchDetail */
 		MatchDetail: {
 			/** Score */
@@ -1108,6 +1249,13 @@ export interface components {
 			 */
 			education: components['schemas']['Education-Output'][];
 		};
+		/** RoleFamilyOption */
+		RoleFamilyOption: {
+			/** Key */
+			key: string;
+			/** Label */
+			label: string;
+		};
 		/** RunError */
 		RunError: {
 			/** Source */
@@ -1140,6 +1288,23 @@ export interface components {
 			started_at: string;
 			/** Finished At */
 			finished_at: string | null;
+		};
+		/** SalaryGroup */
+		SalaryGroup: {
+			/** Key */
+			key: string;
+			/** Label */
+			label: string;
+			/** Total */
+			total: number;
+			/** N */
+			n: number;
+			/** P25 */
+			p25: number;
+			/** Median */
+			median: number;
+			/** P75 */
+			p75: number;
 		};
 		/** SampleIn */
 		SampleIn: {
@@ -1192,6 +1357,19 @@ export interface components {
 			 * Format: date-time
 			 */
 			created_at: string;
+		};
+		/** SeniorityMix */
+		SeniorityMix: {
+			/** Role Family */
+			role_family: string;
+			/** Label */
+			label: string;
+			/** Total */
+			total: number;
+			/** Counts */
+			counts: {
+				[key: string]: number;
+			};
 		};
 		/** SettingsOut */
 		SettingsOut: {
@@ -1253,6 +1431,42 @@ export interface components {
 			 * @enum {string}
 			 */
 			source: 'cv' | 'user';
+		};
+		/** SkillCandidate */
+		SkillCandidate: {
+			/** Name */
+			name: string;
+			/** Jobs */
+			jobs: number;
+		};
+		/** SkillDemand */
+		SkillDemand: {
+			/** Skill */
+			skill: string;
+			/** Category */
+			category: string;
+			/** Jobs */
+			jobs: number;
+			/** Share */
+			share: number;
+			/** Profile Weight */
+			profile_weight: string | null;
+		};
+		/** SkillPair */
+		SkillPair: {
+			/** Skill A */
+			skill_a: string;
+			/** Skill B */
+			skill_b: string;
+			/** Jobs */
+			jobs: number;
+		};
+		/** SkillTrend */
+		SkillTrend: {
+			/** Weeks */
+			weeks: string[];
+			/** Series */
+			series: components['schemas']['TrendSeries'][];
 		};
 		/** SourceLink */
 		SourceLink: {
@@ -1373,6 +1587,13 @@ export interface components {
 			 */
 			current: boolean;
 		};
+		/** TrendSeries */
+		TrendSeries: {
+			/** Skill */
+			skill: string;
+			/** Shares */
+			shares: number[];
+		};
 		/** ValidationError */
 		ValidationError: {
 			/** Location */
@@ -1385,6 +1606,13 @@ export interface components {
 			input?: unknown;
 			/** Context */
 			ctx?: Record<string, never>;
+		};
+		/** YearsBucket */
+		YearsBucket: {
+			/** Bucket */
+			bucket: string;
+			/** Jobs */
+			jobs: number;
 		};
 	};
 	responses: never;
@@ -2301,6 +2529,74 @@ export interface operations {
 				};
 				content: {
 					'application/json': components['schemas']['SettingsOut'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	get_market_api_market_get: {
+		parameters: {
+			query?: {
+				scope?: 'area' | 'germany' | 'all';
+				role?: string;
+				seniority?: string;
+				source?: string;
+				weeks?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MarketOverview'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	accept_candidate_api_market_skill_candidates_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CandidateIn'];
+			};
+		};
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CandidateAccepted'];
 				};
 			};
 			/** @description Validation Error */

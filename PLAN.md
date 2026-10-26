@@ -2,7 +2,7 @@
 
 > Persönlicher Bewerbungsassistent: findet täglich passende Stellen, bewertet sie gegen das eigene Profil und erzeugt auf Zusage ein fertiges Bewerbungspaket.
 
-Stand: 26.10.2026 · Status: M0–M3 umgesetzt, M4 umgesetzt (Abnahme offen: ≥ 50 Firmen mit Feed, Abdeckungsmessung), M5 Marktanalyse in Arbeit
+Stand: 26.10.2026 · Status: M0–M3 umgesetzt, M4 umgesetzt (Abnahme offen: ≥ 50 Firmen mit Feed, Abdeckungsmessung), M5 umgesetzt (Abnahme offen: Seniorität ≥ 80 % braucht den LLM-Fallback)
 
 ---
 
@@ -200,7 +200,7 @@ applify/
 │  └─ tests/             # inkl. fixtures/feeds, fixtures/pages, fixtures/cvs
 ├─ analytics/            # eigenes uv-Projekt (M5)
 │  ├─ applify_analytics/ # Dagster-Definitionen, Merkmals-Extraktion
-│  ├─ dbt/               # dbt-Projekt: models/{staging,intermediate,marts}, seeds, tests
+│  ├─ dbt/               # dbt-Projekt: models/{staging,intermediate,marts}, macros, tests
 │  ├─ resources/         # roles.yaml
 │  └─ tests/
 └─ frontend/
@@ -411,13 +411,13 @@ Plus Kopierhilfe-Ansicht (F18). Status wechselt auf „Paket fertig“; „abges
 | Skills | Taxonomie (wie Matching) | ja: zusätzliche **Skill-Kandidaten** außerhalb der Taxonomie |
 | Sprachen, Abschluss | Muster (wie Matching), Abschluss-Begriffe | ja |
 
-- LLM nur für Volltext-Stellen mit Lücken, max. **50 pro Pipeline-Lauf**, älteste zuerst; Ergebnis per Pydantic-Schema (D5), Cache je Text-Hash + Prompt-Version.
+- LLM für Volltext-Stellen ohne LLM-Ergebnis, max. **50 pro Pipeline-Lauf** (Dagster-Config `llm_budget`): Lücken bei Rolle/Seniorität zuerst, dann die neuesten; Ergebnis per Pydantic-Schema (D5), Cache je Text-Hash + Prompt-Version. Ungültige Antworten werden als Fehler gecacht; ist Ollama nicht erreichbar, bricht der Schritt ohne Cache-Eintrag ab.
 - Gehalt nur in **EUR** in Statistiken; andere Währungen werden erfasst, aber ausgeschlossen. Plausibilität 15.000–300.000 €/Jahr.
 - `extractor_version` steigt bei Regel- oder Taxonomie-Änderungen → Regeln laufen für alle Stellen neu (schnell), LLM-Ergebnisse kommen aus dem Cache.
 
 **Transform (dbt):**
-- `staging`: bereinigte Sichten auf `raw`, `features`, App-Tabellen (`jobs`, `job_sources`, Profil) und Seeds (Skill-Taxonomie, Rollenfamilien).
-- `intermediate`: Laufzeit je Stelle (first/last seen, aktiv), Region (Bundesland aus Koordinaten), Umfang (in Profil-Orten / Deutschland / Ausland).
+- `staging`: bereinigte Sichten auf `raw`, `features`, App-Tabellen (`jobs`, `job_sources`, Profil) und die Referenztabellen (Skill-Taxonomie, Rollenfamilien, Profil-Rollen → Familien). Diese schreibt ein Dagster-Asset aus `skills.yaml`/`roles.yaml` statt dbt-Seeds, damit die YAML-Dateien die einzige Quelle bleiben.
+- `intermediate`: Laufzeit je Stelle (first/last seen, aktiv), Umfang (Deutschland / Ausland / unbekannt – der Gazetteer kennt nur deutsche Orte, Koordinaten heißen also Deutschland), Stellen im Radius der Profil-Orte, Quellgruppen.
 - `marts`: `fct_job_postings` (Grain: zusammengeführte Stelle), `bridge_job_skills`, Dimensionen; Aggregate `agg_skills_weekly`, `agg_skill_pairs`, `agg_experience`, `agg_salary`, `agg_profile_gap`.
 - Tests: Schlüssel eindeutig/nicht leer, Beziehungen, Wertebereiche; Dagster-Asset-Checks für Abdeckung (Anteil bestimmter Rollen/Seniorität).
 
@@ -489,4 +489,6 @@ Jeder Meilenstein endet mit etwas Lauffähigem. Die LLM-Schicht wandert wegen de
 - Kontaktadresse für den User-Agent (N6): per `APPLIFY_HTTP_CONTACT` konfigurierbar, Standard leer
 - Layout/Design des Anschreiben-PDFs (eigene Vorlage vorhanden?)
 - Feintuning der Score-Gewichte nach den ersten echten Läufen
-- Chart-Bibliothek für das Markt-Dashboard (Kandidaten: LayerChart, ECharts)
+- ~~Chart-Bibliothek für das Markt-Dashboard~~ → keine: eigene Svelte-Komponenten mit SVG/CSS (Balkenliste, Verlauf, gestapelte Balken, Gehaltsspannen), Farben aus einer validierten Palette
+- Region nach Bundesland: braucht GeoNames-Daten mit Verwaltungsebene (`build_geonames` erweitern)
+- Modell `qwen3:14b` ist in Ollama derzeit nicht installiert (Stand 26.10.) → LLM-Fallback und Skill-Kandidaten laufen erst nach `ollama pull qwen3:14b`

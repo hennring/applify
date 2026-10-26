@@ -1228,6 +1228,131 @@
 					}
 				}
 			}
+		},
+		"/api/market": {
+			"get": {
+				"tags": ["market"],
+				"summary": "Get Market",
+				"description": "Market dashboard (F23) for the selection; reads the marts of the pipeline (\u00a75.8).",
+				"operationId": "get_market_api_market_get",
+				"parameters": [
+					{
+						"name": "scope",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": ["area", "germany", "all"],
+							"type": "string",
+							"default": "all",
+							"title": "Scope"
+						}
+					},
+					{
+						"name": "role",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Role"
+						}
+					},
+					{
+						"name": "seniority",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Seniority"
+						}
+					},
+					{
+						"name": "source",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Source"
+						}
+					},
+					{
+						"name": "weeks",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 520,
+							"minimum": 0,
+							"default": 0,
+							"title": "Weeks"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MarketOverview"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/market/skill-candidates": {
+			"post": {
+				"tags": ["market"],
+				"summary": "Accept Candidate",
+				"description": "Add a skill candidate to skills.yaml (also used by the matching from now on).",
+				"operationId": "accept_candidate_api_market_skill_candidates_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CandidateIn"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CandidateAccepted"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"components": {
@@ -1285,6 +1410,36 @@
 				},
 				"type": "object",
 				"title": "Breakdown"
+			},
+			"CandidateAccepted": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"jobs_rescanned": {
+						"type": "integer",
+						"title": "Jobs Rescanned"
+					}
+				},
+				"type": "object",
+				"required": ["name", "jobs_rescanned"],
+				"title": "CandidateAccepted"
+			},
+			"CandidateIn": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"category": {
+						"type": "string",
+						"title": "Category"
+					}
+				},
+				"type": "object",
+				"required": ["name", "category"],
+				"title": "CandidateIn"
 			},
 			"ChangeItem": {
 				"properties": {
@@ -2255,6 +2410,226 @@
 				"required": ["name", "radius_km"],
 				"title": "Location"
 			},
+			"MarketCoverage": {
+				"properties": {
+					"role_family": {
+						"type": "number",
+						"title": "Role Family"
+					},
+					"seniority": {
+						"type": "number",
+						"title": "Seniority"
+					},
+					"years": {
+						"type": "number",
+						"title": "Years"
+					},
+					"salary": {
+						"type": "number",
+						"title": "Salary"
+					}
+				},
+				"type": "object",
+				"required": ["role_family", "seniority", "years", "salary"],
+				"title": "MarketCoverage",
+				"description": "Share of full-text jobs with each feature known (0..1)."
+			},
+			"MarketOptions": {
+				"properties": {
+					"role_families": {
+						"items": {
+							"$ref": "#/components/schemas/RoleFamilyOption"
+						},
+						"type": "array",
+						"title": "Role Families"
+					},
+					"sources": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Sources"
+					}
+				},
+				"type": "object",
+				"required": ["role_families", "sources"],
+				"title": "MarketOptions"
+			},
+			"MarketOverview": {
+				"properties": {
+					"available": {
+						"type": "boolean",
+						"title": "Available"
+					},
+					"status": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/MarketStatus"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"options": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/MarketOptions"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"totals": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/MarketTotals"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"coverage": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/MarketCoverage"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"skills": {
+						"items": {
+							"$ref": "#/components/schemas/SkillDemand"
+						},
+						"type": "array",
+						"title": "Skills",
+						"default": []
+					},
+					"gaps": {
+						"items": {
+							"$ref": "#/components/schemas/SkillDemand"
+						},
+						"type": "array",
+						"title": "Gaps",
+						"default": []
+					},
+					"pairs": {
+						"items": {
+							"$ref": "#/components/schemas/SkillPair"
+						},
+						"type": "array",
+						"title": "Pairs",
+						"default": []
+					},
+					"trend": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/SkillTrend"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"seniority": {
+						"items": {
+							"$ref": "#/components/schemas/SeniorityMix"
+						},
+						"type": "array",
+						"title": "Seniority",
+						"default": []
+					},
+					"years": {
+						"items": {
+							"$ref": "#/components/schemas/YearsBucket"
+						},
+						"type": "array",
+						"title": "Years",
+						"default": []
+					},
+					"salary": {
+						"items": {
+							"$ref": "#/components/schemas/SalaryGroup"
+						},
+						"type": "array",
+						"title": "Salary",
+						"default": []
+					},
+					"candidates": {
+						"items": {
+							"$ref": "#/components/schemas/SkillCandidate"
+						},
+						"type": "array",
+						"title": "Candidates",
+						"default": []
+					},
+					"categories": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Categories",
+						"default": []
+					}
+				},
+				"type": "object",
+				"required": ["available"],
+				"title": "MarketOverview"
+			},
+			"MarketStatus": {
+				"properties": {
+					"last_seen_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Last Seen At"
+					},
+					"extracted_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Extracted At"
+					},
+					"jobs_with_llm": {
+						"type": "integer",
+						"title": "Jobs With Llm"
+					}
+				},
+				"type": "object",
+				"required": ["last_seen_at", "extracted_at", "jobs_with_llm"],
+				"title": "MarketStatus"
+			},
+			"MarketTotals": {
+				"properties": {
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"full_text": {
+						"type": "integer",
+						"title": "Full Text"
+					}
+				},
+				"type": "object",
+				"required": ["jobs", "full_text"],
+				"title": "MarketTotals"
+			},
 			"MatchDetail": {
 				"properties": {
 					"score": {
@@ -2661,6 +3036,21 @@
 				],
 				"title": "ProfileData"
 			},
+			"RoleFamilyOption": {
+				"properties": {
+					"key": {
+						"type": "string",
+						"title": "Key"
+					},
+					"label": {
+						"type": "string",
+						"title": "Label"
+					}
+				},
+				"type": "object",
+				"required": ["key", "label"],
+				"title": "RoleFamilyOption"
+			},
 			"RunError": {
 				"properties": {
 					"source": {
@@ -2742,6 +3132,41 @@
 					"finished_at"
 				],
 				"title": "RunOut"
+			},
+			"SalaryGroup": {
+				"properties": {
+					"key": {
+						"type": "string",
+						"title": "Key"
+					},
+					"label": {
+						"type": "string",
+						"title": "Label"
+					},
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"n": {
+						"type": "integer",
+						"title": "N"
+					},
+					"p25": {
+						"type": "number",
+						"title": "P25"
+					},
+					"median": {
+						"type": "number",
+						"title": "Median"
+					},
+					"p75": {
+						"type": "number",
+						"title": "P75"
+					}
+				},
+				"type": "object",
+				"required": ["key", "label", "total", "n", "p25", "median", "p75"],
+				"title": "SalaryGroup"
 			},
 			"SampleIn": {
 				"properties": {
@@ -2881,6 +3306,32 @@
 				],
 				"title": "SampleOut"
 			},
+			"SeniorityMix": {
+				"properties": {
+					"role_family": {
+						"type": "string",
+						"title": "Role Family"
+					},
+					"label": {
+						"type": "string",
+						"title": "Label"
+					},
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"counts": {
+						"additionalProperties": {
+							"type": "integer"
+						},
+						"type": "object",
+						"title": "Counts"
+					}
+				},
+				"type": "object",
+				"required": ["role_family", "label", "total", "counts"],
+				"title": "SeniorityMix"
+			},
 			"SettingsOut": {
 				"properties": {
 					"contact": {
@@ -3008,6 +3459,96 @@
 				"type": "object",
 				"required": ["name", "canonical", "category", "weight", "level", "source"],
 				"title": "Skill"
+			},
+			"SkillCandidate": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					}
+				},
+				"type": "object",
+				"required": ["name", "jobs"],
+				"title": "SkillCandidate"
+			},
+			"SkillDemand": {
+				"properties": {
+					"skill": {
+						"type": "string",
+						"title": "Skill"
+					},
+					"category": {
+						"type": "string",
+						"title": "Category"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"share": {
+						"type": "number",
+						"title": "Share"
+					},
+					"profile_weight": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Profile Weight"
+					}
+				},
+				"type": "object",
+				"required": ["skill", "category", "jobs", "share", "profile_weight"],
+				"title": "SkillDemand"
+			},
+			"SkillPair": {
+				"properties": {
+					"skill_a": {
+						"type": "string",
+						"title": "Skill A"
+					},
+					"skill_b": {
+						"type": "string",
+						"title": "Skill B"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					}
+				},
+				"type": "object",
+				"required": ["skill_a", "skill_b", "jobs"],
+				"title": "SkillPair"
+			},
+			"SkillTrend": {
+				"properties": {
+					"weeks": {
+						"items": {
+							"type": "string",
+							"format": "date"
+						},
+						"type": "array",
+						"title": "Weeks"
+					},
+					"series": {
+						"items": {
+							"$ref": "#/components/schemas/TrendSeries"
+						},
+						"type": "array",
+						"title": "Series"
+					}
+				},
+				"type": "object",
+				"required": ["weeks", "series"],
+				"title": "SkillTrend"
 			},
 			"SourceLink": {
 				"properties": {
@@ -3274,6 +3815,24 @@
 				"required": ["employer", "role", "kind", "start", "end", "current"],
 				"title": "Station"
 			},
+			"TrendSeries": {
+				"properties": {
+					"skill": {
+						"type": "string",
+						"title": "Skill"
+					},
+					"shares": {
+						"items": {
+							"type": "number"
+						},
+						"type": "array",
+						"title": "Shares"
+					}
+				},
+				"type": "object",
+				"required": ["skill", "shares"],
+				"title": "TrendSeries"
+			},
 			"ValidationError": {
 				"properties": {
 					"loc": {
@@ -3309,6 +3868,21 @@
 				"type": "object",
 				"required": ["loc", "msg", "type"],
 				"title": "ValidationError"
+			},
+			"YearsBucket": {
+				"properties": {
+					"bucket": {
+						"type": "string",
+						"title": "Bucket"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					}
+				},
+				"type": "object",
+				"required": ["bucket", "jobs"],
+				"title": "YearsBucket"
 			}
 		}
 	}

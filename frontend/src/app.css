@@ -215,3 +215,49 @@ button.round.on {
 	background: var(--accent);
 	color: var(--accent-text);
 }
+
+/* Data viz (market dashboard): categorical slots in fixed order and an ordinal blue ramp,
+   validated for light and dark surfaces (dataviz reference palette). */
+:root {
+	--series-1: #2a78d6;
+	--series-2: #eb6834;
+	--series-3: #1baf7a;
+	--series-4: #eda100;
+	--series-5: #e87ba4;
+	--ordinal-1: #86b6ef;
+	--ordinal-2: #5598e7;
+	--ordinal-3: #2a78d6;
+	--ordinal-4: #1c5cab;
+	--ordinal-5: #104281;
+	--viz-unknown: #cfcec9;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--series-1: #3987e5;
+		--series-2: #d95926;
+		--series-3: #199e70;
+		--series-4: #c98500;
+		--series-5: #d55181;
+		--ordinal-1: #9ec5f4;
+		--ordinal-2: #6da7ec;
+		--ordinal-3: #3987e5;
+		--ordinal-4: #256abf;
+		--ordinal-5: #184f95;
+		--viz-unknown: #4a4a46;
+	}
+}
+.viz-tip {
+	position: fixed;
+	z-index: 50;
+	pointer-events: none;
+	max-width: 18rem;
+	padding: 0.4rem 0.6rem;
+	border-radius: 6px;
+	border: 1px solid var(--border);
+	background: var(--surface);
+	color: var(--text);
+	box-shadow: 0 4px 14px rgb(0 0 0 / 0.15);
+	font-size: 0.85rem;
+	line-height: 1.35;
+	white-space: pre-line;
+}

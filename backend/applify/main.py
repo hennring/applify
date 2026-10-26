@@ -14,6 +14,7 @@ from applify.api import (
     documents,
     health,
     jobs,
+    market,
     matches,
     profile,
     runs,
@@ -57,7 +58,18 @@ def create_app(*, run_startup_tasks: bool = True) -> FastAPI:
     app = FastAPI(
         title="Applify", version="0.1.0", lifespan=lifespan if run_startup_tasks else None
     )
-    for module in (health, documents, profile, runs, jobs, matches, companies, coverage, settings):
+    for module in (
+        health,
+        documents,
+        profile,
+        runs,
+        jobs,
+        matches,
+        companies,
+        coverage,
+        settings,
+        market,
+    ):
         app.include_router(module.router, prefix="/api")
     mount_spa(app, get_settings().static_dir)
     return app

@@ -29,6 +29,10 @@ ever sent or applied for automatically.
   postings can be completed by pasting the full text.
 - **Coverage check** – enter jobs you found elsewhere to measure what Applify misses and
   why.
+- **Market analysis** – an ELT pipeline (Dagster + dbt) turns every search run into a
+  dashboard: demanded skills and the gaps in your profile, skill trends and combinations,
+  required experience and seniority per role family, and salaries – always with how many
+  postings actually state a value.
 
 See [PLAN.md](PLAN.md) (German) for requirements, design decisions and the roadmap.
 
@@ -103,6 +107,33 @@ interpreter first.
 7. **Measure coverage** (*Abdeckung*, optional) – enter jobs you found on other portals
    and check which ones Applify found, and if not, why.
 
+## Market analysis pipeline
+
+The analytics project in `analytics/` is a separate uv project:
+
+```
+search run ──▶ raw.job_sightings / raw.job_versions      (append-only, written by the app)
+Dagster    ──▶ features.job_features                     (rules, then the local LLM for gaps)
+           ──▶ dbt build: staging → intermediate → marts  (with tests)
+marts      ──▶ page "Markt" in Applify · Metabase (optional, read-only)
+```
+
+```sh
+cd analytics
+uv sync
+DAGSTER_HOME=../data/dagster uv run dagster dev -m applify_analytics.definitions -p 3000
+```
+
+Open <http://localhost:3000> and run the job `market_pipeline` once; afterwards a sensor
+starts it after every finished search run. In IntelliJ use the run configuration
+**Analytics (Dagster)**. The LLM step needs the model in Ollama (`ollama pull qwen3:14b`)
+and handles at most 50 postings per run (`llm_budget`).
+
+Optional BI tool: `docker compose --profile analytics up -d metabase`, then open
+<http://localhost:3001> and connect to host `db`, database `applify`, user
+`applify_reader` (password `APPLIFY_READER_PASSWORD`, default `applify_reader`). This role
+can read the `marts` schema only.
+
 ## Configuration
 
 Settings are read from environment variables (or `backend/.env`) with the prefix
@@ -138,6 +169,12 @@ pnpm test
 # After changing API models: regenerate the TypeScript types
 pnpm gen:api
 
+# Analytics: tests, lint, types, dbt models and tests
+cd analytics
+uv run pytest
+uv run ruff check . && uv run mypy applify_analytics tests
+uv run dbt build --project-dir dbt --profiles-dir dbt
+
 # New database migration
 cd backend
 uv run alembic revision --autogenerate -m "describe the change"
@@ -152,6 +189,6 @@ Job portals such as StepStone, Indeed or LinkedIn are not scraped.
 
 ## Status
 
-Milestones M0–M4 (profile, CV extraction, job sources, matching, company discovery) are
-implemented. In progress: M5 (market analysis: ELT pipeline with Dagster and dbt, and a
-market dashboard). Open: M6 (cover letter and application package) and M7 (polish).
+Milestones M0–M4 (profile, CV extraction, job sources, matching, company discovery)
+and M5 (market analysis with an ELT pipeline and dashboard) are implemented. Open: M6 (cover
+letter and application package) and M7 (polish).

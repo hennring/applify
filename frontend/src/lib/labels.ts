@@ -156,3 +156,40 @@ export function changeValue(change: Schemas['ChangeItem'], value: string): strin
 	if (change.field === 'seniority_years') return `${value.replace('.', ',')} Jahre`;
 	return value;
 }
+
+export const seniorityLabels: Record<string, string> = {
+	student: 'Studium/Ausbildung',
+	junior: 'Junior',
+	mid: 'Mid',
+	senior: 'Senior',
+	lead: 'Lead',
+	unknown: 'Unbekannt'
+};
+
+export const marketScopeLabels: Labels<'area' | 'germany' | 'all'> = {
+	area: 'Meine Orte',
+	germany: 'Deutschland',
+	all: 'Alle'
+};
+
+export const skillCategoryLabels: Record<string, string> = {
+	language: 'Sprache',
+	frontend: 'Frontend',
+	backend: 'Backend',
+	database: 'Datenbank',
+	devops: 'DevOps',
+	cloud: 'Cloud',
+	testing: 'Testing',
+	data: 'Data',
+	mobile: 'Mobile',
+	cms: 'CMS',
+	design: 'Design',
+	tool: 'Tool',
+	methodology: 'Methode'
+};
+
+export const weightBadges: Record<string, string> = {
+	must: 'Pflicht',
+	nice: 'gern',
+	avoid: 'will ich nicht'
+};

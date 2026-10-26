@@ -12,6 +12,7 @@
 		{ href: '/applications', label: 'Bewerbungen' },
 		{ href: '/companies', label: 'Firmen' },
 		{ href: '/coverage', label: 'Abdeckung' },
+		{ href: '/market', label: 'Markt' },
 		{ href: '/profile', label: 'Profil' },
 		{ href: '/documents', label: 'Dokumente' },
 		{ href: '/settings', label: 'Einstellungen' }
