@@ -2,7 +2,7 @@
 
 > Persönlicher Bewerbungsassistent: findet täglich passende Stellen, bewertet sie gegen das eigene Profil und erzeugt auf Zusage ein fertiges Bewerbungspaket.
 
-Stand: 22.10.2026 · Status: M0–M3 umgesetzt, M4 umgesetzt (Abnahme offen: ≥ 50 Firmen mit Feed, Abdeckungsmessung)
+Stand: 26.10.2026 · Status: M0–M3 umgesetzt, M4 umgesetzt (Abnahme offen: ≥ 50 Firmen mit Feed, Abdeckungsmessung), M5 Marktanalyse in Arbeit
 
 ---
 
@@ -63,6 +63,12 @@ Fullstack-Webentwickler, 2,5 Jahre Erfahrung · Orte: Leipzig, Dresden, Berlin, 
 - F18 **Kopierhilfe**: Seite mit allen Daten zum Einfügen in Portalformulare (Name, Kontakt, Gehaltswunsch, Eintrittsdatum, Anschreiben-Text, Link zur Anzeige, ggf. Bewerbungs-E-Mail-Adresse) jeweils mit Kopier-Button.
 - F19 Bewerbungsstatus: `neu` → `gesehen` → `zugesagt` → `Paket fertig` → `abgeschickt` (manuell gesetzt) → `Antwort erhalten`.
 
+**Marktanalyse** (§5.8)
+- F20 Jeder Suchlauf legt jede gesehene Stelle **append-only** als Sichtung ab (Rohdaten mit Zeitstempel, nie überschrieben). So bleibt die Historie erhalten: wann eine Anzeige zuerst und zuletzt gesehen wurde, wie sich die Nachfrage über die Zeit entwickelt.
+- F21 Aus jeder Stelle werden Merkmale gewonnen: Rollenfamilie, Seniorität, geforderte Berufsjahre, Gehalt (normalisiert auf brutto/Jahr), Skills aus der Taxonomie plus neue Skill-Kandidaten, Sprachen, Abschluss. Zuerst per Regeln, für Lücken per lokalem LLM (Budget pro Lauf). Pro Feld ist sichtbar, ob es per Regel, LLM oder gar nicht bestimmt wurde.
+- F22 Eine ELT-Pipeline (Dagster + dbt) baut daraus nach jedem Suchlauf automatisch ein Sternschema mit fertigen Aggregaten; Datenqualität per dbt-Tests und Asset-Checks.
+- F23 **Markt-Dashboard**: Verteilung und Trend der Skills, Skill-Kombinationen, Abgleich mit dem eigenen Profil (gefragte Skills, die fehlen), geforderte Erfahrung und Seniorität je Rollenfamilie, Gehälter je Rolle/Seniorität – jeweils mit Datenabdeckung (n). Filter: Zeitraum, Umfang (eigene Orte / Deutschland / alle), Rollenfamilie, Seniorität, Quelle.
+
 ### 2.2 Ansichten (SPA)
 1. **Dashboard / Tagesliste** – gerankte Stellen, Filter „nur neue“, Suchlauf starten, Fortschritt
 2. **Stellendetail** – Volltext/Kurzinfo, Score-Aufschlüsselung, Quellen-Links, Volltext einfügen, Zusagen
@@ -72,6 +78,7 @@ Fullstack-Webentwickler, 2,5 Jahre Erfahrung · Orte: Leipzig, Dresden, Berlin, 
 6. **Firmen** – Watchlist mit Status (Kandidat / beobachtet / ignoriert), erkanntem ATS, letztem Abruf und Fehlern; Karriere-URL hinzufügen
 7. **Abdeckung** – Stichprobe eintragen, Quote gesamt und je Quelle, verpasste Stellen mit vermutetem Grund
 8. **Einstellungen** – Quellen an/aus, API-Keys (Adzuna, optional GitHub-Token), LLM-Modell, Suchparameter, Abruf-Limits
+9. **Markt** – Dashboard der Marktanalyse (F23), Datenstand der Pipeline, Skill-Kandidaten in die Taxonomie übernehmen
 
 ### 2.3 Nicht-funktional
 - N1 **Datenschutz**: Im MVP verlassen keine persönlichen Daten den Rechner (Anfragen an Stellen- und Discovery-Quellen enthalten nur Suchbegriffe und Orte; Abrufe von Karriereseiten enthalten keine Nutzerdaten). LLM läuft lokal.
@@ -109,6 +116,11 @@ Automatischer Zeitplan · Versand per Mail · Quellen der Stufe 2 und 3 (§5.1) 
 | D16 | **Firmen-Discovery über eine Watchlist** statt freiem Crawlen: Firmen aus allen Stellen-Treffern, GitHub-Organisationen und Wikidata werden Kandidaten, Karriereseite und ATS werden einmalig erkannt, danach wird direkt der Feed abgefragt | Das schwierige Problem ist, *welche* Firmen man ansieht, nicht das Auslesen. Stellenquellen liefern die Liste gratis mit; GitHub-Orgs sind fast immer Tech-Firmen (passt zum Profil); Wikidata ergänzt größere Unternehmen. Alle drei mit offizieller API. | Websuche-API im MVP (Key, Kosten, Anbieterlage unklar → Ausblick); LLM-Agent mit Websuche (langsam, nicht reproduzierbar, widerspricht D1); Common Crawl (zu groß, nicht tagesaktuell) |
 | D17 | **Viele Quellen als Plugins, in Stufen eingeführt** (§5.1): MVP = BA, 2 Aggregatoren, service.bund.de, 6 ATS-Adapter, JSON-LD + Sitemap, Discovery über Treffer/GitHub/Wikidata | Maximale Abdeckung bei begrenztem Budget; jede weitere Quelle ist ein kleines Plugin. Welche Quelle als nächste kommt, entscheidet die Abdeckungsmessung (§5.7), nicht das Bauchgefühl. | Alle Quellen auf einmal (sprengt das Budget); nur eine Quelle (zu große Lücken) |
 | D18 | **Python-Tooling: `uv`, `ruff`, `pytest`, `mypy`**; Frontend: `pnpm`, `vitest`, `eslint`/`prettier` | Schnell, modern, wenig Konfiguration. | – |
+| D19 | **Marktanalyse als ELT: Rohdaten in Postgres, Transformation mit `dbt-core`** in Schichten (staging → intermediate → marts, Sternschema) | Branchenstandard, SQL-Modelle mit Tests, Doku und Lineage; dieselbe Datenbank, aber eigene Schemas (`raw`, `features`, `staging`, `marts`) – App-Tabellen bleiben unberührt. Doppeltes Ziel: nützliches Dashboard **und** lehrbuchmäßiger Aufbau. | Eigene Python-/SQL-Views (wenig Struktur); DuckDB als separates Warehouse (zweiter Datenspeicher, Abgleich nötig) |
+| D20 | **Orchestrierung mit Dagster**, nur für die Analyse-Seite, lokal per `uv` (`dagster dev`) | Asset-orientiert, erstklassige dbt-Integration (jedes Modell ein Asset mit Lineage), Sensoren, Asset-Checks, gute lokale UI. Die Suche bleibt in Applify (Button, Live-Fortschritt); ein Sensor startet die Pipeline nach jedem fertigen Suchlauf. Grenze: App = operativ, Dagster = analytisch. | Prefect (dbt-Anbindung schwächer); Airflow (schwergewichtig, unter Windows nur per Docker); Suche ebenfalls in Dagster (Umbau der App-Logik) |
+| D21 | **Raw-Schicht append-only, von Applify geschrieben**: `raw.job_sightings` je Lauf und Stelle, `raw.job_versions` mit Roh-JSON und Text nur bei geändertem Inhalt | Nur der Suchlauf weiß, was in welchem Lauf gesehen wurde. Append-only erlaubt Historie (first/last seen, Trends) und jederzeit neues Transformieren; Versionen statt Volltext je Sichtung halten das Wachstum klein. | Pipeline liest die App-Tabellen (Rohdaten werden dort überschrieben, Historie nur per Snapshot) |
+| D22 | **Merkmals-Extraktion: Regeln zuerst, LLM-Fallback mit Budget** (max. 50 Stellen pro Lauf), Ergebnisse versioniert (`extractor_version`) und je Text-Hash + Prompt-Version gecacht | Regeln sind schnell, deterministisch und testbar; das LLM füllt nur Lücken (v. a. Gehalt, Abschluss, unklare Rollen) und belegt die GPU begrenzt. Abweichung von D1 ist bewusst: Es geht um Text-Verstehen, nicht um Ranking. | Nur Regeln (lückenhaft); LLM für alles (Stunden GPU-Zeit initial) |
+| D23 | **Dashboard in Applify, Metabase optional** als Container (Compose-Profil `analytics`) mit Nur-Lese-Rolle auf `marts` | Feste Kennzahlen gehören in die App; Metabase dient zum Erkunden und zur Kontrolle der Pipeline, ohne Profil- oder Bewerbungsdaten zu sehen. | Nur BI-Tool (Dashboards nicht im Repo); nur App (keine Ad-hoc-Analysen) |
 
 ---
 
@@ -160,6 +172,19 @@ Automatischer Zeitplan · Versand per Mail · Quellen der Stufe 2 und 3 (§5.1) 
 Dateien: ./data/files/{user_id}/documents|packages
 ```
 
+**Analyse-Seite (M5, §5.8):**
+```
+Suchlauf ──E+L──▶ raw.job_sightings / raw.job_versions        (Applify, append-only)
+                     │
+Dagster (lokal)      │  Sensor: Suchlauf fertig
+                     ▼
+  features.job_features   Python-Asset: Regeln → LLM-Fallback (Ollama, Budget)
+                     ▼
+  dbt build               staging → intermediate → marts (+ Tests, Asset-Checks)
+                     ▼
+  marts.*  ──▶ Applify-Seite „Markt“ (API)  ·  Metabase (optional, nur lesend)
+```
+
 ### 4.1 Projektstruktur
 ```
 applify/
@@ -173,6 +198,11 @@ applify/
 │  ├─ applify/           # Pakete wie in §4
 │  ├─ resources/         # skills.yaml, geonames, PDF-Templates
 │  └─ tests/             # inkl. fixtures/feeds, fixtures/pages, fixtures/cvs
+├─ analytics/            # eigenes uv-Projekt (M5)
+│  ├─ applify_analytics/ # Dagster-Definitionen, Merkmals-Extraktion
+│  ├─ dbt/               # dbt-Projekt: models/{staging,intermediate,marts}, seeds, tests
+│  ├─ resources/         # roles.yaml
+│  └─ tests/
 └─ frontend/
    ├─ package.json
    └─ src/
@@ -201,6 +231,16 @@ applify/
 | `applications` | id, match_id, status, cover_letter_text, generation_inputs (JSONB), package_path, created_at, sent_at |
 | `cover_letter_revisions` | application_id, text, source (`llm`/`user`), created_at |
 | `coverage_samples` | id, user_id, url, company, title, found_via (Portal, z. B. `stepstone`), matched_job_id, matched_sources[], miss_reason, checked_at |
+
+**Analyse-Schemas (M5):**
+
+| Tabelle | Wichtige Felder |
+|---|---|
+| `raw.job_sightings` | id, run_id, seen_at, source, external_id, job_id, content_hash — append-only |
+| `raw.job_versions` | content_hash (PK), source, external_id, job_id, title, description, payload (JSONB), first_seen_at |
+| `features.job_features` | job_id, content_hash, extractor_version, role_family, seniority, years_min, years_max, salary_min/max_eur_year, salary_currency, salary_period, skills[], skill_candidates[], languages (JSONB), degree, origin (JSONB: Feld → `rule`/`llm`/`none`), extracted_at |
+| `features.llm_cache` | content_hash, prompt_version, result (JSONB), created_at |
+| `marts.*` | `fct_job_postings`, `bridge_job_skills`, `dim_skill`, `dim_role_family`, `dim_region`, `dim_date`, Aggregate `agg_*` (von dbt gebaut) |
 
 `jobs` und `companies` sind bewusst **nicht** nutzerbezogen (eine Stelle oder Firma ist für alle Nutzer dieselbe), `job_matches` und `user_companies` schon – das spart später doppelte Abrufe.
 
@@ -356,9 +396,38 @@ Plus Kopierhilfe-Ansicht (F18). Status wechselt auf „Paket fertig“; „abges
   - Stelle gefunden, aber per hartem Filter ausgeblendet → Filter zu streng
 - Die Messung wird nach M4 und danach monatlich wiederholt; die häufigsten Gründe bestimmen die nächste Quelle aus Stufe 2.
 
+### 5.8 Marktanalyse (ELT)
+
+**Extract + Load (Applify):** Jeder Suchlauf schreibt pro gesehener Stelle eine Zeile in `raw.job_sightings` (Lauf, Zeitpunkt, Quelle, externe ID, `job_id`, Hash über Titel + Text + Roh-JSON). Ändert sich der Hash, kommt zusätzlich eine Zeile in `raw.job_versions` mit dem vollständigen Inhalt. Bestandsstellen vor der Umstellung bekommen einmalig eine Version; ihre Historie beginnt mit `jobs.first_seen_at`.
+
+**Merkmale (Python-Asset `job_features`):**
+
+| Merkmal | Regel | LLM-Fallback |
+|---|---|---|
+| Rollenfamilie | Schlüsselwörter im Titel laut `roles.yaml` (Backend, Frontend, Fullstack, Data, DevOps/Cloud, Embedded, Mobile, SAP, QA, IT-Admin, Sonstige) | ja, bei unklarem Titel |
+| Seniorität | Titel (Junior/Senior/Lead) hat Vorrang, sonst Jahre: < 2 Junior, 2–4 Mid, ≥ 5 Senior (konfigurierbar) | nein (folgt aus Titel/Jahren) |
+| Berufsjahre | Muster wie „3+ Jahre“, „mindestens 2 Jahre“, „3–5 years“ | ja |
+| Gehalt | strukturierte Quellfelder, Muster wie „55.000–65.000 €“, „4.500 € brutto/Monat“; Monat/Stunde → Jahr | ja |
+| Skills | Taxonomie (wie Matching) | ja: zusätzliche **Skill-Kandidaten** außerhalb der Taxonomie |
+| Sprachen, Abschluss | Muster (wie Matching), Abschluss-Begriffe | ja |
+
+- LLM nur für Volltext-Stellen mit Lücken, max. **50 pro Pipeline-Lauf**, älteste zuerst; Ergebnis per Pydantic-Schema (D5), Cache je Text-Hash + Prompt-Version.
+- Gehalt nur in **EUR** in Statistiken; andere Währungen werden erfasst, aber ausgeschlossen. Plausibilität 15.000–300.000 €/Jahr.
+- `extractor_version` steigt bei Regel- oder Taxonomie-Änderungen → Regeln laufen für alle Stellen neu (schnell), LLM-Ergebnisse kommen aus dem Cache.
+
+**Transform (dbt):**
+- `staging`: bereinigte Sichten auf `raw`, `features`, App-Tabellen (`jobs`, `job_sources`, Profil) und Seeds (Skill-Taxonomie, Rollenfamilien).
+- `intermediate`: Laufzeit je Stelle (first/last seen, aktiv), Region (Bundesland aus Koordinaten), Umfang (in Profil-Orten / Deutschland / Ausland).
+- `marts`: `fct_job_postings` (Grain: zusammengeführte Stelle), `bridge_job_skills`, Dimensionen; Aggregate `agg_skills_weekly`, `agg_skill_pairs`, `agg_experience`, `agg_salary`, `agg_profile_gap`.
+- Tests: Schlüssel eindeutig/nicht leer, Beziehungen, Wertebereiche; Dagster-Asset-Checks für Abdeckung (Anteil bestimmter Rollen/Seniorität).
+
+**Orchestrierung (Dagster):** Sensor auf `search_runs` (Status `done`) → `job_features` → `dbt build` → Checks. Manuell auslösbar in der Dagster-UI.
+
+**Dashboard „Markt“:** Applify-API liest nur `marts`. Jede Gehalts- und Erfahrungszahl zeigt n und den Anteil ohne Angabe. Skill-Kandidaten lassen sich per Klick in `skills.yaml` übernehmen (wirkt dann auch aufs Matching).
+
 ---
 
-## 6. Fahrplan (≈ 86 h)
+## 6. Fahrplan (≈ 120 h)
 
 Jeder Meilenstein endet mit etwas Lauffähigem. Die LLM-Schicht wandert wegen der CV-Extraktion in M1 nach vorn.
 
@@ -369,10 +438,11 @@ Jeder Meilenstein endet mit etwas Lauffähigem. Die LLM-Schicht wandert wegen de
 | **M2** | Quelle BA + Pipeline | Spike BA-API (inkl. Detail-Endpunkt) **und** Kurz-Check aller MVP-Quellen aus §5.1 (Adzuna, Arbeitnow, service.bund.de-RSS, je 2–3 echte Firmen pro ATS, GitHub-/Wikidata-Abfrage), `JobSource`-Plugin-Interface, BA-Client, Suchbegriff-Ableitung, Normalisierung, GeoNames-Import, Dedup, `search_runs` mit Fortschritt | 12 h | Suchlauf-Button liefert BA-Stellen in der DB, ohne Duplikate |
 | **M3** | Matching & Tagesliste | Harte Filter, Score, Breakdown, Dashboard, Detailseite, „neu/gesehen“, Volltext einfügen + Neubewertung | 12 h | **Erstes Erfolgskriterium prüfbar**: Top 10 manuell bewerten |
 | **M4** | Weitere Quellen & Abdeckung | Adzuna, Arbeitnow, service.bund.de; Tabellen `companies`/`user_companies`/`source_settings`; Discovery aus Treffern, GitHub, Wikidata; Erkennung Karriereseite + ATS; Adapter Personio/Greenhouse/Lever/Recruitee/SmartRecruiters/Workday mit Fixtures; JSON-LD + Sitemap; Vorfilter Ort/Remote; Firmen-Ansicht; Quellen an/aus + Statistik je Quelle; Abdeckungs-Check (Tabelle, Abgleich, Ansicht) | 20 h | ≥ 50 Firmen mit erkanntem ATS/JSON-LD auf der Watchlist, deren Stellen erscheinen **mit Volltext** gerankt in der Liste; **Abdeckungsmessung durchgeführt**, Zielwert ≥ 70 % |
-| **M5** | Anschreiben & Paket | Anschreiben-Prompt, Stichpunkt-Prüfung, Editor mit Revisionen, PDF-Template, Paket/ZIP, Kopierhilfe, Bewerbungsliste mit Status | 13 h | Zusage → editierbares Anschreiben → Paket mit 3+ PDFs |
-| **M6** | Puffer & Feinschliff | Fehlerfälle (Ollama nicht erreichbar, Quelle/Feed nicht erreichbar), Tuning der Score-Gewichte am echten Datenbestand, README | 6 h | Eine Woche Eigennutzung ohne Blocker |
+| **M5** | Marktanalyse (ELT + Dashboard) | Raw-Schicht im Suchlauf (Sichtungen, Versionen); `analytics/`-Projekt mit Dagster + dbt; Regel-Extraktion (Rolle, Seniorität, Jahre, Gehalt, Sprachen, Abschluss) mit `roles.yaml`; LLM-Fallback mit Budget + Cache, Skill-Kandidaten; dbt-Modelle staging/intermediate/marts mit Tests; Sensor + Asset-Checks; Metabase optional mit Nur-Lese-Rolle; API + Seite „Markt“ | 34 h | Nach einem Suchlauf läuft die Pipeline automatisch, dbt-Tests grün; Dashboard zeigt Skills, Erfahrung und Gehalt mit sichtbarer Abdeckung; für ≥ 80 % der Volltext-Stellen sind Rollenfamilie und Seniorität bestimmt |
+| **M6** | Anschreiben & Paket | Anschreiben-Prompt, Stichpunkt-Prüfung, Editor mit Revisionen, PDF-Template, Paket/ZIP, Kopierhilfe, Bewerbungsliste mit Status | 13 h | Zusage → editierbares Anschreiben → Paket mit 3+ PDFs |
+| **M7** | Puffer & Feinschliff | Fehlerfälle (Ollama nicht erreichbar, Quelle/Feed nicht erreichbar), Tuning der Score-Gewichte am echten Datenbestand, README | 6 h | Eine Woche Eigennutzung ohne Blocker |
 
-**Gesamt: ~86 h.** Wenn es eng wird, zuerst kürzen: Workday-Adapter und Wikidata-Discovery (M4), Revisionshistorie (M5), CV-Diff (M1), Fuzzy-Dedup (nur Fingerprint).
+**Gesamt: ~120 h.** Wenn es eng wird, zuerst kürzen: Workday-Adapter und Wikidata-Discovery (M4), Metabase und Skill-Kombinationen (M5), Revisionshistorie (M6), CV-Diff (M1), Fuzzy-Dedup (nur Fingerprint).
 
 ---
 
@@ -393,6 +463,9 @@ Jeder Meilenstein endet mit etwas Lauffähigem. Die LLM-Schicht wandert wegen de
 | LLM halluziniert Skills/Stationen im CV | mittel | Falsches Profil | Evidenz-Pflicht pro Skill, Berufsjahre per Code, Nutzer bestätigt Vorschlag |
 | `qwen3:14b` schreibt mittelmäßiges Deutsch | mittel | Viel Nacharbeit am Anschreiben | Gutes Beispielanschreiben, Stichpunkte, Editor; Provider austauschbar |
 | ROCm/Ollama-Probleme mit der AMD-GPU | gering | Langsame Generierung | Früh in M0 testen; Fallback kleineres Modell (`qwen3:8b`) |
+| Wenige Stellen nennen ein Gehalt (Bestand: ~9 %) | hoch | Gehaltsstatistik dünn und verzerrt | Text-Extraktion per Regel + LLM, n und Abdeckung immer anzeigen, Gehalt nur in EUR |
+| LLM-Extraktion belegt die GPU lange | mittel | PC während der Pipeline träge | Budget pro Lauf, Cache je Text-Hash, Regeln zuerst |
+| Analyse-Pipeline und App-Schema driften auseinander | mittel | dbt-Modelle brechen nach Migrationen | Staging-Modelle als einzige Stelle, die App-Tabellen liest; `dbt build` in den Tests |
 
 ---
 
@@ -416,3 +489,4 @@ Jeder Meilenstein endet mit etwas Lauffähigem. Die LLM-Schicht wandert wegen de
 - Kontaktadresse für den User-Agent (N6): per `APPLIFY_HTTP_CONTACT` konfigurierbar, Standard leer
 - Layout/Design des Anschreiben-PDFs (eigene Vorlage vorhanden?)
 - Feintuning der Score-Gewichte nach den ersten echten Läufen
+- Chart-Bibliothek für das Markt-Dashboard (Kandidaten: LayerChart, ECharts)

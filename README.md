@@ -2,7 +2,7 @@
 
 A personal job application assistant that runs entirely on your own machine. Applify
 searches German job sources daily, ranks every posting against your profile with an
-explainable score, and (from milestone M5 on) drafts a tailored cover letter with a local
+explainable score, and (from milestone M6 on) drafts a tailored cover letter with a local
 LLM.
 
 No personal data leaves your machine: requests to job sources carry only search terms and
@@ -153,4 +153,5 @@ Job portals such as StepStone, Indeed or LinkedIn are not scraped.
 ## Status
 
 Milestones M0–M4 (profile, CV extraction, job sources, matching, company discovery) are
-implemented. M5 (cover letter and application package) and M6 (polish) are open.
+implemented. In progress: M5 (market analysis: ELT pipeline with Dagster and dbt, and a
+market dashboard). Open: M6 (cover letter and application package) and M7 (polish).
