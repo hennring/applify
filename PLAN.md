@@ -421,7 +421,7 @@ Plus Kopierhilfe-Ansicht (F18). Status wechselt auf „Paket fertig“; „abges
 - `marts`: `fct_job_postings` (Grain: zusammengeführte Stelle), `bridge_job_skills`, Dimensionen; Aggregate `agg_skills_weekly`, `agg_skill_pairs`, `agg_experience`, `agg_salary`, `agg_profile_gap`.
 - Tests: Schlüssel eindeutig/nicht leer, Beziehungen, Wertebereiche; Dagster-Asset-Checks für Abdeckung (Anteil bestimmter Rollen/Seniorität).
 
-**Orchestrierung (Dagster):** Sensor auf `search_runs` (Status `done`) → `job_features` → `dbt build` → Checks. Manuell auslösbar in der Dagster-UI.
+**Orchestrierung (Dagster):** Sensor auf `search_runs` (Status `done`) → `job_features` → `dbt build` → Checks. Manuell auslösbar in der Dagster-UI. Run-Status-Sensoren schreiben jeden Lauf (läuft / erfolgreich / fehlgeschlagen / abgebrochen, abgedeckter Suchlauf) nach `features.pipeline_runs`; die Seite „Markt“ zeigt daraus, ob die Analyse aktuell ist, läuft, fehlschlug oder auf einen neueren Suchlauf wartet, und lädt sich währenddessen selbst neu.
 
 **Dashboard „Markt“:** Applify-API liest nur `marts`. Jede Gehalts- und Erfahrungszahl zeigt n und den Anteil ohne Angabe. Skill-Kandidaten lassen sich per Klick in `skills.yaml` übernehmen (wirkt dann auch aufs Matching).
 

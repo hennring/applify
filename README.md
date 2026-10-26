@@ -127,7 +127,9 @@ DAGSTER_HOME=../data/dagster uv run dagster dev -m applify_analytics.definitions
 Open <http://localhost:3000> and run the job `market_pipeline` once; afterwards a sensor
 starts it after every finished search run. In IntelliJ use the run configuration
 **Analytics (Dagster)**. The LLM step needs the model in Ollama (`ollama pull qwen3:14b`)
-and handles at most 50 postings per run (`llm_budget`).
+and handles at most 50 postings per run (`llm_budget`). Run status sensors record each
+pipeline run in `features.pipeline_runs`; the dashboard shows whether the analysis is
+current, running, failed or still waiting for a newer search run.
 
 Optional BI tool: `docker compose --profile analytics up -d metabase`, then open
 <http://localhost:3001> and connect to host `db`, database `applify`, user

@@ -1,19 +1,84 @@
 import shutil
 from collections.abc import Iterator
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from applify.db.models import Job
+from applify.db.models import Job, SearchRun
 from applify.services import market
 from applify.services.skills import SKILLS_FILE, get_taxonomy
 
 
 def test_dashboard_waits_for_the_pipeline(api: TestClient) -> None:
     # The test database has no marts: the analytics pipeline never ran there.
-    assert api.get("/api/market").json()["available"] is False
+    data = api.get("/api/market").json()
+    assert data["available"] is False
+    assert data["analysis"]["state"] == "unknown"
+
+
+NOW = datetime(2026, 10, 26, 18, 0, tzinfo=UTC)
+
+
+def search_run(session: Session, minutes: int, status: str = "done") -> int:
+    run = SearchRun(user_id=1, status=status, stats={}, errors=[])
+    run.finished_at = NOW + timedelta(minutes=minutes)
+    session.add(run)
+    session.flush()
+    return run.id
+
+
+def pipeline_run(session: Session, minutes: int, status: str, search_run_id: int) -> None:
+    # The table belongs to the analytics pipeline; the test database lacks it.
+    session.execute(
+        text("""create schema if not exists features;
+            create table if not exists features.pipeline_runs (
+                dagster_run_id varchar(64) primary key, search_run_id int,
+                status varchar(10) not null, started_at timestamptz not null,
+                finished_at timestamptz)""")
+    )
+    session.execute(
+        text("insert into features.pipeline_runs values (:id, :search, :status, :start, :end)"),
+        {
+            "id": f"run-{minutes}",
+            "search": search_run_id,
+            "status": status,
+            "start": NOW + timedelta(minutes=minutes),
+            "end": None if status == "running" else NOW + timedelta(minutes=minutes + 2),
+        },
+    )
+
+
+def test_analysis_covering_the_newest_search_run_is_current(db_session: Session) -> None:
+    first = search_run(db_session, 0)
+    pipeline_run(db_session, 1, "success", first)
+    status = market.analysis_status(db_session)
+    assert status["state"] == "current"
+    assert status["analyzed_at"] == NOW + timedelta(minutes=3)
+    assert status["search_run_at"] == NOW
+
+
+def test_newer_search_run_leaves_the_analysis_pending(db_session: Session) -> None:
+    pipeline_run(db_session, 1, "success", search_run(db_session, 0))
+    search_run(db_session, 10)
+    search_run(db_session, 20, status="running")  # not finished: nothing to analyse yet
+    status = market.analysis_status(db_session)
+    assert status["state"] == "pending"
+    assert status["latest_search_run_at"] == NOW + timedelta(minutes=10)
+
+
+def test_running_and_failed_pipeline_runs(db_session: Session) -> None:
+    first = search_run(db_session, 0)
+    pipeline_run(db_session, 1, "success", first)
+    pipeline_run(db_session, 5, "failed", first)
+    status = market.analysis_status(db_session)
+    # The last successful run still dates the marts.
+    assert (status["state"], status["analyzed_at"]) == ("failed", NOW + timedelta(minutes=3))
+    pipeline_run(db_session, 9, "running", first)
+    assert market.analysis_status(db_session)["state"] == "running"
 
 
 @pytest.fixture

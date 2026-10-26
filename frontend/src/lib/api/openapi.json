@@ -1357,6 +1357,66 @@
 	},
 	"components": {
 		"schemas": {
+			"AnalysisStatus": {
+				"properties": {
+					"state": {
+						"type": "string",
+						"enum": ["unknown", "running", "failed", "pending", "current"],
+						"title": "State"
+					},
+					"started_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Started At"
+					},
+					"analyzed_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Analyzed At"
+					},
+					"search_run_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Search Run At"
+					},
+					"latest_search_run_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Latest Search Run At"
+					}
+				},
+				"type": "object",
+				"required": ["state", "started_at", "analyzed_at", "search_run_at", "latest_search_run_at"],
+				"title": "AnalysisStatus"
+			},
 			"ApplyCvChanges": {
 				"properties": {
 					"document_id": {
@@ -2461,6 +2521,9 @@
 						"type": "boolean",
 						"title": "Available"
 					},
+					"analysis": {
+						"$ref": "#/components/schemas/AnalysisStatus"
+					},
 					"status": {
 						"anyOf": [
 							{
@@ -2577,7 +2640,7 @@
 					}
 				},
 				"type": "object",
-				"required": ["available"],
+				"required": ["available", "analysis"],
 				"title": "MarketOverview"
 			},
 			"MarketStatus": {

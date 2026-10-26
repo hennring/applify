@@ -77,6 +77,19 @@ llm_cache = Table(
     PrimaryKeyConstraint("input_hash", "prompt_version"),
 )
 
+# One row per run of the market pipeline, written by the run status sensors; the
+# dashboard reads it to tell whether the analysis is current, running or failed.
+pipeline_runs = Table(
+    "pipeline_runs",
+    metadata,
+    Column("dagster_run_id", String(64), primary_key=True),
+    # Newest finished search run when the pipeline started: what the analysis covers.
+    Column("search_run_id", Integer),
+    Column("status", String(10), nullable=False),  # running / success / failed / canceled
+    Column("started_at", DateTime(timezone=True), nullable=False),
+    Column("finished_at", DateTime(timezone=True)),
+)
+
 # Prefix of LLMError for answers that failed validation (applify.llm.ollama).
 INVALID_ANSWER = "invalid structured output"
 
@@ -107,6 +120,39 @@ class LlmStats:
 def ensure_tables(conn: Connection) -> None:
     conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}"))
     metadata.create_all(conn)
+
+
+def record_pipeline_run(
+    conn: Connection,
+    dagster_run_id: str,
+    status: str,
+    started_at: datetime,
+    *,
+    search_run_id: int | None = None,
+    finished_at: datetime | None = None,
+) -> None:
+    """Insert or update the status row of a pipeline run; the search run is kept once set."""
+    ensure_tables(conn)
+    row = {
+        "dagster_run_id": dagster_run_id,
+        "search_run_id": search_run_id,
+        "status": status,
+        "started_at": started_at,
+        "finished_at": finished_at,
+    }
+    stmt = insert(pipeline_runs).values(row)
+    conn.execute(
+        stmt.on_conflict_do_update(
+            index_elements=[pipeline_runs.c.dagster_run_id],
+            set_={
+                "status": stmt.excluded.status,
+                "finished_at": stmt.excluded.finished_at,
+                "search_run_id": func.coalesce(
+                    pipeline_runs.c.search_run_id, stmt.excluded.search_run_id
+                ),
+            },
+        )
+    )
 
 
 def _job_input(row: Any) -> JobInput:

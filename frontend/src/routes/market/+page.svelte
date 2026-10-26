@@ -2,7 +2,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { api, errorMessage, type Schemas } from '#lib/api/client.ts';
-	import Icon from '#lib/components/Icon.svelte';
+	import Icon, { type IconName } from '#lib/components/Icon.svelte';
 	import {
 		formatDateTime,
 		marketScopeLabels,
@@ -26,6 +26,70 @@
 
 	const market = $derived(data.market);
 	const filters = $derived(data.filters);
+
+	const DAGSTER_RUNS = 'http://localhost:3000/runs';
+
+	// Where the analysis pipeline stands relative to the newest search run.
+	type AnalysisLine = {
+		icon: IconName;
+		tone: string;
+		text: string;
+		since: string;
+		failed?: boolean;
+	};
+
+	const analysis = $derived.by((): AnalysisLine | null => {
+		const a = market?.analysis;
+		if (!a) return null;
+		const at = (iso: string | null | undefined) => (iso ? formatDateTime(iso) : '–');
+		const since = a.analyzed_at
+			? `Stand ${at(a.analyzed_at)}` + (a.search_run_at ? ` (Suchlauf ${at(a.search_run_at)})` : '')
+			: '';
+		switch (a.state) {
+			case 'running':
+				return {
+					icon: 'loader',
+					tone: 'spin',
+					text: `Analyse läuft seit ${at(a.started_at)}`,
+					since
+				};
+			case 'failed':
+				return {
+					icon: 'circle-alert',
+					tone: 'error',
+					text: `Letzte Analyse vom ${at(a.started_at)} fehlgeschlagen`,
+					failed: true,
+					since
+				};
+			case 'pending':
+				return {
+					icon: 'clock',
+					tone: 'warn',
+					text: `Suchlauf ${at(a.latest_search_run_at)} wartet auf die Analyse – läuft Analytics (Dagster)?`,
+					since
+				};
+			case 'current':
+				return { icon: 'circle-check', tone: 'ok', text: 'Analyse aktuell', since };
+			default:
+				// Runs before the status was recorded: only the extraction time is known.
+				return market?.status?.extracted_at
+					? {
+							icon: 'clock',
+							tone: 'muted',
+							text: `Stand ${at(market.status.extracted_at)}`,
+							since: ''
+						}
+					: null;
+		}
+	});
+
+	// Reload while the pipeline works or is about to start; it records its end itself.
+	$effect(() => {
+		const state = market?.analysis.state;
+		if (state !== 'running' && state !== 'pending') return;
+		const timer = setInterval(() => invalidateAll(), 15000);
+		return () => clearInterval(timer);
+	});
 
 	const WEEKS = [
 		{ value: 0, label: 'Gesamter Zeitraum' },
@@ -114,14 +178,23 @@
 
 <div class="pagehead">
 	<h1><Icon name="activity" size={28} /> Markt</h1>
-	{#if market?.status}
-		<span class="muted status">
-			{market.totals?.jobs} Stellen · Stand {market.status.extracted_at
-				? formatDateTime(market.status.extracted_at)
-				: '–'}
-		</span>
+	{#if market?.totals}
+		<span class="muted status">{market.totals.jobs} Stellen</span>
 	{/if}
 </div>
+
+{#if analysis}
+	<p class="analysis" role="status">
+		<Icon name={analysis.icon} size={16} class={analysis.tone} />
+		<span>
+			{analysis.text}
+			{#if analysis.failed}
+				– Details in <a href={DAGSTER_RUNS} target="_blank" rel="noreferrer">Dagster</a>.
+			{/if}
+			{#if analysis.since}<span class="muted"> · {analysis.since}</span>{/if}
+		</span>
+	</p>
+{/if}
 
 {#if !market}
 	<p class="card error">Die Marktdaten konnten nicht geladen werden.</p>
@@ -353,6 +426,13 @@
 
 <style>
 	.status {
+		font-size: 0.9rem;
+	}
+	.analysis {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin: -0.5rem 0 1rem;
 		font-size: 0.9rem;
 	}
 	.filters {

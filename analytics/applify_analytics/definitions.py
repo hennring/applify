@@ -9,7 +9,7 @@ from dagster_dbt import DbtCliResource, DbtProject, dbt_assets
 
 from applify_analytics.assets import job_features, reference_tables
 from applify_analytics.checks import feature_coverage, llm_failures
-from applify_analytics.sensors import market_pipeline, search_run_finished
+from applify_analytics.sensors import market_pipeline, search_run_finished, status_sensors
 
 DBT_DIR = Path(__file__).resolve().parent.parent / "dbt"
 
@@ -28,6 +28,6 @@ defs = Definitions(
     assets=[reference_tables, job_features, market_dbt_assets],
     asset_checks=[feature_coverage, llm_failures],
     jobs=[market_pipeline],
-    sensors=[search_run_finished],
+    sensors=[search_run_finished, *status_sensors],
     resources={"dbt": DbtCliResource(project_dir=dbt_project)},
 )

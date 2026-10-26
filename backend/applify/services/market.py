@@ -14,7 +14,7 @@ from typing import Any, Literal, cast
 from sqlalchemy import CursorResult, select, text, update
 from sqlalchemy.orm import Session
 
-from applify.db.models import Job, Profile, ProfileSkill
+from applify.db.models import Job, Profile, ProfileSkill, SearchRun
 from applify.services.match_store import rescore_user
 from applify.services.skills import SKILLS_FILE, SkillTaxonomy, get_taxonomy
 
@@ -37,6 +37,55 @@ class MarketFilter:
 
 def marts_available(session: Session) -> bool:
     return bool(session.scalar(text("select to_regclass('marts.fct_job_postings') is not null")))
+
+
+AnalysisState = Literal["unknown", "running", "failed", "pending", "current"]
+
+
+def analysis_status(session: Session) -> dict[str, Any]:
+    """Whether the marts cover the newest search run; the pipeline records its runs."""
+    latest_search = session.execute(
+        select(SearchRun.id, SearchRun.finished_at)
+        .where(SearchRun.status != "running")
+        .order_by(SearchRun.id.desc())
+        .limit(1)
+    ).first()
+    status: dict[str, Any] = {
+        "state": "unknown",
+        "started_at": None,
+        "analyzed_at": None,
+        "search_run_at": None,
+        "latest_search_run_at": latest_search.finished_at if latest_search else None,
+    }
+    if not session.scalar(text("select to_regclass('features.pipeline_runs') is not null")):
+        return status
+    runs = _rows(
+        session,
+        """select status, started_at, finished_at, search_run_id
+        from features.pipeline_runs order by started_at desc limit 20""",
+        {},
+    )
+    if not runs:
+        return status
+    status["started_at"] = runs[0].started_at
+    success = next((r for r in runs if r.status == "success"), None)
+    if success is not None:
+        status["analyzed_at"] = success.finished_at
+        status["search_run_at"] = session.scalar(
+            select(SearchRun.finished_at).where(SearchRun.id == success.search_run_id)
+        )
+    covered = success.search_run_id if success is not None else None
+    state: AnalysisState
+    if runs[0].status == "running":
+        state = "running"
+    elif runs[0].status in ("failed", "canceled"):
+        state = "failed"
+    elif latest_search is not None and (covered is None or latest_search.id > covered):
+        state = "pending"
+    else:
+        state = "current"
+    status["state"] = state
+    return status
 
 
 def _where(f: MarketFilter, user_id: int) -> tuple[str, dict[str, Any]]:

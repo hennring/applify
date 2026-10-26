@@ -533,6 +533,22 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
 	schemas: {
+		/** AnalysisStatus */
+		AnalysisStatus: {
+			/**
+			 * State
+			 * @enum {string}
+			 */
+			state: 'unknown' | 'running' | 'failed' | 'pending' | 'current';
+			/** Started At */
+			started_at: string | null;
+			/** Analyzed At */
+			analyzed_at: string | null;
+			/** Search Run At */
+			search_run_at: string | null;
+			/** Latest Search Run At */
+			latest_search_run_at: string | null;
+		};
 		/** ApplyCvChanges */
 		ApplyCvChanges: {
 			/** Document Id */
@@ -991,6 +1007,7 @@ export interface components {
 		MarketOverview: {
 			/** Available */
 			available: boolean;
+			analysis: components['schemas']['AnalysisStatus'];
 			status?: components['schemas']['MarketStatus'] | null;
 			options?: components['schemas']['MarketOptions'] | null;
 			totals?: components['schemas']['MarketTotals'] | null;
