@@ -3,7 +3,6 @@ version: "0.1.0"
 profile: applify
 
 model-paths: ["models"]
-seed-paths: ["seeds"]
 macro-paths: ["macros"]
 test-paths: ["tests"]
 target-path: "target"
@@ -21,6 +20,3 @@ models:
       +schema: marts
       +materialized: table
 
-seeds:
-  applify_market:
-    +schema: staging

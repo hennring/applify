@@ -1,23 +1,56 @@
 """Python assets of the market analysis (§5.8)."""
 
+from collections.abc import Iterator
+
 from applify.config import get_settings
 from applify.db.session import get_engine
 from applify.llm import get_llm
 from dagster import (
     AssetExecutionContext,
     AssetKey,
+    AssetSpec,
     Config,
     MaterializeResult,
     MetadataValue,
     asset,
+    multi_asset,
 )
 from pydantic import Field
 from sqlalchemy import Connection, func, select
 
 from applify_analytics.features import store
+from applify_analytics.features.reference import refresh_reference
 
 JOBS = AssetKey(["app", "jobs"])
 JOB_FEATURES = AssetKey(["features", "job_features"])
+PROFILES = AssetKey(["app", "profiles"])
+REFERENCE = [
+    AssetSpec(
+        AssetKey(["features", "skill_taxonomy"]),
+        group_name="features",
+        description="Skills and categories from skills.yaml.",
+    ),
+    AssetSpec(
+        AssetKey(["features", "role_families"]),
+        group_name="features",
+        description="Role families from roles.yaml.",
+    ),
+    AssetSpec(
+        AssetKey(["features", "profile_role_families"]),
+        deps=[PROFILES],
+        group_name="features",
+        description="Desired roles of each profile, mapped to role families.",
+    ),
+]
+
+
+@multi_asset(specs=REFERENCE)
+def reference_tables() -> Iterator[MaterializeResult[None]]:
+    """Reference data for dbt, written from the YAML files (single source of truth)."""
+    with get_engine().begin() as conn:
+        counts = refresh_reference(conn)
+    for spec, rows in zip(REFERENCE, counts.values(), strict=True):
+        yield MaterializeResult(asset_key=spec.key, metadata={"rows": rows})
 
 
 class JobFeaturesConfig(Config):

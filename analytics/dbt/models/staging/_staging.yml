@@ -34,3 +34,14 @@ models:
               arguments:
                 min_value: 15000
                 max_value: 300000
+  - name: stg_features__skill_taxonomy
+    columns:
+      - name: skill
+        data_tests: [unique, not_null]
+  - name: stg_features__role_families
+    columns:
+      - name: role_family
+        data_tests: [unique, not_null]
+  - name: stg_features__profile_role_families
+  - name: stg_app__profile_skills
+  - name: stg_app__profile_locations

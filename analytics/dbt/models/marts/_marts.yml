@@ -1,0 +1,116 @@
+version: 2
+
+models:
+  - name: dim_role_family
+    description: Role families from roles.yaml.
+    columns:
+      - name: role_family
+        data_tests: [unique, not_null]
+
+  - name: dim_skill
+    description: Skills and categories from skills.yaml.
+    columns:
+      - name: skill
+        data_tests: [unique, not_null]
+
+  - name: fct_job_postings
+    description: "One row per merged job with features, sources and history (grain: job)."
+    columns:
+      - name: job_id
+        data_tests: [unique, not_null]
+      - name: role_family
+        description: Role family, or 'unknown' if neither rules nor LLM decided.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_role_family')
+                field: role_family
+              config:
+                where: "role_family <> 'unknown'"
+      - name: seniority
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [student, junior, mid, senior, lead, unknown]
+      - name: scope
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [germany, abroad, unknown]
+      - name: salary_mid_eur
+        data_tests:
+          - value_range:
+              arguments:
+                min_value: 15000
+                max_value: 300000
+      - name: last_seen_at
+        data_tests: [not_null]
+
+  - name: bridge_job_skills
+    description: "Skills from the taxonomy per job (grain: job, skill)."
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [job_id, skill]
+    columns:
+      - name: job_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('fct_job_postings')
+                field: job_id
+      - name: skill
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_skill')
+                field: skill
+
+  - name: bridge_job_skill_candidates
+    description: "Technologies outside skills.yaml named by the LLM (grain: job, candidate)."
+
+  - name: fct_job_profile_area
+    description: "Jobs within the radius of a user's places (grain: user, job)."
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [user_id, job_id]
+
+  - name: agg_skills_weekly
+    description: "Jobs naming a skill per week of first sighting and scope (grain: week, scope, skill)."
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [week, scope, skill]
+    columns:
+      - name: share
+        data_tests:
+          - value_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+
+  - name: agg_skill_pairs
+    description: Skills named together in at least three postings.
+
+  - name: agg_salary
+    description: "Salary quartiles in EUR per role family and seniority, with n and coverage."
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [role_family, seniority]
+
+  - name: agg_experience
+    description: Required years per role family and seniority.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [role_family, seniority]
+
+  - name: agg_profile_gap
+    description: "Skills asked for in a user's target role families and whether the profile has them (grain: user, skill)."
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [user_id, skill]

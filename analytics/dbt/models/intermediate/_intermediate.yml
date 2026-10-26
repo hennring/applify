@@ -8,3 +8,18 @@ models:
         data_tests: [unique, not_null]
       - name: last_seen_at
         data_tests: [not_null]
+  - name: int_job_scope
+    columns:
+      - name: job_id
+        data_tests: [unique, not_null]
+      - name: scope
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [germany, abroad, unknown]
+  - name: int_job_profile_area
+    description: "Jobs within a radius of a user's places (grain: user, job)."
+  - name: int_job_sources
+    columns:
+      - name: job_id
+        data_tests: [unique, not_null]
