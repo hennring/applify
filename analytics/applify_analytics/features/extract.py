@@ -3,6 +3,7 @@
 import hashlib
 import json
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Literal
 
 from applify.services.matching import required_languages
@@ -10,15 +11,17 @@ from applify.services.skills import SKILLS_FILE, SkillTaxonomy
 
 from applify_analytics.features import rules
 
-# Bump when the extraction code changes. Changes to roles.yaml or skills.yaml are picked up
-# through their content hash, so every job is extracted again.
+# Bump when the extraction code changes. Changes to roles.yaml, skills.yaml or the LLM
+# prompt are picked up through their content hash, so every job is extracted again.
 RULES_VERSION = 1
+PROMPT_VERSION = "job_features_v1"
+PROMPT_FILE = Path(__file__).resolve().parents[1] / "prompts" / f"{PROMPT_VERSION}.md"
 
 Origin = Literal["source", "rule", "llm"]
 
 
 def extractor_version() -> str:
-    files = (rules.ROLES_FILE, SKILLS_FILE)
+    files = (rules.ROLES_FILE, SKILLS_FILE, PROMPT_FILE)
     digest = hashlib.sha256(b"".join(path.read_bytes() for path in files)).hexdigest()
     return f"{RULES_VERSION}-{digest[:12]}"
 
@@ -49,6 +52,8 @@ class Features:
     salary_currency: str | None = None
     salary_period: str | None = None
     skills: list[str] = field(default_factory=list)
+    # Technologies outside the taxonomy, named by the LLM.
+    skill_candidates: list[str] = field(default_factory=list)
     languages: dict[str, str] = field(default_factory=dict)
     degrees: list[str] = field(default_factory=list)
     # Per feature where its value comes from; features left out are unknown.
