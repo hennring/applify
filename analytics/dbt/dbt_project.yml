@@ -8,6 +8,10 @@ test-paths: ["tests"]
 target-path: "target"
 clean-targets: ["target", "dbt_packages"]
 
+# Read-only role for BI tools (D23): may read the marts, nothing else.
+on-run-start:
+  - "{{ create_reader_role() }}"
+
 models:
   applify_market:
     staging:
@@ -19,4 +23,6 @@ models:
     marts:
       +schema: marts
       +materialized: table
+      +grants:
+        select: [applify_reader]
 
