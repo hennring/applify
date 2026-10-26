@@ -94,6 +94,25 @@ class YearsBucket(BaseModel):
     jobs: int
 
 
+class AgedJob(BaseModel):
+    job_id: int
+    title: str
+    company: str
+    location_raw: str
+    role_label: str
+    online_since: datetime
+    age_days: int
+
+
+class JobAge(BaseModel):
+    # Open jobs only; age = days since publication (else first sighting).
+    open: int
+    median_days: int | None
+    buckets: list[YearsBucket]
+    oldest: list[AgedJob]
+    newest: list[AgedJob]
+
+
 class SalaryGroup(BaseModel):
     key: str
     label: str
@@ -124,6 +143,7 @@ class MarketOverview(BaseModel):
     trend: SkillTrend | None = None
     seniority: list[SeniorityMix] = []
     years: list[YearsBucket] = []
+    age: JobAge | None = None
     salary: list[SalaryGroup] = []
     candidates: list[SkillCandidate] = []
     categories: list[str] = []

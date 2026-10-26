@@ -4,6 +4,7 @@
 	import { api, errorMessage, type Schemas } from '#lib/api/client.ts';
 	import Icon, { type IconName } from '#lib/components/Icon.svelte';
 	import {
+		formatDate,
 		formatDateTime,
 		marketScopeLabels,
 		seniorityLabels,
@@ -151,6 +152,13 @@
 	);
 
 	// --- skill candidates -------------------------------------------------------------------
+	let ageOrder = $state<'oldest' | 'newest'>('oldest');
+
+	function formatDays(days: number | null | undefined): string {
+		if (days === null || days === undefined) return '–';
+		return days === 1 ? '1 Tag' : `${days} Tage`;
+	}
+
 	let categoryOf = $state<Record<string, string>>({});
 	const categoryLabel = (key: string) => skillCategoryLabels[key] ?? key;
 	const categoryOptions = $derived(
@@ -377,6 +385,66 @@
 				{/if}
 			</section>
 
+			{#if market.age}
+				{@const age = market.age}
+				<section class="card wide">
+					<h2><Icon name="calendar" size={18} /> Alter der offenen Stellen</h2>
+					<div class="age">
+						<div>
+							<p class="headline">
+								<strong>{formatDays(age.median_days)}</strong>
+								<span class="muted">Median über {age.open} offene Stellen</span>
+							</p>
+							<BarList
+								bars={age.buckets.map((b) => ({
+									label: b.bucket,
+									value: b.jobs,
+									valueText: `${b.jobs}`,
+									detail: `${b.bucket} online: ${b.jobs} Stellen (${formatPercent(age.open ? b.jobs / age.open : 0)})`
+								}))}
+							/>
+							<p class="muted small">
+								Seit Veröffentlichung laut Quelle, sonst seit der ersten Sichtung. Sehr alte
+								Anzeigen sind oft Dauer- oder Initiativausschreibungen.
+							</p>
+						</div>
+						<div>
+							<div class="segmented" role="group" aria-label="Sortierung">
+								{#each [['oldest', 'Älteste'], ['newest', 'Neueste']] as const as [value, label] (value)}
+									<button
+										type="button"
+										class:on={ageOrder === value}
+										aria-pressed={ageOrder === value}
+										onclick={() => (ageOrder = value)}>{label}</button
+									>
+								{/each}
+							</div>
+							<table>
+								<thead>
+									<tr><th>Stelle</th><th>Rolle</th><th>Online seit</th><th class="num">Tage</th></tr
+									>
+								</thead>
+								<tbody>
+									{#each age[ageOrder] as job (job.job_id)}
+										<tr>
+											<td>
+												<a href="{resolve('/')}?stelle={job.job_id}">{job.title}</a>
+												<span class="muted small block"
+													>{job.company}{job.location_raw ? ` · ${job.location_raw}` : ''}</span
+												>
+											</td>
+											<td class="small">{job.role_label}</td>
+											<td class="small">{formatDate(job.online_since)}</td>
+											<td class="num">{job.age_days}</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</section>
+			{/if}
+
 			<section class="card wide">
 				<h2><Icon name="plus" size={18} /> Neue Skill-Kandidaten</h2>
 				<p class="muted small">
@@ -432,6 +500,33 @@
 <style>
 	.status {
 		font-size: 0.9rem;
+	}
+	.age {
+		display: grid;
+		grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+		gap: 1.5rem;
+		align-items: start;
+	}
+	@media (max-width: 1000px) {
+		.age {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+	.age .segmented {
+		margin-bottom: 0.5rem;
+	}
+	.headline {
+		display: flex;
+		align-items: baseline;
+		gap: 0.6rem;
+		margin: 0 0 0.75rem;
+	}
+	.headline strong {
+		font-size: 1.6rem;
+		font-variant-numeric: tabular-nums;
+	}
+	.block {
+		display: block;
 	}
 	.analysis {
 		display: flex;

@@ -533,6 +533,26 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
 	schemas: {
+		/** AgedJob */
+		AgedJob: {
+			/** Job Id */
+			job_id: number;
+			/** Title */
+			title: string;
+			/** Company */
+			company: string;
+			/** Location Raw */
+			location_raw: string;
+			/** Role Label */
+			role_label: string;
+			/**
+			 * Online Since
+			 * Format: date-time
+			 */
+			online_since: string;
+			/** Age Days */
+			age_days: number;
+		};
 		/** AnalysisStatus */
 		AnalysisStatus: {
 			/**
@@ -883,6 +903,19 @@ export interface components {
 			database: components['schemas']['ComponentHealth'];
 			ollama: components['schemas']['ComponentHealth'];
 		};
+		/** JobAge */
+		JobAge: {
+			/** Open */
+			open: number;
+			/** Median Days */
+			median_days: number | null;
+			/** Buckets */
+			buckets: components['schemas']['YearsBucket'][];
+			/** Oldest */
+			oldest: components['schemas']['AgedJob'][];
+			/** Newest */
+			newest: components['schemas']['AgedJob'][];
+		};
 		/** JobDetail */
 		JobDetail: {
 			/** Id */
@@ -1038,6 +1071,7 @@ export interface components {
 			 * @default []
 			 */
 			years: components['schemas']['YearsBucket'][];
+			age?: components['schemas']['JobAge'] | null;
 			/**
 			 * Salary
 			 * @default []

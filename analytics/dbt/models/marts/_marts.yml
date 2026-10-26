@@ -46,6 +46,14 @@ models:
                 max_value: 300000
       - name: last_seen_at
         data_tests: [not_null]
+      - name: age_days
+        description: "Days online: until the latest sighting if open, else until it vanished."
+        data_tests:
+          - not_null
+          - value_range:
+              arguments:
+                min_value: 0
+                max_value: 3650
 
   - name: bridge_job_skills
     description: "Skills from the taxonomy per job (grain: job, skill)."

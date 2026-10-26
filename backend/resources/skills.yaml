@@ -231,3 +231,5 @@
 
 # --- Added from the market analysis ---
 - {name: "SOAP", category: backend}
+- {name: "Claude", category: ai}
+- {name: "Anthropic", category: ai}

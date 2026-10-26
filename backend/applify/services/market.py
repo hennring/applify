@@ -21,6 +21,18 @@ from applify.services.skills import SKILLS_FILE, SkillTaxonomy, get_taxonomy
 Scope = Literal["area", "germany", "all"]
 
 YEAR_BUCKETS = (("0–1", 0, 1), ("2", 2, 2), ("3–4", 3, 4), ("5–6", 5, 6), ("7+", 7, 99))
+# Days online of open jobs.
+AGE_BUCKETS = (
+    ("< 1 Woche", 0, 6),
+    ("1–2 Wochen", 7, 13),
+    ("2–4 Wochen", 14, 29),
+    ("1–2 Monate", 30, 59),
+    ("2–3 Monate", 60, 89),
+    ("3–6 Monate", 90, 179),
+    ("6–12 Monate", 180, 364),
+    ("> 1 Jahr", 365, 1_000_000),
+)
+AGE_LIST_LIMIT = 15
 SENIORITY_ORDER = ("student", "junior", "mid", "senior", "lead", "unknown")
 
 
@@ -201,6 +213,7 @@ def overview(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]:
         "trend": _trend(session, full, params, [s["skill"] for s in skills[:5]]),
         "seniority": _seniority(session, full, params),
         "years": _years(session, full, params),
+        "age": _age(session, jobs, params),
         "salary": _salary(session, full, params, by_seniority=f.role not in ("", "mine")),
         "candidates": _candidates(session, full, params, get_taxonomy()),
     }
@@ -293,6 +306,36 @@ def _years(session: Session, full: str, params: dict[str, Any]) -> list[dict[str
         {"bucket": label, "jobs": sum(1 for r in rows if low <= r.years_min <= high)}
         for label, low, high in YEAR_BUCKETS
     ]
+
+
+def _age(session: Session, jobs: str, params: dict[str, Any]) -> dict[str, Any]:
+    """How long the open jobs have been online: distribution, median, oldest and newest."""
+    rows = _rows(session, f"select age_days from ({jobs}) j where is_active", params)
+    ages = sorted(r.age_days for r in rows)
+
+    def listed(order: str) -> list[dict[str, Any]]:
+        return [
+            dict(r._mapping)
+            for r in _rows(
+                session,
+                f"""select j.job_id, j.title, j.company, j.location_raw, j.online_since,
+                    j.age_days, coalesce(d.label, 'Unbekannt') as role_label
+                from ({jobs}) j left join marts.dim_role_family d using (role_family)
+                where j.is_active order by j.age_days {order}, j.job_id limit {AGE_LIST_LIMIT}""",
+                params,
+            )
+        ]
+
+    return {
+        "open": len(ages),
+        "median_days": ages[len(ages) // 2] if ages else None,
+        "buckets": [
+            {"bucket": label, "jobs": sum(1 for a in ages if low <= a <= high)}
+            for label, low, high in AGE_BUCKETS
+        ],
+        "oldest": listed("desc"),
+        "newest": listed("asc"),
+    }
 
 
 def _salary(

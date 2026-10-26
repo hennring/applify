@@ -1357,6 +1357,50 @@
 	},
 	"components": {
 		"schemas": {
+			"AgedJob": {
+				"properties": {
+					"job_id": {
+						"type": "integer",
+						"title": "Job Id"
+					},
+					"title": {
+						"type": "string",
+						"title": "Title"
+					},
+					"company": {
+						"type": "string",
+						"title": "Company"
+					},
+					"location_raw": {
+						"type": "string",
+						"title": "Location Raw"
+					},
+					"role_label": {
+						"type": "string",
+						"title": "Role Label"
+					},
+					"online_since": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Online Since"
+					},
+					"age_days": {
+						"type": "integer",
+						"title": "Age Days"
+					}
+				},
+				"type": "object",
+				"required": [
+					"job_id",
+					"title",
+					"company",
+					"location_raw",
+					"role_label",
+					"online_since",
+					"age_days"
+				],
+				"title": "AgedJob"
+			},
 			"AnalysisStatus": {
 				"properties": {
 					"state": {
@@ -2173,6 +2217,49 @@
 				"required": ["status", "database", "ollama"],
 				"title": "Health"
 			},
+			"JobAge": {
+				"properties": {
+					"open": {
+						"type": "integer",
+						"title": "Open"
+					},
+					"median_days": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Median Days"
+					},
+					"buckets": {
+						"items": {
+							"$ref": "#/components/schemas/YearsBucket"
+						},
+						"type": "array",
+						"title": "Buckets"
+					},
+					"oldest": {
+						"items": {
+							"$ref": "#/components/schemas/AgedJob"
+						},
+						"type": "array",
+						"title": "Oldest"
+					},
+					"newest": {
+						"items": {
+							"$ref": "#/components/schemas/AgedJob"
+						},
+						"type": "array",
+						"title": "Newest"
+					}
+				},
+				"type": "object",
+				"required": ["open", "median_days", "buckets", "oldest", "newest"],
+				"title": "JobAge"
+			},
 			"JobDetail": {
 				"properties": {
 					"id": {
@@ -2613,6 +2700,16 @@
 						"type": "array",
 						"title": "Years",
 						"default": []
+					},
+					"age": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/JobAge"
+							},
+							{
+								"type": "null"
+							}
+						]
 					},
 					"salary": {
 						"items": {

@@ -34,6 +34,18 @@ select
     l.last_seen_at,
     l.runs_seen,
     date_trunc('week', l.first_seen_at)::date as first_seen_week,
+    -- Online since the publication date of the source, else since the first sighting.
+    least(j.posted_at, l.first_seen_at) as online_since,
+    -- Days online: up to the latest sighting of any job if still open, else until it vanished.
+    greatest(
+        extract(
+            day from
+            case when l.last_seen_at >= latest.seen_at - interval '7 days'
+                then latest.seen_at else l.last_seen_at end
+            - least(j.posted_at, l.first_seen_at)
+        ),
+        0
+    )::int as age_days,
     -- Still open: seen within a week of the latest sighting of any job.
     l.last_seen_at >= latest.seen_at - interval '7 days' as is_active
 from {{ ref('stg_app__jobs') }} j
