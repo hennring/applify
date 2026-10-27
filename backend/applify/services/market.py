@@ -73,7 +73,7 @@ def analysis_status(session: Session) -> dict[str, Any]:
     }
     if not session.scalar(text("select to_regclass('features.pipeline_runs') is not null")):
         return status
-    runs = _rows(
+    runs = query_rows(
         session,
         """select status, started_at, finished_at, search_run_id
         from features.pipeline_runs order by started_at desc limit 20""",
@@ -102,7 +102,7 @@ def analysis_status(session: Session) -> dict[str, Any]:
     return status
 
 
-def _where(f: MarketFilter, user_id: int) -> tuple[str, dict[str, Any]]:
+def selection_where(f: MarketFilter, user_id: int) -> tuple[str, dict[str, Any]]:
     clauses = ["true"]
     params: dict[str, Any] = {"user_id": user_id}
     if f.weeks:
@@ -136,7 +136,7 @@ def _where(f: MarketFilter, user_id: int) -> tuple[str, dict[str, Any]]:
     return " and ".join(clauses), params
 
 
-def _rows(session: Session, sql: str, params: dict[str, Any]) -> list[Any]:
+def query_rows(session: Session, sql: str, params: dict[str, Any]) -> list[Any]:
     return list(session.execute(text(sql), params))
 
 
@@ -151,17 +151,17 @@ def profile_skills(session: Session, user_id: int) -> dict[str, str]:
 
 
 def overview(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]:
-    where, params = _where(f, user_id)
+    where, params = selection_where(f, user_id)
     jobs = f"select * from marts.fct_job_postings f where {where}"
     full = f"select * from marts.fct_job_postings f where {where} and f.has_full_text"
 
-    total, full_text, agencies = _rows(
+    total, full_text, agencies = query_rows(
         session,
         f"""select count(*), count(*) filter (where has_full_text),
             count(*) filter (where is_agency) from ({jobs}) j""",
         params,
     )[0]
-    coverage = _rows(
+    coverage = query_rows(
         session,
         f"""select
             avg((role_family <> 'unknown')::int), avg((seniority <> 'unknown')::int),
@@ -171,7 +171,7 @@ def overview(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]:
     )[0]
 
     own = profile_skills(session, user_id)
-    demand = _rows(
+    demand = query_rows(
         session,
         f"""select b.skill, b.category, count(*) as jobs
         from ({full}) j join marts.bridge_job_skills b using (job_id)
@@ -192,7 +192,7 @@ def overview(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]:
     skills = [skill_row(r) for r in demand[:25]]
     gaps = [skill_row(r) for r in demand if own.get(r.skill.casefold()) is None][:15]
 
-    pairs = _rows(
+    pairs = query_rows(
         session,
         f"""select a.skill as skill_a, b.skill as skill_b, count(*) as jobs
         from ({full}) j
@@ -227,7 +227,7 @@ def overview(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]:
 
 
 def _status(session: Session) -> dict[str, Any]:
-    row = _rows(
+    row = query_rows(
         session,
         """select
             (select max(last_seen_at) from marts.fct_job_postings) as last_seen_at,
@@ -240,10 +240,10 @@ def _status(session: Session) -> dict[str, Any]:
 
 
 def _options(session: Session) -> dict[str, Any]:
-    families = _rows(
+    families = query_rows(
         session, "select role_family, label from marts.dim_role_family order by sort_order", {}
     )
-    sources = _rows(
+    sources = query_rows(
         session,
         "select distinct unnest(source_groups) as source from marts.fct_job_postings order by 1",
         {},
@@ -260,13 +260,13 @@ def _trend(
     """Weekly share of jobs naming each of the top skills."""
     weeks: list[date] = [
         r.week
-        for r in _rows(
+        for r in query_rows(
             session, f"select distinct first_seen_week as week from ({full}) j order by 1", params
         )
     ]
     if not skills:
         return {"weeks": weeks, "series": []}
-    rows = _rows(
+    rows = query_rows(
         session,
         f"""with j as ({full}),
         totals as (select first_seen_week, count(*) as n from j group by 1)
@@ -288,7 +288,7 @@ def _trend(
 
 
 def _seniority(session: Session, full: str, params: dict[str, Any]) -> list[dict[str, Any]]:
-    rows = _rows(
+    rows = query_rows(
         session,
         f"""select j.role_family, coalesce(d.label, 'Unbekannt') as label,
             coalesce(d.sort_order, 999) as sort_order, j.seniority, count(*) as jobs
@@ -308,7 +308,9 @@ def _seniority(session: Session, full: str, params: dict[str, Any]) -> list[dict
 
 
 def _years(session: Session, full: str, params: dict[str, Any]) -> list[dict[str, Any]]:
-    rows = _rows(session, f"select years_min from ({full}) j where years_min is not null", params)
+    rows = query_rows(
+        session, f"select years_min from ({full}) j where years_min is not null", params
+    )
     return [
         {"bucket": label, "jobs": sum(1 for r in rows if low <= r.years_min <= high)}
         for label, low, high in YEAR_BUCKETS
@@ -317,13 +319,13 @@ def _years(session: Session, full: str, params: dict[str, Any]) -> list[dict[str
 
 def _age(session: Session, jobs: str, params: dict[str, Any]) -> dict[str, Any]:
     """How long the open jobs have been online: distribution, median, oldest and newest."""
-    rows = _rows(session, f"select age_days from ({jobs}) j where is_active", params)
+    rows = query_rows(session, f"select age_days from ({jobs}) j where is_active", params)
     ages = sorted(r.age_days for r in rows)
 
     def listed(order: str) -> list[dict[str, Any]]:
         return [
             dict(r._mapping)
-            for r in _rows(
+            for r in query_rows(
                 session,
                 f"""select j.job_id, j.title, j.company, j.location_raw, j.online_since,
                     j.age_days, coalesce(d.label, 'Unbekannt') as role_label
@@ -355,7 +357,7 @@ def _salary(
     else:
         group, label = "j.role_family", "coalesce(d.label, 'Unbekannt')"
         join = "left join marts.dim_role_family d using (role_family)"
-    rows = _rows(
+    rows = query_rows(
         session,
         f"""select {group} as key, {label} as label, count(*) as total,
             count(salary_mid_eur) as n,
@@ -376,7 +378,7 @@ def _salary(
 def _candidates(
     session: Session, full: str, params: dict[str, Any], taxonomy: SkillTaxonomy
 ) -> list[dict[str, Any]]:
-    rows = _rows(
+    rows = query_rows(
         session,
         f"""select c.candidate as name, count(*) as jobs
         from ({full}) j join marts.bridge_job_skill_candidates c using (job_id)
@@ -449,7 +451,7 @@ def _table_exists(session: Session, name: str) -> bool:
 
 def data_quality(session: Session) -> dict[str, Any]:
     """What each source contributes and how complete the features are over time."""
-    sources = _rows(
+    sources = query_rows(
         session,
         """select source, source_group, jobs, only_here, full_text, active
         from marts.agg_source_value order by jobs desc, source""",
@@ -457,7 +459,7 @@ def data_quality(session: Session) -> dict[str, Any]:
     )
     history: list[Any] = []
     if _table_exists(session, "features.coverage_history"):
-        history = _rows(
+        history = query_rows(
             session,
             f"""select * from (
                 select recorded_at, jobs, full_text, coverage, llm_processed, llm_failed, llm_queue
@@ -467,7 +469,7 @@ def data_quality(session: Session) -> dict[str, Any]:
         )
     checks: list[Any] = []
     if _table_exists(session, "features.check_results"):
-        checks = _rows(
+        checks = query_rows(
             session,
             """select distinct on (check_name) check_name, passed, detail, checked_at
             from features.check_results order by check_name, checked_at desc""",
@@ -475,7 +477,7 @@ def data_quality(session: Session) -> dict[str, Any]:
         )
     runs: list[Any] = []
     if _table_exists(session, "features.pipeline_runs"):
-        runs = _rows(
+        runs = query_rows(
             session,
             f"""select p.status, p.started_at, p.finished_at, s.finished_at as search_run_at
             from features.pipeline_runs p left join search_runs s on s.id = p.search_run_id

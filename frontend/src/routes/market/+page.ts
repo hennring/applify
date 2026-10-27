@@ -17,14 +17,17 @@ export const load: PageLoad = async ({ fetch, url }) => {
 		agencies: url.searchParams.get('pd') !== 'nein'
 	};
 	// The overview carries status and filter options for every tab; each tab loads its own data.
-	const [overview, tabData] = await Promise.all([
-		api.GET('/api/market', { fetch, params: { query: filters } }),
+	const query = { fetch, params: { query: filters } };
+	const [overview, me, marketData] = await Promise.all([
+		api.GET('/api/market', query),
+		tab === 'ich' ? api.GET('/api/market/me', query) : null,
 		tab === 'daten' ? api.GET('/api/market/data', { fetch }) : null
 	]);
 	return {
 		tab,
 		filters,
 		market: overview.data ?? null,
-		marketData: tabData?.data ?? null
+		me: me?.data ?? null,
+		marketData: marketData?.data ?? null
 	};
 };

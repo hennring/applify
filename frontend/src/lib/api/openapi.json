@@ -1324,6 +1324,109 @@
 				}
 			}
 		},
+		"/api/market/me": {
+			"get": {
+				"tags": ["market"],
+				"summary": "Get Market Me",
+				"description": "Tab \"Ich & Markt\" (\u00a75.9, D24): fit of the profile and the skills with most leverage.",
+				"operationId": "get_market_me_api_market_me_get",
+				"parameters": [
+					{
+						"name": "scope",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": ["area", "germany", "all"],
+							"type": "string",
+							"default": "all",
+							"title": "Scope"
+						}
+					},
+					{
+						"name": "role",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Role"
+						}
+					},
+					{
+						"name": "seniority",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Seniority"
+						}
+					},
+					{
+						"name": "source",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Source"
+						}
+					},
+					{
+						"name": "weeks",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 520,
+							"minimum": 0,
+							"default": 0,
+							"title": "Weeks"
+						}
+					},
+					{
+						"name": "agencies",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": true,
+							"title": "Agencies"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/MarketMe"
+										},
+										{
+											"type": "null"
+										}
+									],
+									"title": "Response Get Market Me Api Market Me Get"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/market/data": {
 			"get": {
 				"tags": ["market"],
@@ -2718,6 +2821,53 @@
 				"required": ["sources", "history", "checks", "runs"],
 				"title": "MarketData"
 			},
+			"MarketMe": {
+				"properties": {
+					"good_score": {
+						"type": "integer",
+						"title": "Good Score"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"excluded": {
+						"type": "integer",
+						"title": "Excluded"
+					},
+					"good": {
+						"type": "integer",
+						"title": "Good"
+					},
+					"scores": {
+						"items": {
+							"$ref": "#/components/schemas/ScoreBucket"
+						},
+						"type": "array",
+						"title": "Scores"
+					},
+					"weekly": {
+						"items": {
+							"$ref": "#/components/schemas/WeeklyMatches"
+						},
+						"type": "array",
+						"title": "Weekly"
+					},
+					"lever": {
+						"items": {
+							"$ref": "#/components/schemas/SkillLever"
+						},
+						"type": "array",
+						"title": "Lever"
+					},
+					"fit": {
+						"$ref": "#/components/schemas/ProfileFit"
+					}
+				},
+				"type": "object",
+				"required": ["good_score", "jobs", "excluded", "good", "scores", "weekly", "lever", "fit"],
+				"title": "MarketMe"
+			},
 			"MarketOptions": {
 				"properties": {
 					"role_families": {
@@ -3377,6 +3527,72 @@
 				],
 				"title": "ProfileData"
 			},
+			"ProfileFit": {
+				"properties": {
+					"years": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Years"
+					},
+					"years_known": {
+						"type": "integer",
+						"title": "Years Known"
+					},
+					"years_fit": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Years Fit"
+					},
+					"salary_min": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Salary Min"
+					},
+					"salary_known": {
+						"type": "integer",
+						"title": "Salary Known"
+					},
+					"salary_fit": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Salary Fit"
+					}
+				},
+				"type": "object",
+				"required": [
+					"years",
+					"years_known",
+					"years_fit",
+					"salary_min",
+					"salary_known",
+					"salary_fit"
+				],
+				"title": "ProfileFit"
+			},
 			"RoleFamilyOption": {
 				"properties": {
 					"key": {
@@ -3647,6 +3863,21 @@
 				],
 				"title": "SampleOut"
 			},
+			"ScoreBucket": {
+				"properties": {
+					"bucket": {
+						"type": "string",
+						"title": "Bucket"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					}
+				},
+				"type": "object",
+				"required": ["bucket", "jobs"],
+				"title": "ScoreBucket"
+			},
 			"SeniorityMix": {
 				"properties": {
 					"role_family": {
@@ -3849,6 +4080,40 @@
 				"type": "object",
 				"required": ["skill", "category", "jobs", "share", "profile_weight"],
 				"title": "SkillDemand"
+			},
+			"SkillLever": {
+				"properties": {
+					"skill": {
+						"type": "string",
+						"title": "Skill"
+					},
+					"category": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Category"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"new_good": {
+						"type": "integer",
+						"title": "New Good"
+					},
+					"avg_gain": {
+						"type": "number",
+						"title": "Avg Gain"
+					}
+				},
+				"type": "object",
+				"required": ["skill", "category", "jobs", "new_good", "avg_gain"],
+				"title": "SkillLever"
 			},
 			"SkillPair": {
 				"properties": {
@@ -4240,6 +4505,26 @@
 				"type": "object",
 				"required": ["loc", "msg", "type"],
 				"title": "ValidationError"
+			},
+			"WeeklyMatches": {
+				"properties": {
+					"week": {
+						"type": "string",
+						"format": "date",
+						"title": "Week"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"good": {
+						"type": "integer",
+						"title": "Good"
+					}
+				},
+				"type": "object",
+				"required": ["week", "jobs", "good"],
+				"title": "WeeklyMatches"
 			},
 			"YearsBucket": {
 				"properties": {

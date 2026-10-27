@@ -458,6 +458,13 @@ def score_salary(job: JobFacts, profile: ProfileData) -> Component:
     return Component("salary", 0.0, [Evidence("miss", f"{shown}, unter Minimum")])
 
 
+def total_score(components: list[Component]) -> int:
+    """Weighted mean of the known components, 0 to 100; unknown ones are left out."""
+    known = [(WEIGHTS[c.key], c.value) for c in components if c.value is not None]
+    total = sum(w for w, _ in known)
+    return round(100 * sum(w * v for w, v in known) / total) if total else 0
+
+
 def match_job(
     job: JobFacts, profile: ProfileData, places: list[ProfilePlace], taxonomy: SkillTaxonomy
 ) -> MatchResult:
@@ -468,11 +475,8 @@ def match_job(
         score_location(job, profile, places),
         score_salary(job, profile),
     ]
-    known = [(WEIGHTS[c.key], c.value) for c in components if c.value is not None]
-    total = sum(w for w, _ in known)
-    score = round(100 * sum(w * v for w, v in known) / total) if total else 0
     return MatchResult(
-        score=score,
+        score=total_score(components),
         excluded_reason=hard_filter(job, profile, places, taxonomy),
         components=components,
         low_data=not job.has_full_text,

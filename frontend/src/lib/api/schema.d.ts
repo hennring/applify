@@ -509,6 +509,26 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/market/me': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get Market Me
+		 * @description Tab "Ich & Markt" (§5.9, D24): fit of the profile and the skills with most leverage.
+		 */
+		get: operations['get_market_me_api_market_me_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/api/market/data': {
 		parameters: {
 			query?: never;
@@ -1098,6 +1118,24 @@ export interface components {
 			/** Runs */
 			runs: components['schemas']['PipelineRun'][];
 		};
+		/** MarketMe */
+		MarketMe: {
+			/** Good Score */
+			good_score: number;
+			/** Jobs */
+			jobs: number;
+			/** Excluded */
+			excluded: number;
+			/** Good */
+			good: number;
+			/** Scores */
+			scores: components['schemas']['ScoreBucket'][];
+			/** Weekly */
+			weekly: components['schemas']['WeeklyMatches'][];
+			/** Lever */
+			lever: components['schemas']['SkillLever'][];
+			fit: components['schemas']['ProfileFit'];
+		};
 		/** MarketOptions */
 		MarketOptions: {
 			/** Role Families */
@@ -1385,6 +1423,21 @@ export interface components {
 			 */
 			education: components['schemas']['Education-Output'][];
 		};
+		/** ProfileFit */
+		ProfileFit: {
+			/** Years */
+			years: number | null;
+			/** Years Known */
+			years_known: number;
+			/** Years Fit */
+			years_fit: number | null;
+			/** Salary Min */
+			salary_min: number | null;
+			/** Salary Known */
+			salary_known: number;
+			/** Salary Fit */
+			salary_fit: number | null;
+		};
 		/** RoleFamilyOption */
 		RoleFamilyOption: {
 			/** Key */
@@ -1494,6 +1547,13 @@ export interface components {
 			 */
 			created_at: string;
 		};
+		/** ScoreBucket */
+		ScoreBucket: {
+			/** Bucket */
+			bucket: string;
+			/** Jobs */
+			jobs: number;
+		};
 		/** SeniorityMix */
 		SeniorityMix: {
 			/** Role Family */
@@ -1587,6 +1647,19 @@ export interface components {
 			share: number;
 			/** Profile Weight */
 			profile_weight: string | null;
+		};
+		/** SkillLever */
+		SkillLever: {
+			/** Skill */
+			skill: string;
+			/** Category */
+			category: string | null;
+			/** Jobs */
+			jobs: number;
+			/** New Good */
+			new_good: number;
+			/** Avg Gain */
+			avg_gain: number;
 		};
 		/** SkillPair */
 		SkillPair: {
@@ -1757,6 +1830,18 @@ export interface components {
 			input?: unknown;
 			/** Context */
 			ctx?: Record<string, never>;
+		};
+		/** WeeklyMatches */
+		WeeklyMatches: {
+			/**
+			 * Week
+			 * Format: date
+			 */
+			week: string;
+			/** Jobs */
+			jobs: number;
+			/** Good */
+			good: number;
 		};
 		/** YearsBucket */
 		YearsBucket: {
@@ -2716,6 +2801,42 @@ export interface operations {
 				};
 				content: {
 					'application/json': components['schemas']['MarketOverview'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	get_market_me_api_market_me_get: {
+		parameters: {
+			query?: {
+				scope?: 'area' | 'germany' | 'all';
+				role?: string;
+				seniority?: string;
+				source?: string;
+				weeks?: number;
+				agencies?: boolean;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MarketMe'] | null;
 				};
 			};
 			/** @description Validation Error */

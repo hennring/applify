@@ -137,9 +137,9 @@ def test_invalid_candidates_are_refused(
 
 
 def test_agency_filter_is_optional() -> None:
-    where, _ = market._where(market.MarketFilter(), user_id=1)
+    where, _ = market.selection_where(market.MarketFilter(), user_id=1)
     assert "is_agency" not in where
-    where, _ = market._where(market.MarketFilter(agencies=False), user_id=1)
+    where, _ = market.selection_where(market.MarketFilter(agencies=False), user_id=1)
     assert "not f.is_agency" in where
 
 

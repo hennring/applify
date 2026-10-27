@@ -8,6 +8,7 @@
 	import './market.css';
 	import { SENIORITY, TABS, WEEKS, type Filters, type Scope, type Tab } from './market';
 	import DataTab from './DataTab.svelte';
+	import MeTab from './MeTab.svelte';
 	import Overview from './Overview.svelte';
 
 	let { data }: PageProps = $props();
@@ -220,6 +221,8 @@
 
 		{#if tab === 'ueberblick'}
 			<Overview {market} {filters} {roleLabel} />
+		{:else if tab === 'ich' && data.me}
+			<MeTab me={data.me} />
 		{:else if tab === 'daten' && data.marketData}
 			<DataTab data={data.marketData} />
 		{/if}

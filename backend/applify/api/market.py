@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from applify.db.session import get_session
-from applify.services import market
+from applify.services import market, market_me
 from applify.services.skills import get_taxonomy
 from applify.users import get_current_user_id
 
@@ -193,6 +193,47 @@ class MarketData(BaseModel):
     runs: list[PipelineRun]
 
 
+class SkillLever(BaseModel):
+    skill: str
+    category: str | None
+    # Jobs of the selection asking for the skill.
+    jobs: int
+    # Jobs that would become good matches with the skill in the profile (net).
+    new_good: int
+    avg_gain: float
+
+
+class ScoreBucket(BaseModel):
+    bucket: str
+    jobs: int
+
+
+class WeeklyMatches(BaseModel):
+    week: date
+    jobs: int
+    good: int
+
+
+class ProfileFit(BaseModel):
+    years: float | None
+    years_known: int
+    years_fit: int | None
+    salary_min: int | None
+    salary_known: int
+    salary_fit: int | None
+
+
+class MarketMe(BaseModel):
+    good_score: int
+    jobs: int
+    excluded: int
+    good: int
+    scores: list[ScoreBucket]
+    weekly: list[WeeklyMatches]
+    lever: list[SkillLever]
+    fit: ProfileFit
+
+
 class CandidateIn(BaseModel):
     name: str
     category: str
@@ -228,6 +269,14 @@ def get_market(session: SessionDep, user_id: UserDep, f: FilterDep) -> MarketOve
     return MarketOverview.model_validate(
         {**data, "analysis": analysis, "categories": market.categories(get_taxonomy())}
     )
+
+
+@router.get("/me")
+def get_market_me(session: SessionDep, user_id: UserDep, f: FilterDep) -> MarketMe | None:
+    """Tab "Ich & Markt" (§5.9, D24): fit of the profile and the skills with most leverage."""
+    if not market.marts_available(session):
+        return None
+    return MarketMe.model_validate(market_me.me(session, user_id, f))
 
 
 @router.get("/data")
