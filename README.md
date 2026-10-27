@@ -30,9 +30,12 @@ ever sent or applied for automatically.
 - **Coverage check** – enter jobs you found elsewhere to measure what Applify misses and
   why.
 - **Market analysis** – an ELT pipeline (Dagster + dbt) turns every search run into a
-  dashboard: demanded skills and the gaps in your profile, skill trends and combinations,
-  required experience and seniority per role family, and salaries – always with how many
-  postings actually state a value.
+  dashboard with tabs: demanded skills and the gaps in your profile, typical tech stacks,
+  experience, seniority, salaries and benefits per role family; which skills would bring
+  you the most additional good matches; the largest employers and staffing agencies (with
+  a filter to hide them); a map of the states; how long postings stay online and which
+  skills rise or fall; and what each source contributes – always with how many postings
+  actually state a value.
 
 See [PLAN.md](PLAN.md) (German) for requirements, design decisions and the roadmap.
 
@@ -114,6 +117,7 @@ The analytics project in `analytics/` is a separate uv project:
 ```
 search run ──▶ raw.job_sightings / raw.job_versions      (append-only, written by the app)
 Dagster    ──▶ features.job_features                     (rules, then the local LLM for gaps)
+           ──▶ features.job_regions, skill_stacks         (state per job, frequent skill sets)
            ──▶ dbt build: staging → intermediate → marts  (with tests)
 marts      ──▶ page "Markt" in Applify · Metabase (optional, read-only)
 ```
@@ -130,6 +134,10 @@ starts it after every finished search run. In IntelliJ use the run configuration
 and handles at most 50 postings per run (`llm_budget`). Run status sensors record each
 pipeline run in `features.pipeline_runs`; the dashboard shows whether the analysis is
 current, running, failed or still waiting for a newer search run.
+
+The outlines of the German states (`analytics/resources/states.json` and the map paths in
+`frontend/src/lib/viz/germanyStates.ts`) are generated from Natural Earth (public domain):
+`uv run python -m applify_analytics.build_states`.
 
 Optional BI tool: `docker compose --profile analytics up -d metabase`, then open
 <http://localhost:3001> and connect to host `db`, database `applify`, user
@@ -192,5 +200,6 @@ Job portals such as StepStone, Indeed or LinkedIn are not scraped.
 ## Status
 
 Milestones M0–M4 (profile, CV extraction, job sources, matching, company discovery)
-and M5 (market analysis with an ELT pipeline and dashboard) are implemented. Open: M6 (cover
+M5 (market analysis with an ELT pipeline and dashboard) and M5.1 (more tabs: profile fit,
+employers, regions, dynamics, data quality) are implemented. Open: M6 (cover
 letter and application package) and M7 (polish).

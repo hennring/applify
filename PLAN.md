@@ -2,7 +2,7 @@
 
 > Persönlicher Bewerbungsassistent: findet täglich passende Stellen, bewertet sie gegen das eigene Profil und erzeugt auf Zusage ein fertiges Bewerbungspaket.
 
-Stand: 27.10.2026 · Status: M0–M3 umgesetzt, M4 umgesetzt (Abnahme offen: ≥ 50 Firmen mit Feed, Abdeckungsmessung), M5 umgesetzt (Abnahme offen: Seniorität ≥ 80 % braucht den LLM-Fallback), M5.1 in Arbeit
+Stand: 27.10.2026 · Status: M0–M3 umgesetzt, M4 umgesetzt (Abnahme offen: ≥ 50 Firmen mit Feed, Abdeckungsmessung), M5 umgesetzt (Abnahme offen: Seniorität ≥ 80 % braucht den LLM-Fallback), M5.1 umgesetzt (Abnahme offen: Sichtprüfung im Browser; Dynamik braucht einige Wochen Historie)
 
 ---
 
