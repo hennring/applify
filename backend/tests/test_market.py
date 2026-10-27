@@ -153,11 +153,9 @@ def test_data_tab_is_empty_without_marts(api: TestClient) -> None:
 
 
 def test_top_roles_of_an_employer() -> None:
-    from applify.services.market_employers import _top_roles
-
-    assert _top_roles(["Backend", "Data", "Backend", "Frontend", "Data", "Backend"]) == [
+    assert market.most_common(["Backend", "Data", "Backend", "Frontend", "Data", "Backend"]) == [
         "Backend",
         "Data",
         "Frontend",
     ]
-    assert _top_roles(None) == []
+    assert market.most_common(None) == []

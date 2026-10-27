@@ -231,6 +231,7 @@ def overview(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]:
         "years": _years(session, full, params),
         "age": _age(session, jobs, params),
         **_benefits(session, full, params, full_text),
+        "stacks": _stacks(session, full, params),
         "salary": _salary(session, full, params, by_seniority=f.role not in ("", "mine")),
         "candidates": _candidates(session, full, params, get_taxonomy()),
     }
@@ -325,6 +326,31 @@ def _years(session: Session, full: str, params: dict[str, Any]) -> list[dict[str
         {"bucket": label, "jobs": sum(1 for r in rows if low <= r.years_min <= high)}
         for label, low, high in YEAR_BUCKETS
     ]
+
+
+def _stacks(session: Session, full: str, params: dict[str, Any]) -> list[dict[str, Any]]:
+    """Typical tech stacks (D26) in the selection, with the role families they occur in."""
+    rows = query_rows(
+        session,
+        f"""select s.stack_id, s.skills, count(*) as jobs,
+            (array_agg(d.label order by d.sort_order)
+                filter (where j.role_family <> 'unknown')) as roles
+        from ({full}) j
+        join marts.bridge_job_stack b using (job_id)
+        join marts.dim_skill_stack s using (stack_id)
+        left join marts.dim_role_family d using (role_family)
+        group by s.stack_id, s.skills order by jobs desc, s.stack_id""",
+        params,
+    )
+    return [{"skills": r.skills, "jobs": r.jobs, "roles": most_common(r.roles)} for r in rows]
+
+
+def most_common(labels: list[str] | None, limit: int = 3) -> list[str]:
+    """The most frequent labels, most frequent first."""
+    counts: dict[str, int] = {}
+    for label in labels or []:
+        counts[label] = counts.get(label, 0) + 1
+    return sorted(counts, key=lambda label: -counts[label])[:limit]
 
 
 def _benefits(

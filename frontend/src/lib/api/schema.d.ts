@@ -1306,6 +1306,11 @@ export interface components {
 			benefit_roles: components['schemas']['BenefitRole'][];
 			vacation?: components['schemas']['VacationDays'] | null;
 			/**
+			 * Stacks
+			 * @default []
+			 */
+			stacks: components['schemas']['StackShare'][];
+			/**
 			 * Salary
 			 * @default []
 			 */
@@ -1924,6 +1929,15 @@ export interface components {
 			full_text: number;
 			/** Active */
 			active: number;
+		};
+		/** StackShare */
+		StackShare: {
+			/** Skills */
+			skills: string[];
+			/** Jobs */
+			jobs: number;
+			/** Roles */
+			roles: string[];
 		};
 		/** StateJobs */
 		StateJobs: {

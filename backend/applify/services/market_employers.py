@@ -8,7 +8,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from applify.services.market import MarketFilter, query_rows, selection_where
+from applify.services.market import MarketFilter, most_common, query_rows, selection_where
 
 TOP_EMPLOYERS = 20
 TOP_REPEATED = 15
@@ -49,18 +49,10 @@ def employers(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]
         "jobs": total,
         "companies": companies,
         "top10_share": top10 / total if total else 0.0,
-        "top": [{**r._mapping, "roles": _top_roles(r.roles)} for r in top],
+        "top": [{**r._mapping, "roles": most_common(r.roles)} for r in top],
         "agencies": [dict(r._mapping) for r in agencies],
         "repeated": _repeated(session, jobs, params),
     }
-
-
-def _top_roles(labels: list[str] | None, limit: int = 3) -> list[str]:
-    """Most frequent role families of a company, most frequent first."""
-    counts: dict[str, int] = {}
-    for label in labels or []:
-        counts[label] = counts.get(label, 0) + 1
-    return sorted(counts, key=lambda label: -counts[label])[:limit]
 
 
 def _repeated(session: Session, jobs: str, params: dict[str, Any]) -> list[dict[str, Any]]:

@@ -152,6 +152,12 @@ class VacationDays(BaseModel):
     buckets: list[YearsBucket]
 
 
+class StackShare(BaseModel):
+    skills: list[str]
+    jobs: int
+    roles: list[str]
+
+
 class MarketOverview(BaseModel):
     # False until the analytics pipeline has built the marts once.
     available: bool
@@ -170,6 +176,7 @@ class MarketOverview(BaseModel):
     benefits: list[BenefitShare] = []
     benefit_roles: list[BenefitRole] = []
     vacation: VacationDays | None = None
+    stacks: list[StackShare] = []
     salary: list[SalaryGroup] = []
     candidates: list[SkillCandidate] = []
     categories: list[str] = []

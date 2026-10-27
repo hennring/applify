@@ -192,6 +192,30 @@
 			{/if}
 		</section>
 
+		<section class="card wide">
+			<h2><Icon name="wrench" size={18} /> Typische Tech-Stacks</h2>
+			<BarList
+				bars={market.stacks.map((s) => ({
+					label: s.skills.join(' + '),
+					value: s.jobs,
+					valueText: `${s.jobs}`,
+					detail: [
+						s.skills.join(' + '),
+						`${s.jobs} Stellen verlangen alle diese Skills`,
+						s.roles.length ? `Vor allem: ${s.roles.join(', ')}` : ''
+					]
+						.filter(Boolean)
+						.join('\n')
+				}))}
+				empty="In dieser Auswahl kommt kein typischer Stack vor."
+			/>
+			<p class="muted small">
+				Skill-Kombinationen, die viele IT-Stellen gemeinsam verlangen, automatisch aus allen
+				Anzeigen ermittelt. Jede Stelle zählt beim größten Stack, den sie vollständig enthält.
+				Mehrere Cloud-Anbieter in einer Anzeige gelten als Alternativen und zählen nicht mit.
+			</p>
+		</section>
+
 		{#if market.benefits.length}
 			<section class="card wide">
 				<h2><Icon name="wallet" size={18} /> Benefits</h2>

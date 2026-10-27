@@ -159,3 +159,21 @@ models:
           - accepted_values:
               arguments:
                 values: [four_day_week, flextime, trust_time, part_time, special_payments, bonus, pension, capital_benefits, company_car, bike, training_budget, conferences, certifications, education_leave]
+
+  - name: dim_skill_stack
+    description: "Typical tech stacks (grain: stack)."
+    columns:
+      - name: stack_id
+        data_tests: [unique, not_null]
+
+  - name: bridge_job_stack
+    description: "The stack each IT job belongs to (grain: job)."
+    columns:
+      - name: job_id
+        data_tests: [unique, not_null]
+      - name: stack_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_skill_stack')
+                field: stack_id

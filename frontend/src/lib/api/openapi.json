@@ -3398,6 +3398,14 @@
 							}
 						]
 					},
+					"stacks": {
+						"items": {
+							"$ref": "#/components/schemas/StackShare"
+						},
+						"type": "array",
+						"title": "Stacks",
+						"default": []
+					},
 					"salary": {
 						"items": {
 							"$ref": "#/components/schemas/SalaryGroup"
@@ -4834,6 +4842,31 @@
 				"type": "object",
 				"required": ["source", "source_group", "jobs", "only_here", "full_text", "active"],
 				"title": "SourceValue"
+			},
+			"StackShare": {
+				"properties": {
+					"skills": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Skills"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"roles": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Roles"
+					}
+				},
+				"type": "object",
+				"required": ["skills", "jobs", "roles"],
+				"title": "StackShare"
 			},
 			"StateJobs": {
 				"properties": {

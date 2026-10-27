@@ -22,6 +22,7 @@ from sqlalchemy import Connection, func, select
 from applify_analytics.features import store
 from applify_analytics.features.reference import refresh_reference
 from applify_analytics.features.regions import refresh_job_regions
+from applify_analytics.features.stacks import refresh_stacks
 
 JOBS = AssetKey(["app", "jobs"])
 JOB_FEATURES = AssetKey(["features", "job_features"])
@@ -70,6 +71,30 @@ def job_regions() -> MaterializeResult[None]:
     with get_engine().begin() as conn:
         assigned = refresh_job_regions(conn)
     return MaterializeResult(metadata={"jobs_with_state": assigned})
+
+
+STACK_SPECS = [
+    AssetSpec(
+        AssetKey(["features", "skill_stacks"]),
+        deps=[JOB_FEATURES],
+        group_name="features",
+        description="Typical tech stacks: frequent skill sets of IT jobs (Apriori, D26).",
+    ),
+    AssetSpec(
+        AssetKey(["features", "job_stacks"]),
+        deps=[JOB_FEATURES],
+        group_name="features",
+        description="The largest stack each IT job fully contains.",
+    ),
+]
+
+
+@multi_asset(specs=STACK_SPECS)
+def skill_stacks() -> Iterator[MaterializeResult[None]]:
+    with get_engine().begin() as conn:
+        found, assigned = refresh_stacks(conn)
+    yield MaterializeResult(asset_key=STACK_SPECS[0].key, metadata={"stacks": found})
+    yield MaterializeResult(asset_key=STACK_SPECS[1].key, metadata={"jobs": assigned})
 
 
 class JobFeaturesConfig(Config):
