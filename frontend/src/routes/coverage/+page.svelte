@@ -145,7 +145,7 @@
 					{/if}
 					{#if coverage.found > coverage.visible}
 						<p class="small warn">
-							{coverage.found - coverage.visible} gefundene Stellen sind in der Tagesliste ausgeblendet.
+							{coverage.found - coverage.visible} gefundene Stellen sind in der Jobsuche ausgeblendet.
 						</p>
 					{/if}
 

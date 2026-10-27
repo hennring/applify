@@ -202,7 +202,7 @@
 						</p>
 					{/if}
 				</div>
-				<div class="jobs" title="Stellen in der Tagesliste / im Bestand">
+				<div class="jobs" title="Stellen in der Jobsuche / im Bestand">
 					<strong>{company.visible_jobs}</strong>
 					<span class="muted small">/ {company.jobs} Stellen</span>
 				</div>

@@ -185,7 +185,7 @@
 </script>
 
 <div class="pagehead">
-	<h1><Icon name="briefcase" size={28} /> Tagesliste</h1>
+	<h1><Icon name="briefcase" size={28} /> Jobsuche</h1>
 	<button type="button" class="primary start" disabled={starting || running} onclick={startRun}>
 		<Icon
 			name={starting || running ? 'loader' : 'search'}

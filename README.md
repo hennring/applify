@@ -90,7 +90,7 @@ interpreter first.
 
 ## Usage
 
-1. **Check the status** – the start page (*Tagesliste*) shows whether database and Ollama are reachable.
+1. **Check the status** – the start page (*Jobsuche*) shows whether database and Ollama are reachable.
 2. **Create your profile** – under *Dokumente* upload your CV; the profile is filled in
    automatically. Review it under *Profil*: desired roles, skills (must / nice / avoid),
    places with radius, remote preference, minimum salary, exclusions. Save.
@@ -119,7 +119,7 @@ search run ──▶ raw.job_sightings / raw.job_versions      (append-only, wri
 Dagster    ──▶ features.job_features                     (rules, then the local LLM for gaps)
            ──▶ features.job_regions, skill_stacks         (state per job, frequent skill sets)
            ──▶ dbt build: staging → intermediate → marts  (with tests)
-marts      ──▶ page "Markt" in Applify · Metabase (optional, read-only)
+marts      ──▶ page "Marktanalyse" in Applify · Metabase (optional, read-only)
 ```
 
 ```sh

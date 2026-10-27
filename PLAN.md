@@ -70,7 +70,7 @@ Fullstack-Webentwickler, 2,5 Jahre Erfahrung · Orte: Leipzig, Dresden, Berlin, 
 - F23 **Markt-Dashboard**: Verteilung und Trend der Skills, Skill-Kombinationen, Abgleich mit dem eigenen Profil (gefragte Skills, die fehlen), geforderte Erfahrung und Seniorität je Rollenfamilie, Gehälter je Rolle/Seniorität – jeweils mit Datenabdeckung (n). Filter: Zeitraum, Umfang (eigene Orte / Deutschland / alle), Rollenfamilie, Seniorität, Quelle.
 
 ### 2.2 Ansichten (SPA)
-1. **Dashboard / Tagesliste** – gerankte Stellen, Filter „nur neue“, Suchlauf starten, Fortschritt
+1. **Dashboard / Jobsuche** (früher „Tagesliste“) – gerankte Stellen, Filter „nur neue“, Suchlauf starten, Fortschritt
 2. **Stellendetail** – Volltext/Kurzinfo, Score-Aufschlüsselung, Quellen-Links, Volltext einfügen, Zusagen
 3. **Profil** – Formular inkl. Skill-Gewichtung, Orte/Radius, Remote, Gehalt, Sprachen, Ausschlüsse
 4. **Dokumente** – Upload/Verwaltung Lebenslauf, Zeugnisse, Beispielanschreiben
@@ -185,7 +185,7 @@ Dagster (lokal)      │  Sensor: Suchlauf fertig
                      ▼
   dbt build               staging → intermediate → marts (+ Tests, Asset-Checks)
                      ▼
-  marts.*  ──▶ Applify-Seite „Markt“ (API)  ·  Metabase (optional, nur lesend)
+  marts.*  ──▶ Applify-Seite „Marktanalyse“ (API)  ·  Metabase (optional, nur lesend)
 ```
 
 ### 4.1 Projektstruktur
@@ -424,13 +424,13 @@ Plus Kopierhilfe-Ansicht (F18). Status wechselt auf „Paket fertig“; „abges
 - `marts`: `fct_job_postings` (Grain: zusammengeführte Stelle), `bridge_job_skills`, Dimensionen; Aggregate `agg_skills_weekly`, `agg_skill_pairs`, `agg_experience`, `agg_salary`, `agg_profile_gap`.
 - Tests: Schlüssel eindeutig/nicht leer, Beziehungen, Wertebereiche; Dagster-Asset-Checks für Abdeckung (Anteil bestimmter Rollen/Seniorität).
 
-**Orchestrierung (Dagster):** Sensor auf `search_runs` (Status `done`) → `job_features` → `dbt build` → Checks. Manuell auslösbar in der Dagster-UI. Run-Status-Sensoren schreiben jeden Lauf (läuft / erfolgreich / fehlgeschlagen / abgebrochen, abgedeckter Suchlauf) nach `features.pipeline_runs`; die Seite „Markt“ zeigt daraus, ob die Analyse aktuell ist, läuft, fehlschlug oder auf einen neueren Suchlauf wartet, und lädt sich währenddessen selbst neu.
+**Orchestrierung (Dagster):** Sensor auf `search_runs` (Status `done`) → `job_features` → `dbt build` → Checks. Manuell auslösbar in der Dagster-UI. Run-Status-Sensoren schreiben jeden Lauf (läuft / erfolgreich / fehlgeschlagen / abgebrochen, abgedeckter Suchlauf) nach `features.pipeline_runs`; die Seite „Marktanalyse“ zeigt daraus, ob die Analyse aktuell ist, läuft, fehlschlug oder auf einen neueren Suchlauf wartet, und lädt sich währenddessen selbst neu.
 
-**Dashboard „Markt“:** Applify-API liest nur `marts`. Jede Gehalts- und Erfahrungszahl zeigt n und den Anteil ohne Angabe. Skill-Kandidaten lassen sich per Klick in `skills.yaml` übernehmen (wirkt dann auch aufs Matching).
+**Dashboard „Marktanalyse“:** Applify-API liest nur `marts`. Jede Gehalts- und Erfahrungszahl zeigt n und den Anteil ohne Angabe. Skill-Kandidaten lassen sich per Klick in `skills.yaml` übernehmen (wirkt dann auch aufs Matching).
 
 ### 5.9 Marktanalyse ausbauen (M5.1)
 
-Die Seite „Markt“ bekommt Reiter; die Filter (Umfang, Rolle, Stufe, Quelle, Zeitraum, **ohne Personaldienstleister**) gelten für alle, die URL merkt sich den Reiter.
+Die Seite „Marktanalyse“ bekommt Reiter; die Filter (Umfang, Rolle, Stufe, Quelle, Zeitraum, **ohne Personaldienstleister**) gelten für alle, die URL merkt sich den Reiter.
 
 | Reiter | Inhalt | Datenbasis |
 |---|---|---|

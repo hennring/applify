@@ -117,7 +117,7 @@
 
 <div class="market">
 	<div class="pagehead">
-		<h1><Icon name="activity" size={28} /> Markt</h1>
+		<h1><Icon name="chart-column" size={28} /> Marktanalyse</h1>
 		{#if market?.totals}
 			<span class="muted status">{market.totals.jobs} Stellen</span>
 		{/if}

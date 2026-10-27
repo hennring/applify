@@ -8,11 +8,11 @@
 	let { children }: LayoutProps = $props();
 
 	const nav = [
-		{ href: '/', label: 'Tagesliste' },
+		{ href: '/', label: 'Jobsuche' },
 		{ href: '/applications', label: 'Bewerbungen' },
 		{ href: '/companies', label: 'Firmen' },
 		{ href: '/coverage', label: 'Abdeckung' },
-		{ href: '/market', label: 'Markt' },
+		{ href: '/market', label: 'Marktanalyse' },
 		{ href: '/profile', label: 'Profil' },
 		{ href: '/documents', label: 'Dokumente' },
 		{ href: '/settings', label: 'Einstellungen' }

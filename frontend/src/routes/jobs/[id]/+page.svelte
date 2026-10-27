@@ -7,7 +7,7 @@
 	let { data }: PageProps = $props();
 </script>
 
-<a class="back" href={resolve('/')}><Icon name="chevron-up" size={16} class="left" /> Tagesliste</a>
+<a class="back" href={resolve('/')}><Icon name="chevron-up" size={16} class="left" /> Jobsuche</a>
 <JobDetail jobId={data.jobId} />
 
 <style>
