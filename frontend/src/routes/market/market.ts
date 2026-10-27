@@ -7,7 +7,8 @@ export type Scope = (typeof SCOPES)[number];
 
 // Tabs of the market page (§5.9); the key is the value of ?reiter= in the URL.
 export const TABS = [
-	{ key: 'ueberblick', label: 'Überblick', icon: 'activity' }
+	{ key: 'ueberblick', label: 'Überblick', icon: 'activity' },
+	{ key: 'daten', label: 'Daten', icon: 'file-text' }
 ] as const satisfies readonly { key: string; label: string; icon: IconName }[];
 export type Tab = (typeof TABS)[number]['key'];
 

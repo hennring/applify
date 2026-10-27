@@ -7,6 +7,7 @@
 	import type { PageProps } from './$types';
 	import './market.css';
 	import { SENIORITY, TABS, WEEKS, type Filters, type Scope, type Tab } from './market';
+	import DataTab from './DataTab.svelte';
 	import Overview from './Overview.svelte';
 
 	let { data }: PageProps = $props();
@@ -219,6 +220,8 @@
 
 		{#if tab === 'ueberblick'}
 			<Overview {market} {filters} {roleLabel} />
+		{:else if tab === 'daten' && data.marketData}
+			<DataTab data={data.marketData} />
 		{/if}
 	{/if}
 </div>

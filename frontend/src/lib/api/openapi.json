@@ -1324,6 +1324,26 @@
 				}
 			}
 		},
+		"/api/market/data": {
+			"get": {
+				"tags": ["market"],
+				"summary": "Get Market Data",
+				"description": "Tab \"Daten\" (\u00a75.9): value of each source and data quality; independent of the filters.",
+				"operationId": "get_market_data_api_market_data_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MarketData"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/market/skill-candidates": {
 			"post": {
 				"tags": ["market"],
@@ -1609,6 +1629,31 @@
 				"type": "object",
 				"required": ["id", "field", "kind", "key", "current", "suggested"],
 				"title": "ChangeItem"
+			},
+			"CheckResult": {
+				"properties": {
+					"check_name": {
+						"type": "string",
+						"title": "Check Name"
+					},
+					"passed": {
+						"type": "boolean",
+						"title": "Passed"
+					},
+					"detail": {
+						"additionalProperties": true,
+						"type": "object",
+						"title": "Detail"
+					},
+					"checked_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Checked At"
+					}
+				},
+				"type": "object",
+				"required": ["check_name", "passed", "detail", "checked_at"],
+				"title": "CheckResult"
 			},
 			"CompanyIn": {
 				"properties": {
@@ -1971,6 +2016,53 @@
 					"samples"
 				],
 				"title": "CoverageOut"
+			},
+			"CoveragePoint": {
+				"properties": {
+					"recorded_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Recorded At"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"full_text": {
+						"type": "integer",
+						"title": "Full Text"
+					},
+					"coverage": {
+						"additionalProperties": {
+							"type": "number"
+						},
+						"type": "object",
+						"title": "Coverage"
+					},
+					"llm_processed": {
+						"type": "integer",
+						"title": "Llm Processed"
+					},
+					"llm_failed": {
+						"type": "integer",
+						"title": "Llm Failed"
+					},
+					"llm_queue": {
+						"type": "integer",
+						"title": "Llm Queue"
+					}
+				},
+				"type": "object",
+				"required": [
+					"recorded_at",
+					"jobs",
+					"full_text",
+					"coverage",
+					"llm_processed",
+					"llm_failed",
+					"llm_queue"
+				],
+				"title": "CoveragePoint"
 			},
 			"CvChanges": {
 				"properties": {
@@ -2591,6 +2683,41 @@
 				"title": "MarketCoverage",
 				"description": "Share of full-text jobs with each feature known (0..1)."
 			},
+			"MarketData": {
+				"properties": {
+					"sources": {
+						"items": {
+							"$ref": "#/components/schemas/SourceValue"
+						},
+						"type": "array",
+						"title": "Sources"
+					},
+					"history": {
+						"items": {
+							"$ref": "#/components/schemas/CoveragePoint"
+						},
+						"type": "array",
+						"title": "History"
+					},
+					"checks": {
+						"items": {
+							"$ref": "#/components/schemas/CheckResult"
+						},
+						"type": "array",
+						"title": "Checks"
+					},
+					"runs": {
+						"items": {
+							"$ref": "#/components/schemas/PipelineRun"
+						},
+						"type": "array",
+						"title": "Runs"
+					}
+				},
+				"type": "object",
+				"required": ["sources", "history", "checks", "runs"],
+				"title": "MarketData"
+			},
 			"MarketOptions": {
 				"properties": {
 					"role_families": {
@@ -2930,6 +3057,46 @@
 				"type": "object",
 				"required": ["text"],
 				"title": "PastedText"
+			},
+			"PipelineRun": {
+				"properties": {
+					"status": {
+						"type": "string",
+						"title": "Status"
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Started At"
+					},
+					"finished_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Finished At"
+					},
+					"search_run_at": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date-time"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Search Run At"
+					}
+				},
+				"type": "object",
+				"required": ["status", "started_at", "finished_at", "search_run_at"],
+				"title": "PipelineRun"
 			},
 			"ProfileData-Input": {
 				"properties": {
@@ -3886,6 +4053,37 @@
 				"type": "object",
 				"required": ["label", "found", "new", "duplicate", "known", "errors"],
 				"title": "SourceStats"
+			},
+			"SourceValue": {
+				"properties": {
+					"source": {
+						"type": "string",
+						"title": "Source"
+					},
+					"source_group": {
+						"type": "string",
+						"title": "Source Group"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"only_here": {
+						"type": "integer",
+						"title": "Only Here"
+					},
+					"full_text": {
+						"type": "integer",
+						"title": "Full Text"
+					},
+					"active": {
+						"type": "integer",
+						"title": "Active"
+					}
+				},
+				"type": "object",
+				"required": ["source", "source_group", "jobs", "only_here", "full_text", "active"],
+				"title": "SourceValue"
 			},
 			"Station-Input": {
 				"properties": {

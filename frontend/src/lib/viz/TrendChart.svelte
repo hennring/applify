@@ -2,7 +2,23 @@
 	import { formatPercent, tooltip } from './tooltip';
 
 	type Series = { skill: string; shares: number[] };
-	let { weeks, series }: { weeks: string[]; series: Series[] } = $props();
+	const dateFormat = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' });
+	const weekLabel = (iso: string) => `KW ab ${dateFormat.format(new Date(iso))}`;
+
+	let {
+		weeks,
+		series,
+		// Points are weeks by default; other callers pass their own labels.
+		pointLabel = weekLabel,
+		pointName = 'Woche',
+		ariaLabel = 'Anteil der Stellen je Skill und Woche'
+	}: {
+		weeks: string[];
+		series: Series[];
+		pointLabel?: (iso: string) => string;
+		pointName?: string;
+		ariaLabel?: string;
+	} = $props();
 
 	// Drawn in real pixels at the container's width, so text keeps its size.
 	let W = $state(640);
@@ -13,9 +29,6 @@
 
 	let asTable = $state(false);
 	let hovered = $state<number | null>(null);
-
-	const dateFormat = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit' });
-	const weekLabel = (iso: string) => `KW ab ${dateFormat.format(new Date(iso))}`;
 
 	const top = $derived(
 		Math.max(0.1, Math.ceil(Math.max(...series.flatMap((s) => s.shares), 0) * 10) / 10)
@@ -37,7 +50,7 @@
 
 	function weekDetail(i: number): string {
 		const lines = series.map((s) => `${s.skill}: ${formatPercent(s.shares[i])}`);
-		return [weekLabel(weeks[i]), ...lines].join('\n');
+		return [pointLabel(weeks[i]), ...lines].join('\n');
 	}
 </script>
 
@@ -54,22 +67,22 @@
 
 {#if weeks.length < 2 && !asTable}
 	<p class="muted">
-		Ein Verlauf wird ab zwei Wochen Daten sichtbar. Bisher: {weeks.length === 1
-			? weekLabel(weeks[0])
+		Ein Verlauf wird ab zwei Zeitpunkten sichtbar. Bisher: {weeks.length === 1
+			? pointLabel(weeks[0])
 			: 'keine Daten'}.
 	</p>
 {:else if asTable}
 	<table>
 		<thead>
 			<tr>
-				<th>Woche</th>
+				<th>{pointName}</th>
 				{#each series as s (s.skill)}<th>{s.skill}</th>{/each}
 			</tr>
 		</thead>
 		<tbody>
 			{#each weeks as week, i (week)}
 				<tr>
-					<td>{weekLabel(week)}</td>
+					<td>{pointLabel(week)}</td>
 					{#each series as s (s.skill)}<td>{formatPercent(s.shares[i])}</td>{/each}
 				</tr>
 			{/each}
@@ -77,13 +90,7 @@
 	</table>
 {:else}
 	<div class="plot" bind:clientWidth={W}>
-		<svg
-			width="100%"
-			height={H}
-			viewBox="0 0 {W} {H}"
-			role="img"
-			aria-label="Anteil der Stellen je Skill und Woche"
-		>
+		<svg width="100%" height={H} viewBox="0 0 {W} {H}" role="img" aria-label={ariaLabel}>
 			{#each ticks as tick (tick)}
 				<line class="grid" x1={pad.left} x2={pad.left + innerW} y1={y(tick)} y2={y(tick)} />
 				<text class="axis" x={pad.left - 6} y={y(tick)} text-anchor="end" dominant-baseline="middle"

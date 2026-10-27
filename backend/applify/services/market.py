@@ -435,3 +435,56 @@ def accept_candidate(
         rescore_user(session, user_id)
     session.commit()
     return touched
+
+
+# --- tab "Daten": sources and data quality (§5.9) ----------------------------------------
+
+HISTORY_LIMIT = 60
+RUN_LIMIT = 10
+
+
+def _table_exists(session: Session, name: str) -> bool:
+    return bool(session.scalar(text("select to_regclass(:name) is not null"), {"name": name}))
+
+
+def data_quality(session: Session) -> dict[str, Any]:
+    """What each source contributes and how complete the features are over time."""
+    sources = _rows(
+        session,
+        """select source, source_group, jobs, only_here, full_text, active
+        from marts.agg_source_value order by jobs desc, source""",
+        {},
+    )
+    history: list[Any] = []
+    if _table_exists(session, "features.coverage_history"):
+        history = _rows(
+            session,
+            f"""select * from (
+                select recorded_at, jobs, full_text, coverage, llm_processed, llm_failed, llm_queue
+                from features.coverage_history order by recorded_at desc limit {HISTORY_LIMIT}
+            ) h order by recorded_at""",
+            {},
+        )
+    checks: list[Any] = []
+    if _table_exists(session, "features.check_results"):
+        checks = _rows(
+            session,
+            """select distinct on (check_name) check_name, passed, detail, checked_at
+            from features.check_results order by check_name, checked_at desc""",
+            {},
+        )
+    runs: list[Any] = []
+    if _table_exists(session, "features.pipeline_runs"):
+        runs = _rows(
+            session,
+            f"""select p.status, p.started_at, p.finished_at, s.finished_at as search_run_at
+            from features.pipeline_runs p left join search_runs s on s.id = p.search_run_id
+            order by p.started_at desc limit {RUN_LIMIT}""",
+            {},
+        )
+    return {
+        "sources": [dict(r._mapping) for r in sources],
+        "history": [dict(r._mapping) for r in history],
+        "checks": [dict(r._mapping) for r in checks],
+        "runs": [dict(r._mapping) for r in runs],
+    }

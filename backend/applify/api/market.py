@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -151,6 +151,48 @@ class MarketOverview(BaseModel):
     categories: list[str] = []
 
 
+class SourceValue(BaseModel):
+    source: str
+    source_group: str
+    jobs: int
+    # Jobs no other source delivered.
+    only_here: int
+    full_text: int
+    active: int
+
+
+class CoveragePoint(BaseModel):
+    recorded_at: datetime
+    jobs: int
+    full_text: int
+    # Feature → share of full-text jobs with it determined.
+    coverage: dict[str, float]
+    llm_processed: int
+    llm_failed: int
+    llm_queue: int
+
+
+class CheckResult(BaseModel):
+    check_name: str
+    passed: bool
+    detail: dict[str, Any]
+    checked_at: datetime
+
+
+class PipelineRun(BaseModel):
+    status: str
+    started_at: datetime
+    finished_at: datetime | None
+    search_run_at: datetime | None
+
+
+class MarketData(BaseModel):
+    sources: list[SourceValue]
+    history: list[CoveragePoint]
+    checks: list[CheckResult]
+    runs: list[PipelineRun]
+
+
 class CandidateIn(BaseModel):
     name: str
     category: str
@@ -186,6 +228,14 @@ def get_market(session: SessionDep, user_id: UserDep, f: FilterDep) -> MarketOve
     return MarketOverview.model_validate(
         {**data, "analysis": analysis, "categories": market.categories(get_taxonomy())}
     )
+
+
+@router.get("/data")
+def get_market_data(session: SessionDep) -> MarketData:
+    """Tab "Daten" (§5.9): value of each source and data quality; independent of the filters."""
+    if not market.marts_available(session):
+        return MarketData(sources=[], history=[], checks=[], runs=[])
+    return MarketData.model_validate(market.data_quality(session))
 
 
 @router.post("/skill-candidates")

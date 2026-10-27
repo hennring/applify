@@ -122,3 +122,11 @@ models:
       - unique_combination:
           arguments:
             columns: [user_id, skill]
+
+  - name: agg_source_value
+    description: "Per source: jobs, jobs no other source has, full texts, open jobs."
+    columns:
+      - name: source
+        data_tests: [unique, not_null]
+      - name: only_here
+        data_tests: [not_null]

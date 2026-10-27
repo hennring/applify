@@ -509,6 +509,26 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/market/data': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get Market Data
+		 * @description Tab "Daten" (§5.9): value of each source and data quality; independent of the filters.
+		 */
+		get: operations['get_market_data_api_market_data_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/api/market/skill-candidates': {
 		parameters: {
 			query?: never;
@@ -640,6 +660,22 @@ export interface components {
 			current: string | null;
 			/** Suggested */
 			suggested: string;
+		};
+		/** CheckResult */
+		CheckResult: {
+			/** Check Name */
+			check_name: string;
+			/** Passed */
+			passed: boolean;
+			/** Detail */
+			detail: {
+				[key: string]: unknown;
+			};
+			/**
+			 * Checked At
+			 * Format: date-time
+			 */
+			checked_at: string;
 		};
 		/** CompanyIn */
 		CompanyIn: {
@@ -799,6 +835,28 @@ export interface components {
 			};
 			/** Samples */
 			samples: components['schemas']['SampleOut'][];
+		};
+		/** CoveragePoint */
+		CoveragePoint: {
+			/**
+			 * Recorded At
+			 * Format: date-time
+			 */
+			recorded_at: string;
+			/** Jobs */
+			jobs: number;
+			/** Full Text */
+			full_text: number;
+			/** Coverage */
+			coverage: {
+				[key: string]: number;
+			};
+			/** Llm Processed */
+			llm_processed: number;
+			/** Llm Failed */
+			llm_failed: number;
+			/** Llm Queue */
+			llm_queue: number;
 		};
 		/** CvChanges */
 		CvChanges: {
@@ -1029,6 +1087,17 @@ export interface components {
 			/** Salary */
 			salary: number;
 		};
+		/** MarketData */
+		MarketData: {
+			/** Sources */
+			sources: components['schemas']['SourceValue'][];
+			/** History */
+			history: components['schemas']['CoveragePoint'][];
+			/** Checks */
+			checks: components['schemas']['CheckResult'][];
+			/** Runs */
+			runs: components['schemas']['PipelineRun'][];
+		};
 		/** MarketOptions */
 		MarketOptions: {
 			/** Role Families */
@@ -1147,6 +1216,20 @@ export interface components {
 		PastedText: {
 			/** Text */
 			text: string;
+		};
+		/** PipelineRun */
+		PipelineRun: {
+			/** Status */
+			status: string;
+			/**
+			 * Started At
+			 * Format: date-time
+			 */
+			started_at: string;
+			/** Finished At */
+			finished_at: string | null;
+			/** Search Run At */
+			search_run_at: string | null;
 		};
 		/** ProfileData */
 		'ProfileData-Input': {
@@ -1589,6 +1672,21 @@ export interface components {
 			filtered: number;
 			/** Errors */
 			errors: number;
+		};
+		/** SourceValue */
+		SourceValue: {
+			/** Source */
+			source: string;
+			/** Source Group */
+			source_group: string;
+			/** Jobs */
+			jobs: number;
+			/** Only Here */
+			only_here: number;
+			/** Full Text */
+			full_text: number;
+			/** Active */
+			active: number;
 		};
 		/** Station */
 		'Station-Input': {
@@ -2627,6 +2725,26 @@ export interface operations {
 				};
 				content: {
 					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	get_market_data_api_market_data_get: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MarketData'];
 				};
 			};
 		};

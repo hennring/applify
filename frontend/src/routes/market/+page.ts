@@ -16,9 +16,15 @@ export const load: PageLoad = async ({ fetch, url }) => {
 		weeks: Number(url.searchParams.get('wochen')) || 0,
 		agencies: url.searchParams.get('pd') !== 'nein'
 	};
-	const { data } = await api.GET('/api/market', {
-		fetch,
-		params: { query: filters }
-	});
-	return { tab, filters, market: data ?? null };
+	// The overview carries status and filter options for every tab; each tab loads its own data.
+	const [overview, tabData] = await Promise.all([
+		api.GET('/api/market', { fetch, params: { query: filters } }),
+		tab === 'daten' ? api.GET('/api/market/data', { fetch }) : null
+	]);
+	return {
+		tab,
+		filters,
+		market: overview.data ?? null,
+		marketData: tabData?.data ?? null
+	};
 };

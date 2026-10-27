@@ -1,6 +1,7 @@
 """Python assets of the market analysis (§5.8)."""
 
 from collections.abc import Iterator
+from datetime import UTC, datetime
 
 from applify.config import get_settings
 from applify.db.session import get_engine
@@ -75,9 +76,22 @@ def job_features(
     llm_stats = store.run_llm(
         engine, get_llm(), get_settings().ollama_model, config.llm_budget, context.log.info
     )
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         coverage = _coverage(conn)
         left = store.count_queue(conn)
+        store.record_coverage(
+            conn,
+            context.run_id,
+            {
+                "recorded_at": datetime.now(UTC),
+                "jobs": stats.jobs,
+                "full_text": _full_text_jobs(conn),
+                "coverage": coverage,
+                "llm_processed": llm_stats.processed,
+                "llm_failed": llm_stats.failed,
+                "llm_queue": left,
+            },
+        )
     return MaterializeResult(
         metadata={
             "jobs": stats.jobs,
@@ -89,6 +103,12 @@ def job_features(
             **{f"coverage_{k}": MetadataValue.float(v) for k, v in coverage.items()},
         }
     )
+
+
+def _full_text_jobs(conn: Connection) -> int:
+    from applify.db.models import Job
+
+    return conn.scalar(select(func.count()).select_from(Job).where(Job.has_full_text)) or 0
 
 
 def _coverage(conn: Connection) -> dict[str, float]:

@@ -141,3 +141,12 @@ def test_agency_filter_is_optional() -> None:
     assert "is_agency" not in where
     where, _ = market._where(market.MarketFilter(agencies=False), user_id=1)
     assert "not f.is_agency" in where
+
+
+def test_data_tab_is_empty_without_marts(api: TestClient) -> None:
+    assert api.get("/api/market/data").json() == {
+        "sources": [],
+        "history": [],
+        "checks": [],
+        "runs": [],
+    }

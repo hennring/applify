@@ -79,6 +79,33 @@ llm_cache = Table(
     PrimaryKeyConstraint("input_hash", "prompt_version"),
 )
 
+# Coverage of the features per pipeline run (§5.9, tab "Daten"): the share of full-text
+# jobs with each feature determined, and the state of the LLM queue.
+coverage_history = Table(
+    "coverage_history",
+    metadata,
+    Column("dagster_run_id", String(64), primary_key=True),
+    Column("recorded_at", DateTime(timezone=True), nullable=False),
+    Column("jobs", Integer, nullable=False),
+    Column("full_text", Integer, nullable=False),
+    Column("coverage", JSONB, nullable=False),
+    Column("llm_processed", Integer, nullable=False),
+    Column("llm_failed", Integer, nullable=False),
+    Column("llm_queue", Integer, nullable=False),
+)
+
+# Latest result of each asset check per pipeline run.
+check_results = Table(
+    "check_results",
+    metadata,
+    Column("dagster_run_id", String(64), nullable=False),
+    Column("check_name", String(60), nullable=False),
+    Column("passed", Boolean, nullable=False),
+    Column("detail", JSONB, nullable=False, server_default="{}"),
+    Column("checked_at", DateTime(timezone=True), nullable=False),
+    PrimaryKeyConstraint("dagster_run_id", "check_name"),
+)
+
 # One row per run of the market pipeline, written by the run status sensors; the
 # dashboard reads it to tell whether the analysis is current, running or failed.
 pipeline_runs = Table(
@@ -123,7 +150,13 @@ class LlmStats:
 ADDED_COLUMNS = (("job_features", "is_agency", "boolean NOT NULL DEFAULT false"),)
 
 
+# Key of the advisory lock that serializes the DDL below: pipeline steps run in parallel
+# processes and would otherwise race to create the same new table.
+DDL_LOCK = 0x617070_6C6966
+
+
 def ensure_tables(conn: Connection) -> None:
+    conn.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": DDL_LOCK})
     conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}"))
     metadata.create_all(conn)
     # create_all leaves existing tables alone; columns added later are added here.
@@ -160,6 +193,31 @@ def record_pipeline_run(
                     pipeline_runs.c.search_run_id, stmt.excluded.search_run_id
                 ),
             },
+        )
+    )
+
+
+def record_coverage(conn: Connection, dagster_run_id: str, row: dict[str, Any]) -> None:
+    ensure_tables(conn)
+    stmt = insert(coverage_history).values(dagster_run_id=dagster_run_id, **row)
+    conn.execute(
+        stmt.on_conflict_do_update(
+            index_elements=[coverage_history.c.dagster_run_id],
+            set_={k: stmt.excluded[k] for k in row},
+        )
+    )
+
+
+def record_check(
+    conn: Connection, dagster_run_id: str, name: str, passed: bool, detail: dict[str, Any]
+) -> None:
+    ensure_tables(conn)
+    row = {"passed": passed, "detail": detail, "checked_at": datetime.now(UTC)}
+    stmt = insert(check_results).values(dagster_run_id=dagster_run_id, check_name=name, **row)
+    conn.execute(
+        stmt.on_conflict_do_update(
+            index_elements=[check_results.c.dagster_run_id, check_results.c.check_name],
+            set_={k: stmt.excluded[k] for k in row},
         )
     )
 
