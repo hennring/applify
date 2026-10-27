@@ -465,16 +465,22 @@ def total_score(components: list[Component]) -> int:
     return round(100 * sum(w * v for w, v in known) / total) if total else 0
 
 
-def match_job(
+def score_components(
     job: JobFacts, profile: ProfileData, places: list[ProfilePlace], taxonomy: SkillTaxonomy
-) -> MatchResult:
-    components = [
+) -> list[Component]:
+    return [
         score_skills(job, profile, taxonomy),
         score_role(job, profile),
         score_seniority(job, profile),
         score_location(job, profile, places),
         score_salary(job, profile),
     ]
+
+
+def match_job(
+    job: JobFacts, profile: ProfileData, places: list[ProfilePlace], taxonomy: SkillTaxonomy
+) -> MatchResult:
+    components = score_components(job, profile, places, taxonomy)
     return MatchResult(
         score=total_score(components),
         excluded_reason=hard_filter(job, profile, places, taxonomy),

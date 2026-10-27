@@ -51,7 +51,9 @@ def alias_pattern(alias: str) -> re.Pattern[str]:
     return re.compile(rf"(?<![{edge}]){body}(?![{edge}])", flags)
 
 
+@lru_cache(maxsize=32768)
 def mentions(alias: str, text: str) -> bool:
+    # Cached: the market analysis rates the same texts again for every skill it tries.
     return alias_pattern(alias).search(text) is not None
 
 

@@ -11,6 +11,7 @@ export const TABS = [
 	{ key: 'ich', label: 'Ich & Markt', icon: 'user' },
 	{ key: 'arbeitgeber', label: 'Arbeitgeber', icon: 'building' },
 	{ key: 'regionen', label: 'Regionen', icon: 'map-pin' },
+	{ key: 'dynamik', label: 'Dynamik', icon: 'clock' },
 	{ key: 'daten', label: 'Daten', icon: 'file-text' }
 ] as const satisfies readonly { key: string; label: string; icon: IconName }[];
 export type Tab = (typeof TABS)[number]['key'];

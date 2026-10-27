@@ -6,7 +6,13 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from applify.db.session import get_session
-from applify.services import market, market_employers, market_me, market_regions
+from applify.services import (
+    market,
+    market_dynamics,
+    market_employers,
+    market_me,
+    market_regions,
+)
 from applify.services.skills import get_taxonomy
 from applify.users import get_current_user_id
 
@@ -333,6 +339,56 @@ class MarketRegions(BaseModel):
     distances: list[DistanceBucket]
 
 
+class WeeklyFlow(BaseModel):
+    week: date
+    # Postings first seen in the week, and postings last seen in it that have vanished.
+    new: int
+    gone: int
+
+
+class LifespanGroup(BaseModel):
+    label: str
+    closed: int
+    median_days: float
+
+
+class Lifespan(BaseModel):
+    open: int
+    closed: int
+    min_closed: int
+    median_days: float | None
+    by_role: list[LifespanGroup]
+    by_skill: list[LifespanGroup]
+
+
+class SkillChange(BaseModel):
+    skill: str
+    recent_share: float
+    previous_share: float
+    delta: float
+
+
+class SkillChanges(BaseModel):
+    # False while one of the two windows has too few jobs.
+    ready: bool
+    recent_from: date | None
+    previous_from: date | None
+    recent_jobs: int
+    previous_jobs: int
+    min_window_jobs: int
+    rising: list[SkillChange]
+    falling: list[SkillChange]
+
+
+class MarketDynamics(BaseModel):
+    history_start: date | None
+    history_days: int
+    trend_ready_on: date | None
+    flow: list[WeeklyFlow]
+    lifespan: Lifespan
+    skills: SkillChanges
+
+
 class CandidateIn(BaseModel):
     name: str
     category: str
@@ -394,6 +450,16 @@ def get_market_regions(session: SessionDep, user_id: UserDep, f: FilterDep) -> M
     if not market.marts_available(session):
         return None
     return MarketRegions.model_validate(market_regions.regions(session, user_id, f))
+
+
+@router.get("/dynamics")
+def get_market_dynamics(
+    session: SessionDep, user_id: UserDep, f: FilterDep
+) -> MarketDynamics | None:
+    """Tab "Dynamik" (§5.9): flow of postings, lifespans, rising and falling skills."""
+    if not market.marts_available(session):
+        return None
+    return MarketDynamics.model_validate(market_dynamics.dynamics(session, user_id, f))
 
 
 @router.get("/data")

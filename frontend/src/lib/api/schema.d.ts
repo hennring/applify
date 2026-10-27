@@ -569,6 +569,26 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/market/dynamics': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get Market Dynamics
+		 * @description Tab "Dynamik" (§5.9): flow of postings, lifespans, rising and falling skills.
+		 */
+		get: operations['get_market_dynamics_api_market_dynamics_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/api/market/data': {
 		parameters: {
 			query?: never;
@@ -1173,6 +1193,30 @@ export interface components {
 			 */
 			level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'native';
 		};
+		/** Lifespan */
+		Lifespan: {
+			/** Open */
+			open: number;
+			/** Closed */
+			closed: number;
+			/** Min Closed */
+			min_closed: number;
+			/** Median Days */
+			median_days: number | null;
+			/** By Role */
+			by_role: components['schemas']['LifespanGroup'][];
+			/** By Skill */
+			by_skill: components['schemas']['LifespanGroup'][];
+		};
+		/** LifespanGroup */
+		LifespanGroup: {
+			/** Label */
+			label: string;
+			/** Closed */
+			closed: number;
+			/** Median Days */
+			median_days: number;
+		};
 		/** Location */
 		'Location-Input': {
 			/** Name */
@@ -1217,6 +1261,19 @@ export interface components {
 			checks: components['schemas']['CheckResult'][];
 			/** Runs */
 			runs: components['schemas']['PipelineRun'][];
+		};
+		/** MarketDynamics */
+		MarketDynamics: {
+			/** History Start */
+			history_start: string | null;
+			/** History Days */
+			history_days: number;
+			/** Trend Ready On */
+			trend_ready_on: string | null;
+			/** Flow */
+			flow: components['schemas']['WeeklyFlow'][];
+			lifespan: components['schemas']['Lifespan'];
+			skills: components['schemas']['SkillChanges'];
 		};
 		/** MarketEmployers */
 		MarketEmployers: {
@@ -1804,6 +1861,36 @@ export interface components {
 			/** Jobs */
 			jobs: number;
 		};
+		/** SkillChange */
+		SkillChange: {
+			/** Skill */
+			skill: string;
+			/** Recent Share */
+			recent_share: number;
+			/** Previous Share */
+			previous_share: number;
+			/** Delta */
+			delta: number;
+		};
+		/** SkillChanges */
+		SkillChanges: {
+			/** Ready */
+			ready: boolean;
+			/** Recent From */
+			recent_from: string | null;
+			/** Previous From */
+			previous_from: string | null;
+			/** Recent Jobs */
+			recent_jobs: number;
+			/** Previous Jobs */
+			previous_jobs: number;
+			/** Min Window Jobs */
+			min_window_jobs: number;
+			/** Rising */
+			rising: components['schemas']['SkillChange'][];
+			/** Falling */
+			falling: components['schemas']['SkillChange'][];
+		};
 		/** SkillDemand */
 		SkillDemand: {
 			/** Skill */
@@ -2032,6 +2119,18 @@ export interface components {
 			input?: unknown;
 			/** Context */
 			ctx?: Record<string, never>;
+		};
+		/** WeeklyFlow */
+		WeeklyFlow: {
+			/**
+			 * Week
+			 * Format: date
+			 */
+			week: string;
+			/** New */
+			new: number;
+			/** Gone */
+			gone: number;
 		};
 		/** WeeklyMatches */
 		WeeklyMatches: {
@@ -3111,6 +3210,42 @@ export interface operations {
 				};
 				content: {
 					'application/json': components['schemas']['MarketRegions'] | null;
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	get_market_dynamics_api_market_dynamics_get: {
+		parameters: {
+			query?: {
+				scope?: 'area' | 'germany' | 'all';
+				role?: string;
+				seniority?: string;
+				source?: string;
+				weeks?: number;
+				agencies?: boolean;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MarketDynamics'] | null;
 				};
 			};
 			/** @description Validation Error */

@@ -18,11 +18,12 @@ export const load: PageLoad = async ({ fetch, url }) => {
 	};
 	// The overview carries status and filter options for every tab; each tab loads its own data.
 	const query = { fetch, params: { query: filters } };
-	const [overview, me, employers, regions, marketData] = await Promise.all([
+	const [overview, me, employers, regions, dynamics, marketData] = await Promise.all([
 		api.GET('/api/market', query),
 		tab === 'ich' ? api.GET('/api/market/me', query) : null,
 		tab === 'arbeitgeber' ? api.GET('/api/market/employers', query) : null,
 		tab === 'regionen' ? api.GET('/api/market/regions', query) : null,
+		tab === 'dynamik' ? api.GET('/api/market/dynamics', query) : null,
 		tab === 'daten' ? api.GET('/api/market/data', { fetch }) : null
 	]);
 	return {
@@ -32,6 +33,7 @@ export const load: PageLoad = async ({ fetch, url }) => {
 		me: me?.data ?? null,
 		employers: employers?.data ?? null,
 		regions: regions?.data ?? null,
+		dynamics: dynamics?.data ?? null,
 		marketData: marketData?.data ?? null
 	};
 };

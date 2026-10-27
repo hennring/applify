@@ -14,7 +14,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from applify.db.models import Job
+from applify.db.models import Job, JobMatch
 from applify.schemas.profile import ProfileData, Skill
 from applify.services.geo import get_gazetteer
 from applify.services.market import MarketFilter, query_rows, selection_where
@@ -23,7 +23,8 @@ from applify.services.matching import (
     SKILL_TARGET,
     Component,
     JobFacts,
-    match_job,
+    hard_filter,
+    score_components,
     score_skills,
     total_score,
 )
@@ -61,16 +62,31 @@ def me(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]:
     }
     scorer = Scorer(session, user_id, get_gazetteer(), get_taxonomy())
     jobs = session.scalars(select(Job).where(Job.id.in_(selection))).all()
+    # The hard filters are slow (language patterns over the whole text); their result is
+    # stored with each match and renewed whenever the profile changes.
+    stored = dict(
+        session.execute(
+            select(JobMatch.job_id, JobMatch.excluded_reason).where(
+                JobMatch.user_id == user_id, JobMatch.job_id.in_(selection)
+            )
+        ).all()
+    )
     rated: list[Rated] = []
     excluded = 0
     for job in jobs:
         job_facts = facts(job, scorer.taxonomy)
-        result = match_job(job_facts, scorer.profile, scorer.places, scorer.taxonomy)
-        if result.excluded_reason:
+        profile, places, taxonomy = scorer.profile, scorer.places, scorer.taxonomy
+        reason = (
+            stored[job.id]
+            if job.id in stored
+            else hard_filter(job_facts, profile, places, taxonomy)
+        )
+        if reason:
             excluded += 1
             continue
+        components = score_components(job_facts, profile, places, taxonomy)
         week = selection[job.id].first_seen_week
-        rated.append(Rated(job_facts, result.components, result.score, week))
+        rated.append(Rated(job_facts, components, total_score(components), week))
     profile = scorer.profile
     return {
         "good_score": GOOD_SCORE,

@@ -1633,6 +1633,109 @@
 				}
 			}
 		},
+		"/api/market/dynamics": {
+			"get": {
+				"tags": ["market"],
+				"summary": "Get Market Dynamics",
+				"description": "Tab \"Dynamik\" (\u00a75.9): flow of postings, lifespans, rising and falling skills.",
+				"operationId": "get_market_dynamics_api_market_dynamics_get",
+				"parameters": [
+					{
+						"name": "scope",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": ["area", "germany", "all"],
+							"type": "string",
+							"default": "all",
+							"title": "Scope"
+						}
+					},
+					{
+						"name": "role",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Role"
+						}
+					},
+					{
+						"name": "seniority",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Seniority"
+						}
+					},
+					{
+						"name": "source",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Source"
+						}
+					},
+					{
+						"name": "weeks",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 520,
+							"minimum": 0,
+							"default": 0,
+							"title": "Weeks"
+						}
+					},
+					{
+						"name": "agencies",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": true,
+							"title": "Agencies"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/MarketDynamics"
+										},
+										{
+											"type": "null"
+										}
+									],
+									"title": "Response Get Market Dynamics Api Market Dynamics Get"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/market/data": {
 			"get": {
 				"tags": ["market"],
@@ -3056,6 +3159,69 @@
 				"required": ["language", "level"],
 				"title": "Language"
 			},
+			"Lifespan": {
+				"properties": {
+					"open": {
+						"type": "integer",
+						"title": "Open"
+					},
+					"closed": {
+						"type": "integer",
+						"title": "Closed"
+					},
+					"min_closed": {
+						"type": "integer",
+						"title": "Min Closed"
+					},
+					"median_days": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Median Days"
+					},
+					"by_role": {
+						"items": {
+							"$ref": "#/components/schemas/LifespanGroup"
+						},
+						"type": "array",
+						"title": "By Role"
+					},
+					"by_skill": {
+						"items": {
+							"$ref": "#/components/schemas/LifespanGroup"
+						},
+						"type": "array",
+						"title": "By Skill"
+					}
+				},
+				"type": "object",
+				"required": ["open", "closed", "min_closed", "median_days", "by_role", "by_skill"],
+				"title": "Lifespan"
+			},
+			"LifespanGroup": {
+				"properties": {
+					"label": {
+						"type": "string",
+						"title": "Label"
+					},
+					"closed": {
+						"type": "integer",
+						"title": "Closed"
+					},
+					"median_days": {
+						"type": "number",
+						"title": "Median Days"
+					}
+				},
+				"type": "object",
+				"required": ["label", "closed", "median_days"],
+				"title": "LifespanGroup"
+			},
 			"Location-Input": {
 				"properties": {
 					"name": {
@@ -3154,6 +3320,61 @@
 				"type": "object",
 				"required": ["sources", "history", "checks", "runs"],
 				"title": "MarketData"
+			},
+			"MarketDynamics": {
+				"properties": {
+					"history_start": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "History Start"
+					},
+					"history_days": {
+						"type": "integer",
+						"title": "History Days"
+					},
+					"trend_ready_on": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Trend Ready On"
+					},
+					"flow": {
+						"items": {
+							"$ref": "#/components/schemas/WeeklyFlow"
+						},
+						"type": "array",
+						"title": "Flow"
+					},
+					"lifespan": {
+						"$ref": "#/components/schemas/Lifespan"
+					},
+					"skills": {
+						"$ref": "#/components/schemas/SkillChanges"
+					}
+				},
+				"type": "object",
+				"required": [
+					"history_start",
+					"history_days",
+					"trend_ready_on",
+					"flow",
+					"lifespan",
+					"skills"
+				],
+				"title": "MarketDynamics"
 			},
 			"MarketEmployers": {
 				"properties": {
@@ -4540,6 +4761,99 @@
 				"required": ["name", "jobs"],
 				"title": "SkillCandidate"
 			},
+			"SkillChange": {
+				"properties": {
+					"skill": {
+						"type": "string",
+						"title": "Skill"
+					},
+					"recent_share": {
+						"type": "number",
+						"title": "Recent Share"
+					},
+					"previous_share": {
+						"type": "number",
+						"title": "Previous Share"
+					},
+					"delta": {
+						"type": "number",
+						"title": "Delta"
+					}
+				},
+				"type": "object",
+				"required": ["skill", "recent_share", "previous_share", "delta"],
+				"title": "SkillChange"
+			},
+			"SkillChanges": {
+				"properties": {
+					"ready": {
+						"type": "boolean",
+						"title": "Ready"
+					},
+					"recent_from": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Recent From"
+					},
+					"previous_from": {
+						"anyOf": [
+							{
+								"type": "string",
+								"format": "date"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Previous From"
+					},
+					"recent_jobs": {
+						"type": "integer",
+						"title": "Recent Jobs"
+					},
+					"previous_jobs": {
+						"type": "integer",
+						"title": "Previous Jobs"
+					},
+					"min_window_jobs": {
+						"type": "integer",
+						"title": "Min Window Jobs"
+					},
+					"rising": {
+						"items": {
+							"$ref": "#/components/schemas/SkillChange"
+						},
+						"type": "array",
+						"title": "Rising"
+					},
+					"falling": {
+						"items": {
+							"$ref": "#/components/schemas/SkillChange"
+						},
+						"type": "array",
+						"title": "Falling"
+					}
+				},
+				"type": "object",
+				"required": [
+					"ready",
+					"recent_from",
+					"previous_from",
+					"recent_jobs",
+					"previous_jobs",
+					"min_window_jobs",
+					"rising",
+					"falling"
+				],
+				"title": "SkillChanges"
+			},
 			"SkillDemand": {
 				"properties": {
 					"skill": {
@@ -5083,6 +5397,26 @@
 				"type": "object",
 				"required": ["loc", "msg", "type"],
 				"title": "ValidationError"
+			},
+			"WeeklyFlow": {
+				"properties": {
+					"week": {
+						"type": "string",
+						"format": "date",
+						"title": "Week"
+					},
+					"new": {
+						"type": "integer",
+						"title": "New"
+					},
+					"gone": {
+						"type": "integer",
+						"title": "Gone"
+					}
+				},
+				"type": "object",
+				"required": ["week", "new", "gone"],
+				"title": "WeeklyFlow"
 			},
 			"WeeklyMatches": {
 				"properties": {
