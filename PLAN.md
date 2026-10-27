@@ -2,7 +2,7 @@
 
 > Persönlicher Bewerbungsassistent: findet täglich passende Stellen, bewertet sie gegen das eigene Profil und erzeugt auf Zusage ein fertiges Bewerbungspaket.
 
-Stand: 26.10.2026 · Status: M0–M3 umgesetzt, M4 umgesetzt (Abnahme offen: ≥ 50 Firmen mit Feed, Abdeckungsmessung), M5 umgesetzt (Abnahme offen: Seniorität ≥ 80 % braucht den LLM-Fallback)
+Stand: 27.10.2026 · Status: M0–M3 umgesetzt, M4 umgesetzt (Abnahme offen: ≥ 50 Firmen mit Feed, Abdeckungsmessung), M5 umgesetzt (Abnahme offen: Seniorität ≥ 80 % braucht den LLM-Fallback), M5.1 in Arbeit
 
 ---
 
@@ -121,6 +121,9 @@ Automatischer Zeitplan · Versand per Mail · Quellen der Stufe 2 und 3 (§5.1) 
 | D21 | **Raw-Schicht append-only, von Applify geschrieben**: `raw.job_sightings` je Lauf und Stelle, `raw.job_versions` mit Roh-JSON und Text nur bei geändertem Inhalt | Nur der Suchlauf weiß, was in welchem Lauf gesehen wurde. Append-only erlaubt Historie (first/last seen, Trends) und jederzeit neues Transformieren; Versionen statt Volltext je Sichtung halten das Wachstum klein. | Pipeline liest die App-Tabellen (Rohdaten werden dort überschrieben, Historie nur per Snapshot) |
 | D22 | **Merkmals-Extraktion: Regeln zuerst, LLM-Fallback mit Budget** (max. 50 Stellen pro Lauf), Ergebnisse versioniert (`extractor_version`) und je Text-Hash + Prompt-Version gecacht | Regeln sind schnell, deterministisch und testbar; das LLM füllt nur Lücken (v. a. Gehalt, Abschluss, unklare Rollen) und belegt die GPU begrenzt. Abweichung von D1 ist bewusst: Es geht um Text-Verstehen, nicht um Ranking. | Nur Regeln (lückenhaft); LLM für alles (Stunden GPU-Zeit initial) |
 | D23 | **Dashboard in Applify, Metabase optional** als Container (Compose-Profil `analytics`) mit Nur-Lese-Rolle auf `marts` | Feste Kennzahlen gehören in die App; Metabase dient zum Erkunden und zur Kontrolle der Pipeline, ohne Profil- oder Bewerbungsdaten zu sehen. | Nur BI-Tool (Dashboards nicht im Repo); nur App (keine Ad-hoc-Analysen) |
+| D24 | **Skill-Hebel live im Backend** statt als Mart | Er hängt vom aktuellen Profil ab; vorberechnet wäre er nach jeder Profiländerung veraltet. Der Scorer wird nur im Speicher mit einem zusätzlichen Skill aufgerufen, gespeichert wird nichts. | Mart je Nutzer und Skill (nachts) |
+| D25 | **Personaldienstleister per Regeln** (Firmennamen-Liste, Namensbestandteile, typische Formulierungen), als Filter, standardmäßig eingeschlossen | Transparent und testbar; die Liste liegt in `agencies.yaml` und lässt sich ergänzen. Ausblenden ist eine Sichtweise, keine Bereinigung. | LLM-Klassifikation (GPU-Zeit, schwer prüfbar); fest ausblenden |
+| D26 | **Tech-Stacks automatisch** über häufige Skill-Mengen (Python-Asset), nicht vorgegeben | Zeigt, welche Kombinationen der Markt tatsächlich verlangt, auch unerwartete; maximale Mengen vermeiden Redundanz. | Vordefinierte Stacks in YAML (nur Bekanntes) |
 
 ---
 
@@ -425,9 +428,26 @@ Plus Kopierhilfe-Ansicht (F18). Status wechselt auf „Paket fertig“; „abges
 
 **Dashboard „Markt“:** Applify-API liest nur `marts`. Jede Gehalts- und Erfahrungszahl zeigt n und den Anteil ohne Angabe. Skill-Kandidaten lassen sich per Klick in `skills.yaml` übernehmen (wirkt dann auch aufs Matching).
 
+### 5.9 Marktanalyse ausbauen (M5.1)
+
+Die Seite „Markt“ bekommt Reiter; die Filter (Umfang, Rolle, Stufe, Quelle, Zeitraum, **ohne Personaldienstleister**) gelten für alle, die URL merkt sich den Reiter.
+
+| Reiter | Inhalt | Datenbasis |
+|---|---|---|
+| Überblick | Bisheriges Dashboard (Skills, Lücken, Verlauf, Seniorität, Erfahrung, Gehalt, Kombinationen, Alter, Kandidaten) | Marts aus M5 |
+| Ich & Markt | **Skill-Hebel** (D24): für die ~30 häufigsten fehlenden Skills, wie viele Stellen mit dem Skill (Gewicht „gern“) zu guten Treffern würden; **Passung**: Anteil Stellen mit passenden Berufsjahren, mit Gehalt ≥ Minimum; gute Treffer pro Woche | Scorer im Speicher, `job_matches`, Fakt |
+| Arbeitgeber | Top-Arbeitgeber, viele parallele Stellen, erneut ausgeschriebene Stellen (gleiche Firma + Titel nach Lücke wieder gesehen), Anteil Personaldienstleister (D25) | Fakt, Sichtungen |
+| Regionen | Bundesland je Stelle (GeoNames mit Verwaltungsebene), Deutschlandkarte (SVG, absolut oder je 100.000 Einwohner), Top-Städte, Entfernung zu den Profil-Orten | Fakt, Referenz Bundesländer |
+| Dynamik | Verweildauer verschwundener Stellen je Rolle/Skill (Median), steigende/fallende Skills (Anteil letzte 4 Wochen vs. 4 davor, mit Mindestmengen); Hinweis „belastbar ab …“, solange die Historie zu kurz ist | Sichtungen, `agg_skills_weekly` |
+| Daten | Je Quelle Stellen gesamt und **nur dort** gefunden; Abdeckung der Merkmale über die Zeit (Schnappschuss je Pipeline-Lauf), LLM-Rückstand, Check-Ergebnisse, letzte Pipeline-Läufe | `features.pipeline_runs`, `features.coverage_history` |
+
+Außerdem in allen Reitern nutzbar:
+- **Benefits** (Regeln, kein LLM): Arbeitszeit (4-Tage-Woche, Gleitzeit, Vertrauensarbeitszeit, Teilzeit), Urlaub & Geld (Urlaubstage als Zahl, 13. Gehalt, Bonus, bAV, VWL, Firmenwagen, Dienstrad), Weiterbildung (Budget, Konferenzen, Zertifizierungen, Bildungsurlaub). Anzeige im Überblick: Anteil je Benefit nach Rolle, Verteilung der Urlaubstage.
+- **Tech-Stacks** (D26): häufige Skill-Mengen (3–5 Skills, Mindest-Support) über die Volltext-Stellen, nur maximale Mengen; jede Stelle dem am besten passenden Stack zugeordnet. Anzeige: Stack, Stellen, typische Rollen.
+
 ---
 
-## 6. Fahrplan (≈ 120 h)
+## 6. Fahrplan (≈ 150 h)
 
 Jeder Meilenstein endet mit etwas Lauffähigem. Die LLM-Schicht wandert wegen der CV-Extraktion in M1 nach vorn.
 
@@ -439,10 +459,11 @@ Jeder Meilenstein endet mit etwas Lauffähigem. Die LLM-Schicht wandert wegen de
 | **M3** | Matching & Tagesliste | Harte Filter, Score, Breakdown, Dashboard, Detailseite, „neu/gesehen“, Volltext einfügen + Neubewertung | 12 h | **Erstes Erfolgskriterium prüfbar**: Top 10 manuell bewerten |
 | **M4** | Weitere Quellen & Abdeckung | Adzuna, Arbeitnow, service.bund.de; Tabellen `companies`/`user_companies`/`source_settings`; Discovery aus Treffern, GitHub, Wikidata; Erkennung Karriereseite + ATS; Adapter Personio/Greenhouse/Lever/Recruitee/SmartRecruiters/Workday mit Fixtures; JSON-LD + Sitemap; Vorfilter Ort/Remote; Firmen-Ansicht; Quellen an/aus + Statistik je Quelle; Abdeckungs-Check (Tabelle, Abgleich, Ansicht) | 20 h | ≥ 50 Firmen mit erkanntem ATS/JSON-LD auf der Watchlist, deren Stellen erscheinen **mit Volltext** gerankt in der Liste; **Abdeckungsmessung durchgeführt**, Zielwert ≥ 70 % |
 | **M5** | Marktanalyse (ELT + Dashboard) | Raw-Schicht im Suchlauf (Sichtungen, Versionen); `analytics/`-Projekt mit Dagster + dbt; Regel-Extraktion (Rolle, Seniorität, Jahre, Gehalt, Sprachen, Abschluss) mit `roles.yaml`; LLM-Fallback mit Budget + Cache, Skill-Kandidaten; dbt-Modelle staging/intermediate/marts mit Tests; Sensor + Asset-Checks; Metabase optional mit Nur-Lese-Rolle; API + Seite „Markt“ | 34 h | Nach einem Suchlauf läuft die Pipeline automatisch, dbt-Tests grün; Dashboard zeigt Skills, Erfahrung und Gehalt mit sichtbarer Abdeckung; für ≥ 80 % der Volltext-Stellen sind Rollenfamilie und Seniorität bestimmt |
+| **M5.1** | Marktanalyse ausbauen (§5.9) | Reiter-Aufbau; Personaldienstleister-Erkennung + Filter; Reiter Daten (Quellenwert, Abdeckungs-Historie); Ich & Markt (Skill-Hebel, Passung); Arbeitgeber; Regionen mit Bundesland + Karte; Benefits-Extraktion; Tech-Stacks; Dynamik | 32 h | Alle Reiter zeigen Daten, dbt-Tests grün, Regel-Tests für jedes neue Merkmal; Filter „ohne Personaldienstleister“ wirkt überall; Skill-Hebel antwortet in < 3 s |
 | **M6** | Anschreiben & Paket | Anschreiben-Prompt, Stichpunkt-Prüfung, Editor mit Revisionen, PDF-Template, Paket/ZIP, Kopierhilfe, Bewerbungsliste mit Status | 13 h | Zusage → editierbares Anschreiben → Paket mit 3+ PDFs |
 | **M7** | Puffer & Feinschliff | Fehlerfälle (Ollama nicht erreichbar, Quelle/Feed nicht erreichbar), Tuning der Score-Gewichte am echten Datenbestand, README | 6 h | Eine Woche Eigennutzung ohne Blocker |
 
-**Gesamt: ~120 h.** Wenn es eng wird, zuerst kürzen: Workday-Adapter und Wikidata-Discovery (M4), Metabase und Skill-Kombinationen (M5), Revisionshistorie (M6), CV-Diff (M1), Fuzzy-Dedup (nur Fingerprint).
+**Gesamt: ~150 h.** Wenn es eng wird, zuerst kürzen: Workday-Adapter und Wikidata-Discovery (M4), Metabase und Skill-Kombinationen (M5), Revisionshistorie (M6), CV-Diff (M1), Fuzzy-Dedup (nur Fingerprint).
 
 ---
 
@@ -490,5 +511,5 @@ Jeder Meilenstein endet mit etwas Lauffähigem. Die LLM-Schicht wandert wegen de
 - Layout/Design des Anschreiben-PDFs (eigene Vorlage vorhanden?)
 - Feintuning der Score-Gewichte nach den ersten echten Läufen
 - ~~Chart-Bibliothek für das Markt-Dashboard~~ → keine: eigene Svelte-Komponenten mit SVG/CSS (Balkenliste, Verlauf, gestapelte Balken, Gehaltsspannen), Farben aus einer validierten Palette
-- Region nach Bundesland: braucht GeoNames-Daten mit Verwaltungsebene (`build_geonames` erweitern)
-- Modell `qwen3:14b` ist in Ollama derzeit nicht installiert (Stand 26.10.) → LLM-Fallback und Skill-Kandidaten laufen erst nach `ollama pull qwen3:14b`
+- Region nach Bundesland: braucht GeoNames-Daten mit Verwaltungsebene (`build_geonames` erweitern) → Teil von M5.1
+- ~~Modell `qwen3:14b` in Ollama~~ → installiert, lief nach Neustart des Ollama-Servers (26.10.)
