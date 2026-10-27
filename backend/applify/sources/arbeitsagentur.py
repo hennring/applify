@@ -15,6 +15,8 @@ BASE_URL = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service"
 # Public key of the BA web app, documented at bund.dev.
 API_KEY = "jobboerse-jobsuche"
 PAGE_SIZE = 100
+# Largest radius the search accepts; larger values fail with HTTP 400 (checked 2026-10-27).
+MAX_RADIUS_KM = 200
 # Postings shorter than this are treated as short info (F8).
 MIN_FULL_TEXT = 200
 
@@ -92,7 +94,7 @@ class ArbeitsagenturSource:
             "size": PAGE_SIZE,
         }
         if query.location:
-            params |= {"wo": query.location, "umkreis": query.radius_km}
+            params |= {"wo": query.location, "umkreis": min(query.radius_km, MAX_RADIUS_KM)}
         if query.remote:
             # v6 filter (found in the BA web app, 2026-10-22): minimum home office share.
             # The v4 parameter arbeitszeit=ho no longer matches anything.
