@@ -11,9 +11,10 @@ from applify.services.skills import SKILLS_FILE, SkillTaxonomy
 
 from applify_analytics.features import rules
 
-# Bump when the extraction code changes. Changes to roles.yaml, agencies.yaml, skills.yaml
-# or the LLM prompt are picked up through their content hash, so every job is extracted again.
-RULES_VERSION = 3
+# Changes to the rule code, roles.yaml, agencies.yaml, skills.yaml or the LLM prompt are
+# picked up through their content hash, so every job is extracted again. Bump the number to
+# force a new extraction for other reasons.
+RULES_VERSION = 4
 PROMPT_VERSION = "job_features_v2"
 PROMPT_FILE = Path(__file__).resolve().parents[1] / "prompts" / f"{PROMPT_VERSION}.md"
 
@@ -21,8 +22,17 @@ Origin = Literal["source", "rule", "llm"]
 
 
 def extractor_version() -> str:
-    files = (rules.ROLES_FILE, rules.AGENCIES_FILE, SKILLS_FILE, PROMPT_FILE)
-    digest = hashlib.sha256(b"".join(path.read_bytes() for path in files)).hexdigest()
+    files = (
+        Path(rules.__file__),
+        Path(__file__),
+        rules.ROLES_FILE,
+        rules.AGENCIES_FILE,
+        SKILLS_FILE,
+        PROMPT_FILE,
+    )
+    # Line endings depend on the git checkout, not on the content.
+    content = b"".join(path.read_bytes().replace(b"\r\n", b"\n") for path in files)
+    digest = hashlib.sha256(content).hexdigest()
     return f"{RULES_VERSION}-{digest[:12]}"
 
 
@@ -60,6 +70,9 @@ class Features:
     degrees: list[str] = field(default_factory=list)
     # Posted by a staffing agency or recruiter (D25).
     is_agency: bool = False
+    # Offered benefits (keys of rules.BENEFITS) and vacation days per year (§5.9).
+    benefits: list[str] = field(default_factory=list)
+    vacation_days: int | None = None
     # Per feature where its value comes from; features left out are unknown.
     origin: dict[str, Origin] = field(default_factory=dict)
 
@@ -93,6 +106,12 @@ def extract(job: JobInput, taxonomy: SkillTaxonomy) -> Features:
         features.degrees = found
         features.origin["degrees"] = "rule"
     features.is_agency = rules.get_agency_rules().is_agency(job.company, text)
+    if found := rules.benefits(text):
+        features.benefits = found
+        features.origin["benefits"] = "rule"
+    if (days := rules.vacation_days(text)) is not None:
+        features.vacation_days = days
+        features.origin["vacation_days"] = "rule"
     return features
 
 

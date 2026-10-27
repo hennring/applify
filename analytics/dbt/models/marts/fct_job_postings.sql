@@ -22,6 +22,7 @@ select
     coalesce(f.seniority, 'unknown') as seniority,
     f.years_min,
     f.years_max,
+    f.vacation_days,
     f.salary_currency,
     f.salary_period,
     f.salary_min_eur,

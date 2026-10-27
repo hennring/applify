@@ -86,11 +86,30 @@ SENIOR_FROM_YEARS = 5
 MAX_YEARS = 15
 
 NUMBER_WORDS = {
-    "ein": 1, "einem": 1, "einen": 1, "eins": 1, "one": 1,
-    "zwei": 2, "two": 2, "drei": 3, "three": 3, "vier": 4, "four": 4,
-    "fünf": 5, "five": 5, "sechs": 6, "six": 6, "sieben": 7, "seven": 7,
-    "acht": 8, "eight": 8, "neun": 9, "nine": 9, "zehn": 10, "ten": 10,
-}  # fmt: skip
+    "ein": 1,
+    "einem": 1,
+    "einen": 1,
+    "eins": 1,
+    "one": 1,
+    "zwei": 2,
+    "two": 2,
+    "drei": 3,
+    "three": 3,
+    "vier": 4,
+    "four": 4,
+    "fünf": 5,
+    "five": 5,
+    "sechs": 6,
+    "six": 6,
+    "sieben": 7,
+    "seven": 7,
+    "acht": 8,
+    "eight": 8,
+    "neun": 9,
+    "nine": 9,
+    "zehn": 10,
+    "ten": 10,
+}
 _NUM = r"(\d{1,2}|" + "|".join(NUMBER_WORDS) + r")"
 YEARS = re.compile(
     rf"\b{_NUM}\s*(\+|plus)?\s*(?:(?:-|–|bis|to)\s*{_NUM}\s*)?"
@@ -327,3 +346,89 @@ def get_agency_rules(path: Path = AGENCIES_FILE) -> AgencyRules:
     return AgencyRules(
         compile_words(data["names"]), compile_words(data["name_parts"]), compile_words(data["text"])
     )
+
+
+# --- benefits -----------------------------------------------------------------------------
+
+# Offered benefits, in display order (§5.9): working time, vacation and money, learning.
+BENEFITS = {
+    "four_day_week": re.compile(
+        r"\b(4|vier)[\s-]*tage[\s-]*woche|\b4[\s-]*day[\s-]*(work[\s-]*)?week", re.I
+    ),
+    "flextime": re.compile(r"gleitzeit|flexible?n? arbeitszeit\w*|flexible (working )?hours", re.I),
+    "trust_time": re.compile(r"vertrauensarbeitszeit", re.I),
+    "part_time": re.compile(r"teilzeit|part[\s-]*time", re.I),
+    "special_payments": re.compile(
+        r"13\.\s*(monats)?gehalt|weihnachtsgeld|urlaubsgeld|13th[\s-]*(month|salary)", re.I
+    ),
+    "bonus": re.compile(
+        r"\bbonus\w*|\bprämie\w*|erfolgsbeteiligung|gewinnbeteiligung|profit[\s-]*sharing|"
+        r"variable[nr]? (vergütung|gehaltsbestandteil\w*)",
+        re.I,
+    ),
+    "pension": re.compile(
+        r"betriebliche\w* altersvorsorge|\bbav\b|betriebsrente|pensionskasse|"
+        r"pension (plan|scheme)|retirement plan|401\(k\)",
+        re.I,
+    ),
+    "capital_benefits": re.compile(r"vermögenswirksame\w* leistung\w*|\bvwl\b", re.I),
+    "company_car": re.compile(r"firmenwagen|dienstwagen|company car", re.I),
+    "bike": re.compile(
+        r"job[\s-]*rad|dienst(fahr)?rad|(bike|fahrrad)[\s-]*leasing|jobbike|business[\s-]*bike",
+        re.I,
+    ),
+    "training_budget": re.compile(
+        r"(weiterbildungs|fortbildungs|lern|learning|education|training|development)[\s-]*budget|"
+        r"budget (für|for) (deine |your )?(weiterbildung|fortbildung|learning|training)",
+        re.I,
+    ),
+    "conferences": re.compile(r"konferenz\w*|conferences?\b|meetups?\b", re.I),
+    "certifications": re.compile(r"zertifizierung\w*|certifications?\b", re.I),
+    "education_leave": re.compile(r"bildungsurlaub", re.I),
+}
+# Certifications are often a requirement; they count only where the employer pays or helps.
+SUPPORTED = re.compile(
+    r"übernehm|übernimm|finanzier|bezahl|kosten|unterstütz|förder|budget|sponsor|ermöglich|"
+    r"möglichkeit|paid|cover|support|opportunit",
+    re.I,
+)
+# "Kenntnisse in X sind ein Bonus", "Bonus Skills", a heading "## Bonus": nice-to-haves,
+# not a bonus payment.
+BONUS_AS_PLUS = re.compile(
+    r"\b(is|are|ist|sind|wäre|would be|als)\s+(a\s+|ein\s+)?(big\s+|great\s+|großer\s+)?bonus|"
+    r"bonus[\s-]*(skills?|points?|qualifications?|experience|if|wenn)\b|^\W*bonus\W*$",
+    re.IGNORECASE,
+)
+VACATION = re.compile(
+    r"(\d{2})\s*(?:\+\s*\d+\s*)?(?:urlaubstage|(?:paid\s+)?vacation\s+days|"
+    r"(?:tage|days|arbeitstage|working days|calendar days)\b[^\n.\d]{0,20}?"
+    r"(?:\w*urlaub\w*|vacation|pto\b|paid time off|annual leave))"
+    r"|(?:\w*urlaub\w*|vacation|pto|paid time off|annual leave)\b[^\n\d]{0,25}?"
+    r"(\d{2})\s*(?:tage|days|urlaubstage)\b",
+    re.IGNORECASE,
+)
+VACATION_RANGE = (20, 40)
+
+
+def benefits(text: str) -> list[str]:
+    """Benefits a posting offers, as keys of BENEFITS."""
+    found: set[str] = set()
+    for line in text.splitlines():
+        for key, pattern in BENEFITS.items():
+            if key in found or not (match := pattern.search(line)):
+                continue
+            if key == "certifications" and not SUPPORTED.search(line):
+                continue
+            if key == "bonus" and BONUS_AS_PLUS.search(line) and match.group().lower() == "bonus":
+                continue
+            found.add(key)
+    return [key for key in BENEFITS if key in found]
+
+
+def vacation_days(text: str) -> int | None:
+    """Vacation days per year, if the posting names a plausible number (20 to 40)."""
+    for match in VACATION.finditer(text):
+        days = int(match.group(1) or match.group(2))
+        if VACATION_RANGE[0] <= days <= VACATION_RANGE[1]:
+            return days
+    return None

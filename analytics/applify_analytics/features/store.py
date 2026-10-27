@@ -61,6 +61,8 @@ job_features = Table(
     Column("languages", JSONB, nullable=False, server_default="{}"),
     Column("degrees", ARRAY(String), nullable=False, server_default="{}"),
     Column("is_agency", Boolean, nullable=False, server_default="false"),
+    Column("benefits", ARRAY(String), nullable=False, server_default="{}"),
+    Column("vacation_days", Integer),
     Column("origin", JSONB, nullable=False, server_default="{}"),
     Column("extracted_at", DateTime(timezone=True), nullable=False),
 )
@@ -147,7 +149,11 @@ class LlmStats:
     failed: int
 
 
-ADDED_COLUMNS = (("job_features", "is_agency", "boolean NOT NULL DEFAULT false"),)
+ADDED_COLUMNS = (
+    ("job_features", "is_agency", "boolean NOT NULL DEFAULT false"),
+    ("job_features", "benefits", "varchar[] NOT NULL DEFAULT '{}'"),
+    ("job_features", "vacation_days", "integer"),
+)
 
 
 # Key of the advisory lock that serializes the DDL below: pipeline steps run in parallel
@@ -156,12 +162,34 @@ DDL_LOCK = 0x617070_6C6966
 
 
 def ensure_tables(conn: Connection) -> None:
+    """Create missing tables and columns. DDL only runs if something is missing: even
+    ADD COLUMN IF NOT EXISTS locks the table and would deadlock with parallel readers."""
+    if not _missing(conn):
+        return
     conn.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": DDL_LOCK})
     conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}"))
     metadata.create_all(conn)
     # create_all leaves existing tables alone; columns added later are added here.
     for table, column, ddl in ADDED_COLUMNS:
         conn.execute(text(f"ALTER TABLE {SCHEMA}.{table} ADD COLUMN IF NOT EXISTS {column} {ddl}"))
+
+
+def _missing(conn: Connection) -> bool:
+    """Whether a table or added column is missing (catalog lookup, takes no table locks)."""
+    present = {
+        (row.table_name, row.column_name)
+        for row in conn.execute(
+            text(
+                "SELECT table_name, column_name FROM information_schema.columns "
+                "WHERE table_schema = :schema"
+            ),
+            {"schema": SCHEMA},
+        )
+    }
+    tables = {table for table, _ in present}
+    return any(t.name not in tables for t in metadata.sorted_tables) or any(
+        (table, column) not in present for table, column, _ in ADDED_COLUMNS
+    )
 
 
 def record_pipeline_run(

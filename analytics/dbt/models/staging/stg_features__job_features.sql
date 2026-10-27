@@ -13,6 +13,8 @@ select
     languages,
     degrees,
     is_agency,
+    benefits,
+    vacation_days,
     origin,
     origin ->> 'role_family' as role_family_origin,
     origin ->> 'seniority' as seniority_origin,

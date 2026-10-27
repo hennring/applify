@@ -196,3 +196,41 @@ export const weightBadges: Record<string, string> = {
 	nice: 'gern',
 	avoid: 'will ich nicht'
 };
+
+// Benefits from the market analysis (§5.9), grouped and in display order.
+export const benefitGroups: { label: string; benefits: Record<string, string> }[] = [
+	{
+		label: 'Arbeitszeit',
+		benefits: {
+			four_day_week: '4-Tage-Woche',
+			flextime: 'Gleitzeit / flexible Zeiten',
+			trust_time: 'Vertrauensarbeitszeit',
+			part_time: 'Teilzeit möglich'
+		}
+	},
+	{
+		label: 'Urlaub & Geld',
+		benefits: {
+			special_payments: '13. Gehalt / Urlaubs- und Weihnachtsgeld',
+			bonus: 'Bonus / Erfolgsbeteiligung',
+			pension: 'Betriebliche Altersvorsorge',
+			capital_benefits: 'Vermögenswirksame Leistungen',
+			company_car: 'Firmenwagen',
+			bike: 'Dienstrad / JobRad'
+		}
+	},
+	{
+		label: 'Weiterbildung',
+		benefits: {
+			training_budget: 'Weiterbildungsbudget',
+			conferences: 'Konferenzen',
+			certifications: 'Zertifizierungen',
+			education_leave: 'Bildungsurlaub'
+		}
+	}
+];
+
+export const benefitLabels: Record<string, string> = Object.assign(
+	{},
+	...benefitGroups.map((g) => g.benefits)
+);

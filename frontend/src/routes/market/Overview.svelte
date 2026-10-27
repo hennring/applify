@@ -3,7 +3,14 @@
 	import { resolve } from '$app/paths';
 	import { api, errorMessage, type Schemas } from '#lib/api/client.ts';
 	import Icon from '#lib/components/Icon.svelte';
-	import { formatDate, seniorityLabels, skillCategoryLabels, weightBadges } from '#lib/labels.ts';
+	import {
+		benefitGroups,
+		benefitLabels,
+		formatDate,
+		seniorityLabels,
+		skillCategoryLabels,
+		weightBadges
+	} from '#lib/labels.ts';
 	import BarList, { type Bar } from '#lib/viz/BarList.svelte';
 	import RangeBars from '#lib/viz/RangeBars.svelte';
 	import StackedBars from '#lib/viz/StackedBars.svelte';
@@ -185,6 +192,84 @@
 			{/if}
 		</section>
 
+		{#if market.benefits.length}
+			<section class="card wide">
+				<h2><Icon name="wallet" size={18} /> Benefits</h2>
+				<div class="benefits">
+					<div>
+						{#each benefitGroups as group (group.label)}
+							{@const bars = market.benefits.filter((b) => b.benefit in group.benefits)}
+							{#if bars.length}
+								<h3>{group.label}</h3>
+								<BarList
+									bars={bars.map((b) => ({
+										label: group.benefits[b.benefit],
+										value: b.share,
+										valueText: formatPercent(b.share),
+										detail: `${group.benefits[b.benefit]}: ${b.jobs} Stellen (${formatPercent(b.share)} der Volltext-Stellen)`
+									}))}
+								/>
+							{/if}
+						{/each}
+					</div>
+					<div>
+						{#if market.vacation?.known}
+							<h3>Urlaubstage</h3>
+							<p class="headline">
+								<strong>{market.vacation.median} Tage</strong>
+								<span class="muted">Median aus {market.vacation.known} Anzeigen mit Angabe</span>
+							</p>
+							<BarList
+								bars={market.vacation.buckets.map((b) => ({
+									label: `${b.bucket} Tage`,
+									value: b.jobs,
+									valueText: `${b.jobs}`,
+									detail: `${b.bucket} Tage Urlaub: ${b.jobs} Stellen`
+								}))}
+							/>
+						{/if}
+					</div>
+				</div>
+				{#if market.benefit_roles.length}
+					<h3>Nach Rolle</h3>
+					<div class="scroll">
+						<table class="heat">
+							<thead>
+								<tr>
+									<th>Benefit</th>
+									{#each market.benefit_roles as role (role.role_family)}
+										<th class="num"
+											>{role.label}<span class="muted small block">{role.jobs} Stellen</span></th
+										>
+									{/each}
+								</tr>
+							</thead>
+							<tbody>
+								{#each market.benefits as b (b.benefit)}
+									<tr>
+										<td>{benefitLabels[b.benefit] ?? b.benefit}</td>
+										{#each market.benefit_roles as role (role.role_family)}
+											{@const share = role.shares[b.benefit] ?? 0}
+											<td
+												class="num"
+												style:background="color-mix(in srgb, var(--series-1) {Math.round(
+													share * 60
+												)}%, transparent)">{formatPercent(share)}</td
+											>
+										{/each}
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{/if}
+				<p class="muted small">
+					Aus dem Anzeigentext per Regeln erkannt; Anteile beziehen sich auf die Volltext-Stellen.
+					Was eine Anzeige nicht nennt, kann es trotzdem geben.
+				</p>
+			</section>
+		{/if}
+
 		{#if market.age}
 			{@const age = market.age}
 			<section class="card wide">
@@ -296,6 +381,27 @@
 {/if}
 
 <style>
+	.benefits {
+		display: grid;
+		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+		gap: 1.5rem;
+		align-items: start;
+	}
+	@media (max-width: 1000px) {
+		.benefits {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+	h3 {
+		font-size: 0.95rem;
+		margin: 0.75rem 0 0.4rem;
+	}
+	.scroll {
+		overflow-x: auto;
+	}
+	.heat th {
+		vertical-align: bottom;
+	}
 	.age {
 		display: grid;
 		grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);

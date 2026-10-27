@@ -131,6 +131,27 @@ class SkillCandidate(BaseModel):
     jobs: int
 
 
+class BenefitShare(BaseModel):
+    benefit: str
+    jobs: int
+    # Of the full-text jobs in the selection.
+    share: float
+
+
+class BenefitRole(BaseModel):
+    role_family: str
+    label: str
+    jobs: int
+    # Benefit → share of the role family's full-text jobs.
+    shares: dict[str, float]
+
+
+class VacationDays(BaseModel):
+    known: int
+    median: int | None
+    buckets: list[YearsBucket]
+
+
 class MarketOverview(BaseModel):
     # False until the analytics pipeline has built the marts once.
     available: bool
@@ -146,6 +167,9 @@ class MarketOverview(BaseModel):
     seniority: list[SeniorityMix] = []
     years: list[YearsBucket] = []
     age: JobAge | None = None
+    benefits: list[BenefitShare] = []
+    benefit_roles: list[BenefitRole] = []
+    vacation: VacationDays | None = None
     salary: list[SalaryGroup] = []
     candidates: list[SkillCandidate] = []
     categories: list[str] = []

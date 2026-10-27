@@ -663,6 +663,28 @@ export interface components {
 			/** Change Ids */
 			change_ids: string[];
 		};
+		/** BenefitRole */
+		BenefitRole: {
+			/** Role Family */
+			role_family: string;
+			/** Label */
+			label: string;
+			/** Jobs */
+			jobs: number;
+			/** Shares */
+			shares: {
+				[key: string]: number;
+			};
+		};
+		/** BenefitShare */
+		BenefitShare: {
+			/** Benefit */
+			benefit: string;
+			/** Jobs */
+			jobs: number;
+			/** Share */
+			share: number;
+		};
 		/** Body_upload_document_api_documents_post */
 		Body_upload_document_api_documents_post: {
 			/**
@@ -1272,6 +1294,17 @@ export interface components {
 			 */
 			years: components['schemas']['YearsBucket'][];
 			age?: components['schemas']['JobAge'] | null;
+			/**
+			 * Benefits
+			 * @default []
+			 */
+			benefits: components['schemas']['BenefitShare'][];
+			/**
+			 * Benefit Roles
+			 * @default []
+			 */
+			benefit_roles: components['schemas']['BenefitRole'][];
+			vacation?: components['schemas']['VacationDays'] | null;
 			/**
 			 * Salary
 			 * @default []
@@ -1963,6 +1996,15 @@ export interface components {
 			skill: string;
 			/** Shares */
 			shares: number[];
+		};
+		/** VacationDays */
+		VacationDays: {
+			/** Known */
+			known: number;
+			/** Median */
+			median: number | null;
+			/** Buckets */
+			buckets: components['schemas']['YearsBucket'][];
 		};
 		/** ValidationError */
 		ValidationError: {

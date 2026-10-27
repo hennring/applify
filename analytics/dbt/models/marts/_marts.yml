@@ -146,3 +146,16 @@ models:
     columns:
       - name: distance_km
         data_tests: [not_null]
+
+  - name: bridge_job_benefits
+    description: "Benefits offered per job (grain: job, benefit)."
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [job_id, benefit]
+    columns:
+      - name: benefit
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [four_day_week, flextime, trust_time, part_time, special_payments, bonus, pension, capital_benefits, company_car, bike, training_budget, conferences, certifications, education_leave]

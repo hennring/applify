@@ -33,6 +33,15 @@ AGE_BUCKETS = (
     ("> 1 Jahr", 365, 1_000_000),
 )
 AGE_LIST_LIMIT = 15
+VACATION_BUCKETS = (
+    ("20–24", 20, 24),
+    ("25–27", 25, 27),
+    ("28–29", 28, 29),
+    ("30", 30, 30),
+    ("31+", 31, 40),
+)
+# Role families compared in the benefit table.
+BENEFIT_ROLES = 5
 SENIORITY_ORDER = ("student", "junior", "mid", "senior", "lead", "unknown")
 
 
@@ -221,6 +230,7 @@ def overview(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]:
         "seniority": _seniority(session, full, params),
         "years": _years(session, full, params),
         "age": _age(session, jobs, params),
+        **_benefits(session, full, params, full_text),
         "salary": _salary(session, full, params, by_seniority=f.role not in ("", "mine")),
         "candidates": _candidates(session, full, params, get_taxonomy()),
     }
@@ -315,6 +325,75 @@ def _years(session: Session, full: str, params: dict[str, Any]) -> list[dict[str
         {"bucket": label, "jobs": sum(1 for r in rows if low <= r.years_min <= high)}
         for label, low, high in YEAR_BUCKETS
     ]
+
+
+def _benefits(
+    session: Session, full: str, params: dict[str, Any], full_text: int
+) -> dict[str, Any]:
+    """Share of full-text jobs offering each benefit, overall and for the largest role
+    families; vacation days where a posting names them."""
+    overall = query_rows(
+        session,
+        f"""select b.benefit, count(*) as jobs
+        from ({full}) j join marts.bridge_job_benefits b using (job_id)
+        group by b.benefit""",
+        params,
+    )
+    roles = query_rows(
+        session,
+        f"""select j.role_family, d.label, count(*) as jobs
+        from ({full}) j join marts.dim_role_family d using (role_family)
+        where j.role_family <> 'unknown'
+        group by 1, 2 order by jobs desc, 1 limit {BENEFIT_ROLES}""",
+        params,
+    )
+    by_role = query_rows(
+        session,
+        f"""select j.role_family, b.benefit, count(*) as jobs
+        from ({full}) j join marts.bridge_job_benefits b using (job_id)
+        group by 1, 2""",
+        params,
+    )
+    counts = {(r.role_family, r.benefit): r.jobs for r in by_role}
+    days = sorted(
+        r.vacation_days
+        for r in query_rows(
+            session,
+            f"select vacation_days from ({full}) j where vacation_days is not null",
+            params,
+        )
+    )
+    return {
+        "benefits": [
+            {
+                "benefit": r.benefit,
+                "jobs": r.jobs,
+                "share": r.jobs / full_text if full_text else 0.0,
+            }
+            for r in sorted(overall, key=lambda r: -r.jobs)
+        ],
+        "benefit_roles": [
+            {
+                "role_family": r.role_family,
+                "label": r.label,
+                "jobs": r.jobs,
+                "shares": {
+                    benefit: n / r.jobs
+                    for (family, benefit), n in counts.items()
+                    if family == r.role_family
+                },
+            }
+            for r in roles
+        ],
+        "vacation": {
+            "known": len(days),
+            "median": days[len(days) // 2] if days else None,
+            "buckets": [
+                {"bucket": label, "jobs": sum(low <= d <= high for d in days)}
+                for label, low, high in VACATION_BUCKETS
+            ],
+        },
+    }
 
 
 def _age(session: Session, jobs: str, params: dict[str, Any]) -> dict[str, Any]:

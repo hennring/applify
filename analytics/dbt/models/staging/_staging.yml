@@ -34,6 +34,12 @@ models:
               arguments:
                 min_value: 15000
                 max_value: 300000
+      - name: vacation_days
+        data_tests:
+          - value_range:
+              arguments:
+                min_value: 20
+                max_value: 40
   - name: stg_features__skill_taxonomy
     columns:
       - name: skill

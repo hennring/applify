@@ -1,13 +1,17 @@
+from pathlib import Path
+
 import pytest
 
 from applify_analytics.features.rules import (
     Salary,
+    benefits,
     degrees,
     get_agency_rules,
     get_role_rules,
     required_years,
     salary_in_text,
     seniority,
+    vacation_days,
     yearly_eur,
 )
 
@@ -173,3 +177,75 @@ def test_staffing_agencies(company: str, text: str) -> None:
 )
 def test_direct_employers(company: str, text: str) -> None:
     assert not get_agency_rules().is_agency(company, text)
+
+
+@pytest.mark.parametrize(
+    ("text", "days"),
+    [
+        ("- 30 Tage Urlaub, flexible Arbeitszeitgestaltung", 30),
+        ("Gesundheitsprävention, 30 Urlaubstage", 30),
+        ("- Wir bieten 30 Tage Jahresurlaub, 1 Brauchtumstag", 30),
+        ("Paid Time Off: 4 weeks (20 working days) of PTO per year", 20),
+        ("- 25 Urlaubstage + lokale Feiertage", 25),
+        ("- Bis zu 34 Urlaubstage", 34),
+        ("You will receive 24 vacation days per year", 24),
+        ("- Urlaub – 30 Tage + 1 persönlicher Feiertag", 30),
+        ("- __28 Tage Urlaubsanspruc__h sowie", 28),
+        ("Recharge - with 31 vacation days annually", 31),
+        ("12 paid holidays including 4 global days", None),
+        ("Unlimited paid time off", None),
+        ("Du hast 5 Jahre Erfahrung", None),
+    ],
+)
+def test_vacation_days(text: str, days: int | None) -> None:
+    assert vacation_days(text) == days
+
+
+def test_benefits() -> None:
+    text = """Was wir bieten:
+- 4-Tage-Woche bei vollem Gehalt, Gleitzeit und Vertrauensarbeitszeit
+- Urlaubs- und Weihnachtsgeld, betriebliche Altersvorsorge, JobRad
+- Weiterbildungsbudget von 2.000 € und Teilnahme an Konferenzen
+- Wir übernehmen die Kosten für Zertifizierungen"""
+    assert benefits(text) == [
+        "four_day_week",
+        "flextime",
+        "trust_time",
+        "special_payments",
+        "pension",
+        "bike",
+        "training_budget",
+        "conferences",
+        "certifications",
+    ]
+
+
+def test_requirements_are_no_benefits() -> None:
+    text = """Dein Profil:
+- AWS-Zertifizierungen sind von Vorteil
+- Erfahrung mit Kubernetes is a bonus"""
+    assert benefits(text) == []
+
+
+@pytest.mark.parametrize(
+    "line",
+    ["## Bonus", "Bonus Skills", "⭐️ Bonus points", "- Fluent English (French is a bonus)"],
+)
+def test_nice_to_haves_are_no_bonus(line: str) -> None:
+    assert "bonus" not in benefits(line)
+
+
+def test_bonus_payment() -> None:
+    assert benefits("Compensation: €65K – €105K • Offers Bonus") == ["bonus"]
+
+
+def test_dbt_accepts_every_benefit() -> None:
+    import yaml
+
+    from applify_analytics.features.rules import BENEFITS
+
+    marts = Path(__file__).parents[1] / "dbt" / "models" / "marts" / "_marts.yml"
+    models = {m["name"]: m for m in yaml.safe_load(marts.read_text(encoding="utf-8"))["models"]}
+    (column,) = models["bridge_job_benefits"]["columns"]
+    (test,) = column["data_tests"]
+    assert test["accepted_values"]["arguments"]["values"] == list(BENEFITS)

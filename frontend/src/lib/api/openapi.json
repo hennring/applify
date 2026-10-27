@@ -1833,6 +1833,51 @@
 				"required": ["document_id", "change_ids"],
 				"title": "ApplyCvChanges"
 			},
+			"BenefitRole": {
+				"properties": {
+					"role_family": {
+						"type": "string",
+						"title": "Role Family"
+					},
+					"label": {
+						"type": "string",
+						"title": "Label"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"shares": {
+						"additionalProperties": {
+							"type": "number"
+						},
+						"type": "object",
+						"title": "Shares"
+					}
+				},
+				"type": "object",
+				"required": ["role_family", "label", "jobs", "shares"],
+				"title": "BenefitRole"
+			},
+			"BenefitShare": {
+				"properties": {
+					"benefit": {
+						"type": "string",
+						"title": "Benefit"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"share": {
+						"type": "number",
+						"title": "Share"
+					}
+				},
+				"type": "object",
+				"required": ["benefit", "jobs", "share"],
+				"title": "BenefitShare"
+			},
 			"Body_upload_document_api_documents_post": {
 				"properties": {
 					"type": {
@@ -3321,6 +3366,32 @@
 						"anyOf": [
 							{
 								"$ref": "#/components/schemas/JobAge"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"benefits": {
+						"items": {
+							"$ref": "#/components/schemas/BenefitShare"
+						},
+						"type": "array",
+						"title": "Benefits",
+						"default": []
+					},
+					"benefit_roles": {
+						"items": {
+							"$ref": "#/components/schemas/BenefitRole"
+						},
+						"type": "array",
+						"title": "Benefit Roles",
+						"default": []
+					},
+					"vacation": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/VacationDays"
 							},
 							{
 								"type": "null"
@@ -4914,6 +4985,35 @@
 				"type": "object",
 				"required": ["skill", "shares"],
 				"title": "TrendSeries"
+			},
+			"VacationDays": {
+				"properties": {
+					"known": {
+						"type": "integer",
+						"title": "Known"
+					},
+					"median": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Median"
+					},
+					"buckets": {
+						"items": {
+							"$ref": "#/components/schemas/YearsBucket"
+						},
+						"type": "array",
+						"title": "Buckets"
+					}
+				},
+				"type": "object",
+				"required": ["known", "median", "buckets"],
+				"title": "VacationDays"
 			},
 			"ValidationError": {
 				"properties": {
