@@ -42,3 +42,16 @@ def test_distance() -> None:
     assert distance_km(leipzig.lat, leipzig.lon, dresden.lat, dresden.lon) == pytest.approx(
         100, abs=3
     )
+
+
+@pytest.mark.parametrize(
+    ("text", "city"),
+    [
+        ("Zentrum, Leipzig", "Leipzig"),
+        ("Chemnitz, Sachsen", "Chemnitz"),
+        ("04109 Leipzig", "Leipzig"),
+        ("Ammerbach, Jena", "Jena"),
+    ],
+)
+def test_city_of_district_or_state_suffix(text: str, city: str) -> None:
+    assert get_gazetteer().city(text) == city

@@ -37,6 +37,10 @@ sources:
         description: Role families from roles.yaml (written by Dagster).
       - name: profile_role_families
         description: Desired roles of each profile mapped to role families.
+      - name: states
+        description: German states with population (written by Dagster from states.json).
+      - name: job_regions
+        description: Federal state of each job with coordinates (written by Dagster).
 
   - name: app
     description: Operational tables of Applify; read only through the staging models.

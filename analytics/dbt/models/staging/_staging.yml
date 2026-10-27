@@ -43,5 +43,19 @@ models:
       - name: role_family
         data_tests: [unique, not_null]
   - name: stg_features__profile_role_families
+  - name: stg_features__states
+    columns:
+      - name: state_code
+        data_tests: [unique, not_null]
+  - name: stg_features__job_regions
+    columns:
+      - name: job_id
+        data_tests: [unique, not_null]
+      - name: state_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_features__states')
+                field: state_code
   - name: stg_app__profile_skills
   - name: stg_app__profile_locations

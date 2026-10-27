@@ -1,4 +1,5 @@
--- Jobs within the radius of one of a user's places (haversine, km).
+-- Distance of each job with coordinates to the nearest of a user's places (haversine, km),
+-- and whether it lies within that place's radius.
 with distances as (
     select
         l.user_id,
@@ -13,7 +14,10 @@ with distances as (
     where j.lat is not null
 )
 
-select user_id, job_id, min(distance_km) as distance_km
+select
+    user_id,
+    job_id,
+    min(distance_km) as distance_km,
+    bool_or(distance_km <= radius_km) as within_radius
 from distances
-where distance_km <= radius_km
 group by user_id, job_id

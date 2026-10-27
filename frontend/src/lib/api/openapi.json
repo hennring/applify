@@ -1530,6 +1530,109 @@
 				}
 			}
 		},
+		"/api/market/regions": {
+			"get": {
+				"tags": ["market"],
+				"summary": "Get Market Regions",
+				"description": "Tab \"Regionen\" (\u00a75.9): jobs per state and city, distance to the profile's places.",
+				"operationId": "get_market_regions_api_market_regions_get",
+				"parameters": [
+					{
+						"name": "scope",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": ["area", "germany", "all"],
+							"type": "string",
+							"default": "all",
+							"title": "Scope"
+						}
+					},
+					{
+						"name": "role",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Role"
+						}
+					},
+					{
+						"name": "seniority",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Seniority"
+						}
+					},
+					{
+						"name": "source",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Source"
+						}
+					},
+					{
+						"name": "weeks",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 520,
+							"minimum": 0,
+							"default": 0,
+							"title": "Weeks"
+						}
+					},
+					{
+						"name": "agencies",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": true,
+							"title": "Agencies"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/MarketRegions"
+										},
+										{
+											"type": "null"
+										}
+									],
+									"title": "Response Get Market Regions Api Market Regions Get"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/market/data": {
 			"get": {
 				"tags": ["market"],
@@ -1875,6 +1978,25 @@
 				"type": "object",
 				"required": ["check_name", "passed", "detail", "checked_at"],
 				"title": "CheckResult"
+			},
+			"CityJobs": {
+				"properties": {
+					"city": {
+						"type": "string",
+						"title": "City"
+					},
+					"state_code": {
+						"type": "string",
+						"title": "State Code"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					}
+				},
+				"type": "object",
+				"required": ["city", "state_code", "jobs"],
+				"title": "CityJobs"
 			},
 			"CompanyIn": {
 				"properties": {
@@ -2325,6 +2447,21 @@
 				"type": "object",
 				"required": ["document_id", "filename", "extracted_at", "changes", "dropped_skills"],
 				"title": "CvChanges"
+			},
+			"DistanceBucket": {
+				"properties": {
+					"bucket": {
+						"type": "string",
+						"title": "Bucket"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					}
+				},
+				"type": "object",
+				"required": ["bucket", "jobs"],
+				"title": "DistanceBucket"
 			},
 			"DocumentOut": {
 				"properties": {
@@ -3218,6 +3355,46 @@
 				"type": "object",
 				"required": ["available", "analysis"],
 				"title": "MarketOverview"
+			},
+			"MarketRegions": {
+				"properties": {
+					"states": {
+						"items": {
+							"$ref": "#/components/schemas/StateJobs"
+						},
+						"type": "array",
+						"title": "States"
+					},
+					"abroad": {
+						"type": "integer",
+						"title": "Abroad"
+					},
+					"unknown": {
+						"type": "integer",
+						"title": "Unknown"
+					},
+					"remote_without_place": {
+						"type": "integer",
+						"title": "Remote Without Place"
+					},
+					"cities": {
+						"items": {
+							"$ref": "#/components/schemas/CityJobs"
+						},
+						"type": "array",
+						"title": "Cities"
+					},
+					"distances": {
+						"items": {
+							"$ref": "#/components/schemas/DistanceBucket"
+						},
+						"type": "array",
+						"title": "Distances"
+					}
+				},
+				"type": "object",
+				"required": ["states", "abroad", "unknown", "remote_without_place", "cities", "distances"],
+				"title": "MarketRegions"
 			},
 			"MarketStatus": {
 				"properties": {
@@ -4586,6 +4763,37 @@
 				"type": "object",
 				"required": ["source", "source_group", "jobs", "only_here", "full_text", "active"],
 				"title": "SourceValue"
+			},
+			"StateJobs": {
+				"properties": {
+					"state_code": {
+						"type": "string",
+						"title": "State Code"
+					},
+					"state_name": {
+						"type": "string",
+						"title": "State Name"
+					},
+					"population": {
+						"type": "integer",
+						"title": "Population"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"remote": {
+						"type": "integer",
+						"title": "Remote"
+					},
+					"per_100k": {
+						"type": "number",
+						"title": "Per 100K"
+					}
+				},
+				"type": "object",
+				"required": ["state_code", "state_name", "population", "jobs", "remote", "per_100k"],
+				"title": "StateJobs"
 			},
 			"Station-Input": {
 				"properties": {

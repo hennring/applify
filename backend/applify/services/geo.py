@@ -70,6 +70,17 @@ class Gazetteer:
                 return place
         return None
 
+    def city(self, text: str) -> str | None:
+        """Name of the town in "Zentrum, Leipzig" or "Chemnitz, Sachsen": the most populous
+        known place among the comma-separated parts."""
+        found = [
+            place
+            for part in POSTAL_CODE.sub("", text).split(",")
+            if (key := place_key(part))
+            and (place := self.by_name.get(key) or self.by_name.get(NAME_SUFFIX.sub("", key)))
+        ]
+        return max(found, key=lambda p: p.population).name if found else None
+
 
 def _read_tsv(path: Path) -> list[list[str]]:
     with path.open(encoding="utf-8") as f:

@@ -8,9 +8,11 @@ from applify.services.skills import get_taxonomy
 from sqlalchemy import Column, Integer, String, Table, delete, insert, select
 from sqlalchemy.engine import Connection
 
+from applify_analytics.features.regions import refresh_states
 from applify_analytics.features.rules import get_role_rules
 from applify_analytics.features.store import ensure_tables, metadata
 
+# skill_taxonomy, role_families and profile_role_families; the states come from regions.
 skill_taxonomy = Table(
     "skill_taxonomy",
     metadata,
@@ -55,4 +57,9 @@ def refresh_reference(conn: Connection) -> dict[str, int]:
         conn.execute(delete(table))
         if rows:
             conn.execute(insert(table), rows)
-    return {"skills": len(skills), "role_families": len(families), "profile_roles": len(roles)}
+    return {
+        "skills": len(skills),
+        "role_families": len(families),
+        "profile_roles": len(roles),
+        "states": refresh_states(conn),
+    }

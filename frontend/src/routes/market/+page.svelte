@@ -11,6 +11,7 @@
 	import EmployersTab from './EmployersTab.svelte';
 	import MeTab from './MeTab.svelte';
 	import Overview from './Overview.svelte';
+	import RegionsTab from './RegionsTab.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -226,6 +227,8 @@
 			<MeTab me={data.me} />
 		{:else if tab === 'arbeitgeber' && data.employers}
 			<EmployersTab employers={data.employers} agencies={market.totals?.agencies ?? 0} />
+		{:else if tab === 'regionen' && data.regions}
+			<RegionsTab regions={data.regions} />
 		{:else if tab === 'daten' && data.marketData}
 			<DataTab data={data.marketData} />
 		{/if}

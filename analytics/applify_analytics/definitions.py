@@ -7,7 +7,7 @@ from typing import Any
 from dagster import AssetExecutionContext, Definitions
 from dagster_dbt import DbtCliResource, DbtProject, dbt_assets
 
-from applify_analytics.assets import job_features, reference_tables
+from applify_analytics.assets import job_features, job_regions, reference_tables
 from applify_analytics.checks import feature_coverage, llm_failures
 from applify_analytics.sensors import market_pipeline, search_run_finished, status_sensors
 
@@ -25,7 +25,7 @@ def market_dbt_assets(context: AssetExecutionContext, dbt: DbtCliResource) -> It
 
 
 defs = Definitions(
-    assets=[reference_tables, job_features, market_dbt_assets],
+    assets=[reference_tables, job_features, job_regions, market_dbt_assets],
     asset_checks=[feature_coverage, llm_failures],
     jobs=[market_pipeline],
     sensors=[search_run_finished, *status_sensors],

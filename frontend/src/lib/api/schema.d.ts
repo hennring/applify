@@ -549,6 +549,26 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/market/regions': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get Market Regions
+		 * @description Tab "Regionen" (§5.9): jobs per state and city, distance to the profile's places.
+		 */
+		get: operations['get_market_regions_api_market_regions_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/api/market/data': {
 		parameters: {
 			query?: never;
@@ -723,6 +743,15 @@ export interface components {
 			 * Format: date-time
 			 */
 			checked_at: string;
+		};
+		/** CityJobs */
+		CityJobs: {
+			/** City */
+			city: string;
+			/** State Code */
+			state_code: string;
+			/** Jobs */
+			jobs: number;
 		};
 		/** CompanyIn */
 		CompanyIn: {
@@ -917,6 +946,13 @@ export interface components {
 			changes: components['schemas']['ChangeItem'][];
 			/** Dropped Skills */
 			dropped_skills: string[];
+		};
+		/** DistanceBucket */
+		DistanceBucket: {
+			/** Bucket */
+			bucket: string;
+			/** Jobs */
+			jobs: number;
 		};
 		/** DocumentOut */
 		DocumentOut: {
@@ -1251,6 +1287,21 @@ export interface components {
 			 * @default []
 			 */
 			categories: string[];
+		};
+		/** MarketRegions */
+		MarketRegions: {
+			/** States */
+			states: components['schemas']['StateJobs'][];
+			/** Abroad */
+			abroad: number;
+			/** Unknown */
+			unknown: number;
+			/** Remote Without Place */
+			remote_without_place: number;
+			/** Cities */
+			cities: components['schemas']['CityJobs'][];
+			/** Distances */
+			distances: components['schemas']['DistanceBucket'][];
 		};
 		/** MarketStatus */
 		MarketStatus: {
@@ -1840,6 +1891,21 @@ export interface components {
 			full_text: number;
 			/** Active */
 			active: number;
+		};
+		/** StateJobs */
+		StateJobs: {
+			/** State Code */
+			state_code: string;
+			/** State Name */
+			state_name: string;
+			/** Population */
+			population: number;
+			/** Jobs */
+			jobs: number;
+			/** Remote */
+			remote: number;
+			/** Per 100K */
+			per_100k: number;
 		};
 		/** Station */
 		'Station-Input': {
@@ -2953,6 +3019,42 @@ export interface operations {
 				};
 				content: {
 					'application/json': components['schemas']['MarketEmployers'] | null;
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	get_market_regions_api_market_regions_get: {
+		parameters: {
+			query?: {
+				scope?: 'area' | 'germany' | 'all';
+				role?: string;
+				seniority?: string;
+				source?: string;
+				weeks?: number;
+				agencies?: boolean;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MarketRegions'] | null;
 				};
 			};
 			/** @description Validation Error */

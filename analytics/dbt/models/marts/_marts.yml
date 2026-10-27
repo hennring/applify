@@ -130,3 +130,19 @@ models:
         data_tests: [unique, not_null]
       - name: only_here
         data_tests: [not_null]
+
+  - name: dim_state
+    description: "German states with population (grain: state)."
+    columns:
+      - name: state_code
+        data_tests: [unique, not_null]
+
+  - name: fct_job_profile_distance
+    description: "Distance of each job with a known place to a user's nearest place (grain: user, job)."
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [user_id, job_id]
+    columns:
+      - name: distance_km
+        data_tests: [not_null]

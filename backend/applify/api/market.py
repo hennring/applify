@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from applify.db.session import get_session
-from applify.services import market, market_employers, market_me
+from applify.services import market, market_employers, market_me, market_regions
 from applify.services.skills import get_taxonomy
 from applify.users import get_current_user_id
 
@@ -271,6 +271,37 @@ class MarketEmployers(BaseModel):
     repeated: list[RepeatedTitle]
 
 
+class StateJobs(BaseModel):
+    state_code: str
+    state_name: str
+    population: int
+    jobs: int
+    remote: int
+    per_100k: float
+
+
+class CityJobs(BaseModel):
+    city: str
+    state_code: str
+    jobs: int
+
+
+class DistanceBucket(BaseModel):
+    bucket: str
+    jobs: int
+
+
+class MarketRegions(BaseModel):
+    states: list[StateJobs]
+    # Jobs without a state: abroad, place unknown, fully remote without a place.
+    abroad: int
+    unknown: int
+    remote_without_place: int
+    cities: list[CityJobs]
+    # Distance to the nearest place of the profile.
+    distances: list[DistanceBucket]
+
+
 class CandidateIn(BaseModel):
     name: str
     category: str
@@ -324,6 +355,14 @@ def get_market_employers(
     if not market.marts_available(session):
         return None
     return MarketEmployers.model_validate(market_employers.employers(session, user_id, f))
+
+
+@router.get("/regions")
+def get_market_regions(session: SessionDep, user_id: UserDep, f: FilterDep) -> MarketRegions | None:
+    """Tab "Regionen" (§5.9): jobs per state and city, distance to the profile's places."""
+    if not market.marts_available(session):
+        return None
+    return MarketRegions.model_validate(market_regions.regions(session, user_id, f))
 
 
 @router.get("/data")

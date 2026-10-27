@@ -21,6 +21,7 @@ from sqlalchemy import Connection, func, select
 
 from applify_analytics.features import store
 from applify_analytics.features.reference import refresh_reference
+from applify_analytics.features.regions import refresh_job_regions
 
 JOBS = AssetKey(["app", "jobs"])
 JOB_FEATURES = AssetKey(["features", "job_features"])
@@ -42,6 +43,11 @@ REFERENCE = [
         group_name="features",
         description="Desired roles of each profile, mapped to role families.",
     ),
+    AssetSpec(
+        AssetKey(["features", "states"]),
+        group_name="features",
+        description="German states with population, from resources/states.json.",
+    ),
 ]
 
 
@@ -52,6 +58,18 @@ def reference_tables() -> Iterator[MaterializeResult[None]]:
         counts = refresh_reference(conn)
     for spec, rows in zip(REFERENCE, counts.values(), strict=True):
         yield MaterializeResult(asset_key=spec.key, metadata={"rows": rows})
+
+
+@asset(
+    key=AssetKey(["features", "job_regions"]),
+    deps=[JOBS],
+    group_name="features",
+    description="Federal state of each job with coordinates (point in the state outlines).",
+)
+def job_regions() -> MaterializeResult[None]:
+    with get_engine().begin() as conn:
+        assigned = refresh_job_regions(conn)
+    return MaterializeResult(metadata={"jobs_with_state": assigned})
 
 
 class JobFeaturesConfig(Config):

@@ -16,6 +16,7 @@ select
     coalesce(f.is_agency, false) as is_agency,
     j.posted_at,
     s.scope,
+    r.state_code,
     src.source_groups,
     coalesce(f.role_family, 'unknown') as role_family,
     coalesce(f.seniority, 'unknown') as seniority,
@@ -58,3 +59,4 @@ join {{ ref('int_job_lifespans') }} l using (job_id)
 join {{ ref('int_job_scope') }} s using (job_id)
 left join {{ ref('int_job_sources') }} src using (job_id)
 left join {{ ref('stg_features__job_features') }} f using (job_id)
+left join {{ ref('stg_features__job_regions') }} r using (job_id)

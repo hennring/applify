@@ -17,8 +17,8 @@ models:
           - accepted_values:
               arguments:
                 values: [germany, abroad, unknown]
-  - name: int_job_profile_area
-    description: "Jobs within a radius of a user's places (grain: user, job)."
+  - name: int_job_profile_distance
+    description: "Distance of each job to a user's nearest place and whether it is within a radius (grain: user, job)."
   - name: int_job_sources
     columns:
       - name: job_id
