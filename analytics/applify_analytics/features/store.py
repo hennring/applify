@@ -11,6 +11,7 @@ from applify.llm import LLMError, LLMProvider
 from applify.services.skills import SkillTaxonomy, get_taxonomy
 from sqlalchemy import (
     ARRAY,
+    Boolean,
     Column,
     DateTime,
     Integer,
@@ -59,6 +60,7 @@ job_features = Table(
     Column("skill_candidates", ARRAY(String), nullable=False, server_default="{}"),
     Column("languages", JSONB, nullable=False, server_default="{}"),
     Column("degrees", ARRAY(String), nullable=False, server_default="{}"),
+    Column("is_agency", Boolean, nullable=False, server_default="false"),
     Column("origin", JSONB, nullable=False, server_default="{}"),
     Column("extracted_at", DateTime(timezone=True), nullable=False),
 )
@@ -100,6 +102,7 @@ JOB_COLUMNS = (
     Job.has_full_text,
     Job.salary_min,
     Job.salary_max,
+    Job.company,
 )
 
 
@@ -117,9 +120,15 @@ class LlmStats:
     failed: int
 
 
+ADDED_COLUMNS = (("job_features", "is_agency", "boolean NOT NULL DEFAULT false"),)
+
+
 def ensure_tables(conn: Connection) -> None:
     conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}"))
     metadata.create_all(conn)
+    # create_all leaves existing tables alone; columns added later are added here.
+    for table, column, ddl in ADDED_COLUMNS:
+        conn.execute(text(f"ALTER TABLE {SCHEMA}.{table} ADD COLUMN IF NOT EXISTS {column} {ddl}"))
 
 
 def record_pipeline_run(
@@ -157,7 +166,13 @@ def record_pipeline_run(
 
 def _job_input(row: Any) -> JobInput:
     return JobInput(
-        row.id, row.title, row.description, row.has_full_text, row.salary_min, row.salary_max
+        row.id,
+        row.title,
+        row.description,
+        row.has_full_text,
+        row.salary_min,
+        row.salary_max,
+        row.company,
     )
 
 

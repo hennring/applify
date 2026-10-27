@@ -1,0 +1,79 @@
+# Staffing agencies and recruiters (D25): a job counts as posted by an agency if the
+# company matches a name or name part, or the text uses wording only agencies use.
+# Patterns are case-insensitive regular expressions; names match as whole words.
+
+# Known agencies and recruiting firms (start of the normalized company name).
+names:
+  - Hays
+  - Randstad
+  - Adecco
+  - Manpower(Group)?
+  - Experis
+  - GULP
+  - Amadeus Fire
+  - Brunel
+  - FERCHAU
+  - Orizon
+  - Persona service
+  - DIS AG
+  - Akkodis
+  - Modis
+  - Allgeier Experts
+  - Etengo
+  - SOLCOM
+  - Westhouse
+  - Computer Futures
+  - Nigel Frank
+  - Michael Page
+  - Page Personnel
+  - Robert Half
+  - Robert Walters
+  - Kelly Services
+  - Tempton
+  - Piening
+  - TUJA
+  - Jobst
+  - ARWA
+  - Trialon
+  - I\.K\. Hofmann
+  - Timepartner
+  - ZAG
+  - DEKRA Arbeit
+  - Avanti
+  - Coopers Group
+  - Interlead
+  - mycareernow
+  - Simplyright
+  - ANGEHEUERT
+  - Bluewave Select
+  - Profi Talent Recruitment
+  - RADAS
+
+# Parts of a company name that mark a personnel service provider.
+name_parts:
+  # Not plain "Personal" or "Recruiting": employers name their own HR units that way.
+  - personal(service|dienst\w*|vermittlung|beratung|leasing)
+  - \w+personal
+  - zeitarbeit
+  - jobbörse
+  - recruit(er|ers|ment)
+  - staffing
+  - headhunt\w*
+  - executive search
+  - hr consulting
+  - talent (solutions|partners|acquisition)
+
+# Wording in the posting that only agencies use (not "unsere Kunden", which product
+# companies use for their customers).
+text:
+  - arbeitnehmerüberlassung
+  - zeitarbeit\w*
+  - personaldienstleist\w*
+  - personalvermittl\w*
+  - direktvermittlung
+  - im auftrag (unseres|eines) (kunden|mandanten)
+  - für (unseren|einen) (kunden|mandanten)
+  - unser (kunde|mandant)\b
+  - übernahme durch (unseren|den) kunden
+  - on behalf of our client
+  - our client (is|, an?)\b

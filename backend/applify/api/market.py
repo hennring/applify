@@ -45,6 +45,8 @@ class MarketOptions(BaseModel):
 class MarketTotals(BaseModel):
     jobs: int
     full_text: int
+    # Jobs of staffing agencies and recruiters in the selection.
+    agencies: int
 
 
 class MarketCoverage(BaseModel):
@@ -159,23 +161,28 @@ class CandidateAccepted(BaseModel):
     jobs_rescanned: int
 
 
-@router.get("")
-def get_market(
-    session: SessionDep,
-    user_id: UserDep,
+def market_filter(
     scope: market.Scope = "all",
     role: str = "",
     seniority: str = "",
     source: str = "",
     weeks: Annotated[int, Query(ge=0, le=520)] = 0,
-) -> MarketOverview:
+    agencies: bool = True,
+) -> market.MarketFilter:
+    """Filters shared by all tabs of the market dashboard."""
+    return market.MarketFilter(scope, role, seniority, source, weeks, agencies)
+
+
+FilterDep = Annotated[market.MarketFilter, Depends(market_filter)]
+
+
+@router.get("")
+def get_market(session: SessionDep, user_id: UserDep, f: FilterDep) -> MarketOverview:
     """Market dashboard (F23) for the selection; reads the marts of the pipeline (§5.8)."""
     analysis = market.analysis_status(session)
     if not market.marts_available(session):
         return MarketOverview(available=False, analysis=AnalysisStatus.model_validate(analysis))
-    data = market.overview(
-        session, user_id, market.MarketFilter(scope, role, seniority, source, weeks)
-    )
+    data = market.overview(session, user_id, f)
     return MarketOverview.model_validate(
         {**data, "analysis": analysis, "categories": market.categories(get_taxonomy())}
     )

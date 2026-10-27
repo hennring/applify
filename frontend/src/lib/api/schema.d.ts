@@ -1103,6 +1103,8 @@ export interface components {
 			jobs: number;
 			/** Full Text */
 			full_text: number;
+			/** Agencies */
+			agencies: number;
 		};
 		/** MatchDetail */
 		MatchDetail: {
@@ -2601,6 +2603,7 @@ export interface operations {
 				seniority?: string;
 				source?: string;
 				weeks?: number;
+				agencies?: boolean;
 			};
 			header?: never;
 			path?: never;

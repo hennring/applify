@@ -12,6 +12,7 @@ select
     skill_candidates,
     languages,
     degrees,
+    is_agency,
     origin,
     origin ->> 'role_family' as role_family_origin,
     origin ->> 'seniority' as seniority_origin,

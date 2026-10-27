@@ -1,4 +1,4 @@
-"""Features of one job from rules (§5.8): role, seniority, experience, salary, skills."""
+"""Features of one job from rules (§5.8, §5.9): role, seniority, experience, salary, skills."""
 
 import hashlib
 import json
@@ -11,9 +11,9 @@ from applify.services.skills import SKILLS_FILE, SkillTaxonomy
 
 from applify_analytics.features import rules
 
-# Bump when the extraction code changes. Changes to roles.yaml, skills.yaml or the LLM
-# prompt are picked up through their content hash, so every job is extracted again.
-RULES_VERSION = 2
+# Bump when the extraction code changes. Changes to roles.yaml, agencies.yaml, skills.yaml
+# or the LLM prompt are picked up through their content hash, so every job is extracted again.
+RULES_VERSION = 3
 PROMPT_VERSION = "job_features_v2"
 PROMPT_FILE = Path(__file__).resolve().parents[1] / "prompts" / f"{PROMPT_VERSION}.md"
 
@@ -21,7 +21,7 @@ Origin = Literal["source", "rule", "llm"]
 
 
 def extractor_version() -> str:
-    files = (rules.ROLES_FILE, SKILLS_FILE, PROMPT_FILE)
+    files = (rules.ROLES_FILE, rules.AGENCIES_FILE, SKILLS_FILE, PROMPT_FILE)
     digest = hashlib.sha256(b"".join(path.read_bytes() for path in files)).hexdigest()
     return f"{RULES_VERSION}-{digest[:12]}"
 
@@ -35,6 +35,8 @@ class JobInput:
     # Structured salary from the source (BA), yearly EUR.
     salary_min: int | None
     salary_max: int | None
+    # Not part of the hash: the LLM cache is keyed by title and text.
+    company: str = ""
 
     def input_hash(self) -> str:
         content = [self.title, self.description, self.salary_min, self.salary_max]
@@ -56,6 +58,8 @@ class Features:
     skill_candidates: list[str] = field(default_factory=list)
     languages: dict[str, str] = field(default_factory=dict)
     degrees: list[str] = field(default_factory=list)
+    # Posted by a staffing agency or recruiter (D25).
+    is_agency: bool = False
     # Per feature where its value comes from; features left out are unknown.
     origin: dict[str, Origin] = field(default_factory=dict)
 
@@ -88,6 +92,7 @@ def extract(job: JobInput, taxonomy: SkillTaxonomy) -> Features:
     if found := rules.degrees(text):
         features.degrees = found
         features.origin["degrees"] = "rule"
+    features.is_agency = rules.get_agency_rules().is_agency(job.company, text)
     return features
 
 

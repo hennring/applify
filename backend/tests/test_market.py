@@ -134,3 +134,10 @@ def test_invalid_candidates_are_refused(
     with pytest.raises(market.CandidateError, match=message):
         market.accept_candidate(db_session, name, category, skills_file=skills_file)
     assert skills_file.read_text(encoding="utf-8") == before
+
+
+def test_agency_filter_is_optional() -> None:
+    where, _ = market._where(market.MarketFilter(), user_id=1)
+    assert "is_agency" not in where
+    where, _ = market._where(market.MarketFilter(agencies=False), user_id=1)
+    assert "not f.is_agency" in where

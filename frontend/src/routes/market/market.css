@@ -1,0 +1,127 @@
+/* Shared layout of the market page and its tabs (§5.9); scoped by the .market wrapper. */
+
+.market .status {
+	font-size: 0.9rem;
+}
+.market .analysis {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin: -0.5rem 0 1rem;
+	font-size: 0.9rem;
+}
+.market .filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.6rem;
+	margin-bottom: 1rem;
+}
+.market .check {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	font-size: 0.9rem;
+}
+.market .tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem;
+	border-bottom: 1px solid var(--border);
+	margin-bottom: 1rem;
+}
+.market .tabs a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.5rem 0.9rem;
+	color: var(--muted);
+	text-decoration: none;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -1px;
+}
+.market .tabs a:hover {
+	color: var(--text);
+}
+.market .tabs a[aria-current='page'] {
+	color: var(--text);
+	border-bottom-color: var(--accent);
+	font-weight: 600;
+}
+
+.market .tiles {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+	gap: 0.75rem;
+}
+.market .tile {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	padding: 0.8rem 1rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+}
+.market .big {
+	font-size: 1.6rem;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+.market .small {
+	font-size: 0.85rem;
+}
+.market .block {
+	display: block;
+}
+.market .headline {
+	display: flex;
+	align-items: baseline;
+	gap: 0.6rem;
+	margin: 0 0 0.75rem;
+}
+.market .headline strong {
+	font-size: 1.6rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.market .grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
+	align-items: start;
+	margin-top: 1rem;
+}
+.market .grid .card {
+	margin: 0;
+}
+.market .wide {
+	grid-column: 1 / -1;
+}
+@media (max-width: 1000px) {
+	.market .grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+.market .card h2 {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+}
+.market table {
+	width: 100%;
+	border-collapse: collapse;
+}
+.market th,
+.market td {
+	text-align: left;
+	padding: 0.35rem 0.5rem;
+	border-bottom: 1px solid var(--border);
+}
+.market .num {
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+}
+.market .empty code {
+	font-size: 0.9em;
+}

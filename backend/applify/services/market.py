@@ -45,6 +45,8 @@ class MarketFilter:
     source: str = ""
     # Jobs first seen within the last N weeks; 0 = all.
     weeks: int = 0
+    # False hides jobs posted by staffing agencies and recruiters (D25).
+    agencies: bool = True
 
 
 def marts_available(session: Session) -> bool:
@@ -129,6 +131,8 @@ def _where(f: MarketFilter, user_id: int) -> tuple[str, dict[str, Any]]:
     if f.source:
         clauses.append(":source = any(f.source_groups)")
         params["source"] = f.source
+    if not f.agencies:
+        clauses.append("not f.is_agency")
     return " and ".join(clauses), params
 
 
@@ -151,8 +155,11 @@ def overview(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]:
     jobs = f"select * from marts.fct_job_postings f where {where}"
     full = f"select * from marts.fct_job_postings f where {where} and f.has_full_text"
 
-    total, full_text = _rows(
-        session, f"select count(*), count(*) filter (where has_full_text) from ({jobs}) j", params
+    total, full_text, agencies = _rows(
+        session,
+        f"""select count(*), count(*) filter (where has_full_text),
+            count(*) filter (where is_agency) from ({jobs}) j""",
+        params,
     )[0]
     coverage = _rows(
         session,
@@ -200,7 +207,7 @@ def overview(session: Session, user_id: int, f: MarketFilter) -> dict[str, Any]:
         "available": True,
         "status": _status(session),
         "options": _options(session),
-        "totals": {"jobs": total, "full_text": full_text},
+        "totals": {"jobs": total, "full_text": full_text, "agencies": agencies},
         "coverage": {
             "role_family": float(coverage[0] or 0),
             "seniority": float(coverage[1] or 0),

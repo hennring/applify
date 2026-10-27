@@ -3,6 +3,7 @@ import pytest
 from applify_analytics.features.rules import (
     Salary,
     degrees,
+    get_agency_rules,
     get_role_rules,
     required_years,
     salary_in_text,
@@ -138,3 +139,37 @@ def test_degrees() -> None:
     )
     assert degrees(text) == ["university", "vocational"]
     assert degrees("- Du bringst diplomatisches Geschick mit") == []
+
+
+@pytest.mark.parametrize(
+    ("company", "text"),
+    [
+        ("Hays AG", ""),
+        ("FERCHAU GmbH Niederlassung Dresden", ""),
+        ("Jenpersonal GmbH", ""),
+        ("S&B Personalservice GmbH", ""),
+        ("Die Tech Recruiter GmbH", ""),
+        ("IT VISTA Personalberatung GmbH", ""),
+        ("Acme", "Im Auftrag unseres Kunden suchen wir einen Java-Entwickler."),
+        ("Acme", "Für unseren Kunden in Leipzig suchen wir"),
+        ("Acme", "Die Stelle ist im Rahmen der Arbeitnehmerüberlassung zu besetzen."),
+        ("Acme", "Our client is a fast-growing fintech."),
+    ],
+)
+def test_staffing_agencies(company: str, text: str) -> None:
+    assert get_agency_rules().is_agency(company, text)
+
+
+@pytest.mark.parametrize(
+    ("company", "text"),
+    [
+        ("GitLab", "We help our clients ship software faster."),
+        ("Celonis", "Join our client success team."),
+        ("Personio GmbH", "Unsere Kunden lieben unser HR-Produkt."),
+        ("codecentric AG", "Du berätst unsere Kunden vor Ort."),
+        ("CHECK24 Services Personal GmbH", ""),
+        ("Vonovia Recruiting DE", ""),
+    ],
+)
+def test_direct_employers(company: str, text: str) -> None:
+    assert not get_agency_rules().is_agency(company, text)

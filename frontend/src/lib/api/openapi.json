@@ -1288,6 +1288,16 @@
 							"default": 0,
 							"title": "Weeks"
 						}
+					},
+					{
+						"name": "agencies",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": true,
+							"title": "Agencies"
+						}
 					}
 				],
 				"responses": {
@@ -2784,10 +2794,14 @@
 					"full_text": {
 						"type": "integer",
 						"title": "Full Text"
+					},
+					"agencies": {
+						"type": "integer",
+						"title": "Agencies"
 					}
 				},
 				"type": "object",
-				"required": ["jobs", "full_text"],
+				"required": ["jobs", "full_text", "agencies"],
 				"title": "MarketTotals"
 			},
 			"MatchDetail": {

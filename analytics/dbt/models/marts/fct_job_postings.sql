@@ -10,6 +10,7 @@ select
     j.location_raw,
     j.remote_type,
     j.has_full_text,
+    coalesce(f.is_agency, false) as is_agency,
     j.posted_at,
     s.scope,
     src.source_groups,

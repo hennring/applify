@@ -297,3 +297,33 @@ def degrees(text: str) -> list[str]:
             continue
         found.update(key for key, pattern in DEGREES.items() if pattern.search(line))
     return [key for key in DEGREES if key in found]
+
+
+# --- staffing agency ----------------------------------------------------------------------
+
+AGENCIES_FILE = ROLES_FILE.with_name("agencies.yaml")
+
+
+@dataclass(frozen=True)
+class AgencyRules:
+    names: re.Pattern[str]
+    name_parts: re.Pattern[str]
+    text: re.Pattern[str]
+
+    def is_agency(self, company: str, text: str) -> bool:
+        name = " ".join(company.split())
+        return bool(
+            self.names.match(name) or self.name_parts.search(name) or self.text.search(text)
+        )
+
+
+@cache
+def get_agency_rules(path: Path = AGENCIES_FILE) -> AgencyRules:
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+
+    def compile_words(patterns: list[str]) -> re.Pattern[str]:
+        return re.compile("|".join(_word_pattern(p) for p in patterns), re.IGNORECASE)
+
+    return AgencyRules(
+        compile_words(data["names"]), compile_words(data["name_parts"]), compile_words(data["text"])
+    )
