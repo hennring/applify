@@ -233,3 +233,8 @@
 - {name: "SOAP", category: backend}
 - {name: "Claude", category: ai}
 - {name: "Anthropic", category: ai}
+- {name: "Claude Code", category: ai}
+- {name: "Cursor", category: ai}
+- {name: "Azure DevOps", category: cloud}
+- {name: "C/C++", category: language}
+- {name: "Cloudtechnologien", category: cloud}
