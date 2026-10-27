@@ -83,6 +83,9 @@
 	}
 
 	let canceling = $state(false);
+	// A finished run shows only its header line; numbers and errors on request.
+	let runDetails = $state(false);
+	const showRunDetails = $derived(running || runDetails);
 
 	// Stops at the run's next progress update; what it found so far stays.
 	async function cancelRun() {
@@ -239,7 +242,22 @@
 					: ''}</span
 			>
 			{#if !running && (run.status === 'done' || run.status === 'canceled')}
-				<span class="summary"><strong>{totals.new}</strong> neu von {totals.found} gefunden</span>
+				<span><strong>{totals.new}</strong> neu von {totals.found} gefunden</span>
+			{/if}
+			{#if !running && run.errors.length}
+				<span class="error"><Icon name="circle-alert" size={14} /> {run.errors.length} Fehler</span>
+			{/if}
+			{#if !running}
+				<button
+					type="button"
+					class="toggle"
+					aria-expanded={runDetails}
+					aria-controls="run-details"
+					onclick={() => (runDetails = !runDetails)}
+				>
+					{runDetails ? 'Weniger' : 'Details'}
+					<Icon name={runDetails ? 'chevron-up' : 'chevron-down'} size={16} />
+				</button>
 			{/if}
 			{#if running}
 				<button
@@ -258,57 +276,65 @@
 			{/if}
 		</div>
 
-		{#if running}
-			<div
-				class="bar"
-				role="progressbar"
-				aria-valuemin="0"
-				aria-valuemax="100"
-				aria-valuenow={Math.round(run.progress * 100)}
-			>
-				<div style:width="{Math.round(run.progress * 100)}%"></div>
-			</div>
-			<p class="muted step">{run.step}</p>
-		{:else if run.status === 'failed'}
-			<p class="error step">{run.step}</p>
-		{/if}
-
-		{#if Object.keys(run.stats).length}
-			<table class="stats">
-				<thead>
-					<tr
-						><th>Quelle</th><th>gefunden</th><th>neu</th><th>zusammengeführt</th><th>bekannt</th><th
-							title="Außerhalb der Radien, nicht remote-kompatibel">Vorfilter</th
-						><th>Fehler</th></tr
+		{#if showRunDetails}
+			<div id="run-details">
+				{#if running}
+					<div
+						class="bar"
+						role="progressbar"
+						aria-valuemin="0"
+						aria-valuemax="100"
+						aria-valuenow={Math.round(run.progress * 100)}
 					>
-				</thead>
-				<tbody>
-					{#each Object.entries(run.stats) as [key, s] (key)}
-						<tr>
-							<td>{s.label}</td>
-							<td>{s.found}</td>
-							<td><strong>{s.new}</strong></td>
-							<td>{s.duplicate}</td>
-							<td>{s.known}</td>
-							<td>{s.filtered ?? 0}</td>
-							<td class:error={s.errors > 0}>{s.errors}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		{/if}
+						<div style:width="{Math.round(run.progress * 100)}%"></div>
+					</div>
+					<p class="muted step">{run.step}</p>
+				{:else if run.status === 'failed'}
+					<p class="error step">{run.step}</p>
+				{/if}
 
-		{#if run.errors.length}
-			<details class="errors">
-				<summary class="error"
-					><Icon name="circle-alert" size={14} /> {run.errors.length} Fehler beim Abruf</summary
-				>
-				<ul>
-					{#each run.errors as e, i (i)}
-						<li><strong>{e.source}</strong> {e.query}: <span class="muted">{e.message}</span></li>
-					{/each}
-				</ul>
-			</details>
+				{#if Object.keys(run.stats).length}
+					<table class="stats">
+						<thead>
+							<tr
+								><th>Quelle</th><th>gefunden</th><th>neu</th><th>zusammengeführt</th><th>bekannt</th
+								><th title="Außerhalb der Radien, nicht remote-kompatibel">Vorfilter</th><th
+									>Fehler</th
+								></tr
+							>
+						</thead>
+						<tbody>
+							{#each Object.entries(run.stats) as [key, s] (key)}
+								<tr>
+									<td>{s.label}</td>
+									<td>{s.found}</td>
+									<td><strong>{s.new}</strong></td>
+									<td>{s.duplicate}</td>
+									<td>{s.known}</td>
+									<td>{s.filtered ?? 0}</td>
+									<td class:error={s.errors > 0}>{s.errors}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				{/if}
+
+				{#if run.errors.length}
+					<details class="errors">
+						<summary class="error"
+							><Icon name="circle-alert" size={14} /> {run.errors.length} Fehler beim Abruf</summary
+						>
+						<ul>
+							{#each run.errors as e, i (i)}
+								<li>
+									<strong>{e.source}</strong>
+									{e.query}: <span class="muted">{e.message}</span>
+								</li>
+							{/each}
+						</ul>
+					</details>
+				{/if}
+			</div>
 		{/if}
 	</section>
 {:else}
@@ -534,8 +560,25 @@
 		gap: 0.5rem;
 		margin: 0;
 	}
-	.summary {
-		margin-left: auto;
+	/* The time pushes summary, errors and buttons to the right. */
+	.runhead h2 + span {
+		margin-right: auto;
+	}
+	.toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		border: none;
+		background: none;
+		color: var(--accent);
+		padding: 0;
+		cursor: pointer;
+	}
+	.runhead > .error {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		font-size: 0.9rem;
 	}
 	.cancel {
 		display: inline-flex;
