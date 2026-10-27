@@ -3,6 +3,10 @@ select
     company_id,
     title,
     company,
+    -- Dedup keys: normalized company (legal form dropped), title and city.
+    company_norm,
+    title_norm,
+    city_norm,
     location_raw,
     lat,
     lon,

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from applify.db.session import get_session
-from applify.services import market, market_me
+from applify.services import market, market_employers, market_me
 from applify.services.skills import get_taxonomy
 from applify.users import get_current_user_id
 
@@ -234,6 +234,43 @@ class MarketMe(BaseModel):
     fit: ProfileFit
 
 
+class Employer(BaseModel):
+    company_norm: str
+    company: str
+    jobs: int
+    active: int
+    agency: bool
+    # Most frequent role families of the company's jobs.
+    roles: list[str]
+
+
+class AgencyEmployer(BaseModel):
+    company: str
+    jobs: int
+
+
+class RepeatedTitle(BaseModel):
+    company: str
+    title: str
+    jobs: int
+    # Distinct places the title is posted for.
+    places: int
+    # Times it reappeared after all earlier postings had vanished for a week.
+    reposts: int
+    first_seen_at: datetime
+    last_seen_at: datetime
+
+
+class MarketEmployers(BaseModel):
+    jobs: int
+    companies: int
+    # Share of the selection posted by the ten largest employers.
+    top10_share: float
+    top: list[Employer]
+    agencies: list[AgencyEmployer]
+    repeated: list[RepeatedTitle]
+
+
 class CandidateIn(BaseModel):
     name: str
     category: str
@@ -277,6 +314,16 @@ def get_market_me(session: SessionDep, user_id: UserDep, f: FilterDep) -> Market
     if not market.marts_available(session):
         return None
     return MarketMe.model_validate(market_me.me(session, user_id, f))
+
+
+@router.get("/employers")
+def get_market_employers(
+    session: SessionDep, user_id: UserDep, f: FilterDep
+) -> MarketEmployers | None:
+    """Tab "Arbeitgeber" (§5.9): largest employers, repeated titles, staffing agencies."""
+    if not market.marts_available(session):
+        return None
+    return MarketEmployers.model_validate(market_employers.employers(session, user_id, f))
 
 
 @router.get("/data")

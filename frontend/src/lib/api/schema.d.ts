@@ -529,6 +529,26 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/market/employers': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get Market Employers
+		 * @description Tab "Arbeitgeber" (§5.9): largest employers, repeated titles, staffing agencies.
+		 */
+		get: operations['get_market_employers_api_market_employers_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	'/api/market/data': {
 		parameters: {
 			query?: never;
@@ -592,6 +612,13 @@ export interface components {
 			online_since: string;
 			/** Age Days */
 			age_days: number;
+		};
+		/** AgencyEmployer */
+		AgencyEmployer: {
+			/** Company */
+			company: string;
+			/** Jobs */
+			jobs: number;
 		};
 		/** AnalysisStatus */
 		AnalysisStatus: {
@@ -948,6 +975,21 @@ export interface components {
 			/** End */
 			end: string | null;
 		};
+		/** Employer */
+		Employer: {
+			/** Company Norm */
+			company_norm: string;
+			/** Company */
+			company: string;
+			/** Jobs */
+			jobs: number;
+			/** Active */
+			active: number;
+			/** Agency */
+			agency: boolean;
+			/** Roles */
+			roles: string[];
+		};
 		/** EvidenceOut */
 		EvidenceOut: {
 			/**
@@ -1117,6 +1159,21 @@ export interface components {
 			checks: components['schemas']['CheckResult'][];
 			/** Runs */
 			runs: components['schemas']['PipelineRun'][];
+		};
+		/** MarketEmployers */
+		MarketEmployers: {
+			/** Jobs */
+			jobs: number;
+			/** Companies */
+			companies: number;
+			/** Top10 Share */
+			top10_share: number;
+			/** Top */
+			top: components['schemas']['Employer'][];
+			/** Agencies */
+			agencies: components['schemas']['AgencyEmployer'][];
+			/** Repeated */
+			repeated: components['schemas']['RepeatedTitle'][];
 		};
 		/** MarketMe */
 		MarketMe: {
@@ -1437,6 +1494,29 @@ export interface components {
 			salary_known: number;
 			/** Salary Fit */
 			salary_fit: number | null;
+		};
+		/** RepeatedTitle */
+		RepeatedTitle: {
+			/** Company */
+			company: string;
+			/** Title */
+			title: string;
+			/** Jobs */
+			jobs: number;
+			/** Places */
+			places: number;
+			/** Reposts */
+			reposts: number;
+			/**
+			 * First Seen At
+			 * Format: date-time
+			 */
+			first_seen_at: string;
+			/**
+			 * Last Seen At
+			 * Format: date-time
+			 */
+			last_seen_at: string;
 		};
 		/** RoleFamilyOption */
 		RoleFamilyOption: {
@@ -2837,6 +2917,42 @@ export interface operations {
 				};
 				content: {
 					'application/json': components['schemas']['MarketMe'] | null;
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	get_market_employers_api_market_employers_get: {
+		parameters: {
+			query?: {
+				scope?: 'area' | 'germany' | 'all';
+				role?: string;
+				seniority?: string;
+				source?: string;
+				weeks?: number;
+				agencies?: boolean;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MarketEmployers'] | null;
 				};
 			};
 			/** @description Validation Error */

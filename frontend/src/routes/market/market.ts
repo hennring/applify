@@ -9,6 +9,7 @@ export type Scope = (typeof SCOPES)[number];
 export const TABS = [
 	{ key: 'ueberblick', label: 'Überblick', icon: 'activity' },
 	{ key: 'ich', label: 'Ich & Markt', icon: 'user' },
+	{ key: 'arbeitgeber', label: 'Arbeitgeber', icon: 'building' },
 	{ key: 'daten', label: 'Daten', icon: 'file-text' }
 ] as const satisfies readonly { key: string; label: string; icon: IconName }[];
 export type Tab = (typeof TABS)[number]['key'];

@@ -1427,6 +1427,109 @@
 				}
 			}
 		},
+		"/api/market/employers": {
+			"get": {
+				"tags": ["market"],
+				"summary": "Get Market Employers",
+				"description": "Tab \"Arbeitgeber\" (\u00a75.9): largest employers, repeated titles, staffing agencies.",
+				"operationId": "get_market_employers_api_market_employers_get",
+				"parameters": [
+					{
+						"name": "scope",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": ["area", "germany", "all"],
+							"type": "string",
+							"default": "all",
+							"title": "Scope"
+						}
+					},
+					{
+						"name": "role",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Role"
+						}
+					},
+					{
+						"name": "seniority",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Seniority"
+						}
+					},
+					{
+						"name": "source",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "",
+							"title": "Source"
+						}
+					},
+					{
+						"name": "weeks",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 520,
+							"minimum": 0,
+							"default": 0,
+							"title": "Weeks"
+						}
+					},
+					{
+						"name": "agencies",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": true,
+							"title": "Agencies"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/MarketEmployers"
+										},
+										{
+											"type": "null"
+										}
+									],
+									"title": "Response Get Market Employers Api Market Employers Get"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/market/data": {
 			"get": {
 				"tags": ["market"],
@@ -1533,6 +1636,21 @@
 					"age_days"
 				],
 				"title": "AgedJob"
+			},
+			"AgencyEmployer": {
+				"properties": {
+					"company": {
+						"type": "string",
+						"title": "Company"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					}
+				},
+				"type": "object",
+				"required": ["company", "jobs"],
+				"title": "AgencyEmployer"
 			},
 			"AnalysisStatus": {
 				"properties": {
@@ -2363,6 +2481,40 @@
 				"required": ["institution", "degree", "start", "end"],
 				"title": "Education"
 			},
+			"Employer": {
+				"properties": {
+					"company_norm": {
+						"type": "string",
+						"title": "Company Norm"
+					},
+					"company": {
+						"type": "string",
+						"title": "Company"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"active": {
+						"type": "integer",
+						"title": "Active"
+					},
+					"agency": {
+						"type": "boolean",
+						"title": "Agency"
+					},
+					"roles": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Roles"
+					}
+				},
+				"type": "object",
+				"required": ["company_norm", "company", "jobs", "active", "agency", "roles"],
+				"title": "Employer"
+			},
 			"EvidenceOut": {
 				"properties": {
 					"kind": {
@@ -2820,6 +2972,46 @@
 				"type": "object",
 				"required": ["sources", "history", "checks", "runs"],
 				"title": "MarketData"
+			},
+			"MarketEmployers": {
+				"properties": {
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"companies": {
+						"type": "integer",
+						"title": "Companies"
+					},
+					"top10_share": {
+						"type": "number",
+						"title": "Top10 Share"
+					},
+					"top": {
+						"items": {
+							"$ref": "#/components/schemas/Employer"
+						},
+						"type": "array",
+						"title": "Top"
+					},
+					"agencies": {
+						"items": {
+							"$ref": "#/components/schemas/AgencyEmployer"
+						},
+						"type": "array",
+						"title": "Agencies"
+					},
+					"repeated": {
+						"items": {
+							"$ref": "#/components/schemas/RepeatedTitle"
+						},
+						"type": "array",
+						"title": "Repeated"
+					}
+				},
+				"type": "object",
+				"required": ["jobs", "companies", "top10_share", "top", "agencies", "repeated"],
+				"title": "MarketEmployers"
 			},
 			"MarketMe": {
 				"properties": {
@@ -3592,6 +3784,51 @@
 					"salary_fit"
 				],
 				"title": "ProfileFit"
+			},
+			"RepeatedTitle": {
+				"properties": {
+					"company": {
+						"type": "string",
+						"title": "Company"
+					},
+					"title": {
+						"type": "string",
+						"title": "Title"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					},
+					"places": {
+						"type": "integer",
+						"title": "Places"
+					},
+					"reposts": {
+						"type": "integer",
+						"title": "Reposts"
+					},
+					"first_seen_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "First Seen At"
+					},
+					"last_seen_at": {
+						"type": "string",
+						"format": "date-time",
+						"title": "Last Seen At"
+					}
+				},
+				"type": "object",
+				"required": [
+					"company",
+					"title",
+					"jobs",
+					"places",
+					"reposts",
+					"first_seen_at",
+					"last_seen_at"
+				],
+				"title": "RepeatedTitle"
 			},
 			"RoleFamilyOption": {
 				"properties": {

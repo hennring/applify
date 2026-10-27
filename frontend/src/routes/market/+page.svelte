@@ -8,6 +8,7 @@
 	import './market.css';
 	import { SENIORITY, TABS, WEEKS, type Filters, type Scope, type Tab } from './market';
 	import DataTab from './DataTab.svelte';
+	import EmployersTab from './EmployersTab.svelte';
 	import MeTab from './MeTab.svelte';
 	import Overview from './Overview.svelte';
 
@@ -223,6 +224,8 @@
 			<Overview {market} {filters} {roleLabel} />
 		{:else if tab === 'ich' && data.me}
 			<MeTab me={data.me} />
+		{:else if tab === 'arbeitgeber' && data.employers}
+			<EmployersTab employers={data.employers} agencies={market.totals?.agencies ?? 0} />
 		{:else if tab === 'daten' && data.marketData}
 			<DataTab data={data.marketData} />
 		{/if}
