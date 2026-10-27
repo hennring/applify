@@ -253,7 +253,9 @@ class SearchRun(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    status: Mapped[str] = mapped_column(String(20))  # running / done / failed
+    status: Mapped[str] = mapped_column(String(20))  # running / done / failed / canceled
+    # Set by the user; the run stops at its next progress update.
+    cancel_requested: Mapped[bool] = mapped_column(server_default="false")
     # 0..1 and the step currently running, for the progress display (F5).
     progress: Mapped[float] = mapped_column(server_default="0")
     step: Mapped[str] = mapped_column(String(300), server_default="")

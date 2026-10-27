@@ -11,7 +11,7 @@ from applify.db.session import get_session, get_session_factory
 from applify.services.background import TaskRunner, get_search_runner
 from applify.services.cv_jobs import SessionFactory
 from applify.services.geo import Gazetteer, get_gazetteer
-from applify.services.search_runner import RunConflict, create_run, run_search
+from applify.services.search_runner import RunConflict, create_run, request_cancel, run_search
 from applify.services.skills import SkillTaxonomy, get_taxonomy
 from applify.sources import get_sources_factory
 from applify.sources.base import SourcesFactory
@@ -42,7 +42,10 @@ class RunError(BaseModel):
 
 class RunOut(BaseModel):
     id: int
+    # running / done / failed / canceled
     status: str
+    # Asked to stop; still running until its next progress update.
+    cancel_requested: bool
     progress: float
     step: str
     stats: dict[str, SourceStats]
@@ -95,3 +98,11 @@ def latest_run(session: SessionDep, user_id: UserDep) -> RunOut | None:
 @router.get("/{run_id}")
 def get_run(run_id: int, session: SessionDep, user_id: UserDep) -> RunOut:
     return RunOut.of(_get_or_404(session, user_id, run_id))
+
+
+@router.post("/{run_id}/cancel")
+def cancel_run(run_id: int, session: SessionDep, user_id: UserDep) -> RunOut:
+    """Ask a running search run to stop; what it found so far is kept."""
+    run = _get_or_404(session, user_id, run_id)
+    request_cancel(session, run)
+    return RunOut.of(run)

@@ -238,3 +238,64 @@ def test_runs_record_what_they_saw(
     api.post("/api/runs")
     assert db_session.scalar(select(func.count()).select_from(JobSighting)) == 4
     assert db_session.scalar(select(func.count()).select_from(JobVersion)) == 3
+
+
+# Unrelated names, so the dedup keeps the postings apart.
+COMPANIES = [
+    "Pixelwerk",
+    "Kodex",
+    "Nordlicht",
+    "Quarzsand",
+    "Zinnober",
+    "Wolkenbruch",
+    "Ahornblatt",
+    "Bernstein",
+    "Kupferkessel",
+    "Lindenhof",
+    "Mosaik",
+    "Ozelot",
+    "Rabenstein",
+    "Tannenzapfen",
+    "Vulkanglas",
+]
+
+
+def test_canceled_run_keeps_what_it_found(
+    api: TestClient, fake_source: FakeSource, db_session: Session
+) -> None:
+    api.put("/api/profile", json=LEIPZIG_ONLY)
+    fake_source.postings = {
+        "Fullstack Entwickler": [
+            ba(str(i), "Fullstack Entwickler", company=name) for i, name in enumerate(COMPANIES)
+        ],
+        "Fullstack Python": [ba("99", "Python Developer")],
+    }
+    complete = fake_source.complete
+
+    def cancel_while_fetching(posting: JobPosting) -> JobPosting:
+        # The user presses "Abbrechen" while the details of the third posting load.
+        if posting.external_id == "2":
+            run_id = db_session.scalar(select(SearchRun.id).where(SearchRun.status == "running"))
+            assert api.post(f"/api/runs/{run_id}/cancel").json()["cancel_requested"]
+        return complete(posting)
+
+    fake_source.complete = cancel_while_fetching  # type: ignore[method-assign]
+    run_id = api.post("/api/runs").json()["id"]
+    run = api.get(f"/api/runs/{run_id}").json()
+
+    assert (run["status"], run["step"]) == ("canceled", "Abgebrochen")
+    assert run["finished_at"] is not None
+    # Stops at the next progress update (every 10 postings); those are stored and rated.
+    assert run["stats"]["ba"]["new"] == 10
+    assert api.get("/api/jobs").json()["total"] == 10
+    assert [q.term for q in fake_source.queries] == ["Fullstack Entwickler"]
+    # A new run can start right away.
+    assert api.post("/api/runs").status_code == 202
+
+
+def test_only_running_runs_can_be_canceled(api: TestClient, db_session: Session) -> None:
+    run = SearchRun(user_id=1, status="done", stats={}, errors=[])
+    db_session.add(run)
+    db_session.flush()
+    assert api.post(f"/api/runs/{run.id}/cancel").json()["cancel_requested"] is False
+    assert api.post("/api/runs/999999/cancel").status_code == 404

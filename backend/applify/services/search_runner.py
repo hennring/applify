@@ -58,6 +58,17 @@ class RunConflict(Exception):
     pass
 
 
+class RunCanceled(Exception):
+    """The user asked the run to stop."""
+
+
+def request_cancel(session: Session, run: SearchRun) -> None:
+    """Ask a running search run to stop; it does so at its next progress update."""
+    if run.status == "running":
+        run.cancel_requested = True
+        session.commit()
+
+
 def running_run(session: Session, user_id: int) -> SearchRun | None:
     return session.scalar(
         select(SearchRun).where(SearchRun.user_id == user_id, SearchRun.status == "running")
@@ -103,6 +114,18 @@ class _Progress:
         self.run.step = step[:300]
         self.session.commit()
 
+    def canceled(self) -> bool:
+        # Read from the database: the request comes from another session.
+        return bool(
+            self.session.scalar(
+                select(SearchRun.cancel_requested).where(SearchRun.id == self.run.id)
+            )
+        )
+
+    def stop_if_canceled(self) -> None:
+        if self.canceled():
+            raise RunCanceled
+
     def error(self, key: str, label: str, context: str, message: str) -> None:
         self.source(key, label)["errors"] += 1
         self.errors.append({"source": label, "query": context, "message": message})
@@ -121,6 +144,9 @@ def run_search(
             return
         try:
             _Run(session, run, sources, gazetteer, taxonomy).execute()
+        except RunCanceled:
+            # Everything stored so far stays; progress and stats show how far it got.
+            run.status, run.step = "canceled", "Abgebrochen"
         except Exception as exc:
             log.exception("search run %s failed", run_id)
             session.rollback()
@@ -220,13 +246,17 @@ class _Run:
             stats[outcome] += 1
             if n % COMMIT_EVERY == 0:
                 self.progress.save(self.fraction, f"{step} – {n}/{len(postings)}")
+                if self.progress.canceled():
+                    break
         record_sightings(self.session, self.run.id, seen, datetime.now(UTC))
         # Rated right away, so the list is usable while the run continues.
         self.scorer.score(jobs, self.run.id)
+        self.progress.stop_if_canceled()
 
     def _step(self, done: float, step: str) -> None:
         self.fraction = done
         self.progress.save(done, step)
+        self.progress.stop_if_canceled()
 
     # --- stage 1 and 2: job sources ------------------------------------------------------
 

@@ -84,7 +84,8 @@ export const discoveredLabels: Record<string, string> = {
 export const runStatusLabels: Record<string, string> = {
 	running: 'läuft',
 	done: 'fertig',
-	failed: 'fehlgeschlagen'
+	failed: 'fehlgeschlagen',
+	canceled: 'abgebrochen'
 };
 
 export const documentTypeLabels: Labels<Schemas['DocumentOut']['type']> = {

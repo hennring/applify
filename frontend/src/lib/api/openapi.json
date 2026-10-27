@@ -465,6 +465,47 @@
 				}
 			}
 		},
+		"/api/runs/{run_id}/cancel": {
+			"post": {
+				"tags": ["runs"],
+				"summary": "Cancel Run",
+				"description": "Ask a running search run to stop; what it found so far is kept.",
+				"operationId": "cancel_run_api_runs__run_id__cancel_post",
+				"parameters": [
+					{
+						"name": "run_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Run Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RunOut"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/api/jobs": {
 			"get": {
 				"tags": ["jobs"],
@@ -4351,6 +4392,10 @@
 						"type": "string",
 						"title": "Status"
 					},
+					"cancel_requested": {
+						"type": "boolean",
+						"title": "Cancel Requested"
+					},
 					"progress": {
 						"type": "number",
 						"title": "Progress"
@@ -4395,6 +4440,7 @@
 				"required": [
 					"id",
 					"status",
+					"cancel_requested",
 					"progress",
 					"step",
 					"stats",

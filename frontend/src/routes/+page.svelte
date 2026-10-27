@@ -82,6 +82,23 @@
 		if (event.key === 'Escape' && selectedId !== null && !typing) select(null);
 	}
 
+	let canceling = $state(false);
+
+	// Stops at the run's next progress update; what it found so far stays.
+	async function cancelRun() {
+		if (!run) return;
+		canceling = true;
+		const { data: fresh, error: err } = await api.POST('/api/runs/{run_id}/cancel', {
+			params: { path: { run_id: run.id } }
+		});
+		canceling = false;
+		if (err || !fresh) {
+			error = errorMessage(err);
+			return;
+		}
+		polled = fresh;
+	}
+
 	async function startRun() {
 		starting = true;
 		error = null;
@@ -197,9 +214,21 @@
 		<div class="runhead">
 			<h2>
 				<Icon
-					name={running ? 'loader' : run.status === 'done' ? 'circle-check' : 'circle-alert'}
+					name={running
+						? 'loader'
+						: run.status === 'done'
+							? 'circle-check'
+							: run.status === 'canceled'
+								? 'x'
+								: 'circle-alert'}
 					size={20}
-					class={running ? 'spin' : run.status === 'done' ? 'ok' : 'error'}
+					class={running
+						? 'spin'
+						: run.status === 'done'
+							? 'ok'
+							: run.status === 'canceled'
+								? 'muted'
+								: 'error'}
 				/>
 				Suchlauf {runStatusLabels[run.status] ?? run.status}
 			</h2>
@@ -209,8 +238,23 @@
 					? ` – ${formatDateTime(run.finished_at).split(', ')[1]}`
 					: ''}</span
 			>
-			{#if !running && run.status === 'done'}
+			{#if !running && (run.status === 'done' || run.status === 'canceled')}
 				<span class="summary"><strong>{totals.new}</strong> neu von {totals.found} gefunden</span>
+			{/if}
+			{#if running}
+				<button
+					type="button"
+					class="cancel"
+					disabled={canceling || run.cancel_requested}
+					onclick={cancelRun}
+				>
+					<Icon
+						name={canceling || run.cancel_requested ? 'loader' : 'x'}
+						size={16}
+						class={canceling || run.cancel_requested ? 'spin' : ''}
+					/>
+					{run.cancel_requested ? 'Wird abgebrochen …' : 'Abbrechen'}
+				</button>
 			{/if}
 		</div>
 
@@ -491,6 +535,12 @@
 		margin: 0;
 	}
 	.summary {
+		margin-left: auto;
+	}
+	.cancel {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
 		margin-left: auto;
 	}
 	.bar {
