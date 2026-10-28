@@ -605,7 +605,7 @@
 			"get": {
 				"tags": ["matches"],
 				"summary": "List Matches",
-				"description": "Ranked list (F11); hidden jobs only with excluded=true, each with its reason.",
+				"description": "Ranked list (F11); hidden jobs only with excluded=true, each with its reason.\n\nmax_population keeps jobs in towns up to that size; unknown places and remote-only jobs\ndrop out.",
 				"operationId": "list_matches_api_matches_get",
 				"parameters": [
 					{
@@ -637,6 +637,35 @@
 							"type": "string",
 							"default": "score",
 							"title": "Sort"
+						}
+					},
+					{
+						"name": "min_score",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 100,
+							"minimum": 0,
+							"default": 0,
+							"title": "Min Score"
+						}
+					},
+					{
+						"name": "max_population",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "integer",
+									"minimum": 1
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Max Population"
 						}
 					},
 					{
@@ -2961,6 +2990,17 @@
 						"type": "string",
 						"title": "Location Raw"
 					},
+					"population": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Population"
+					},
 					"remote_type": {
 						"anyOf": [
 							{
@@ -3055,6 +3095,7 @@
 					"title",
 					"company",
 					"location_raw",
+					"population",
 					"remote_type",
 					"salary_min",
 					"salary_max",
@@ -3085,6 +3126,17 @@
 					"location_raw": {
 						"type": "string",
 						"title": "Location Raw"
+					},
+					"population": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Population"
 					},
 					"remote_type": {
 						"anyOf": [
@@ -3154,6 +3206,7 @@
 					"title",
 					"company",
 					"location_raw",
+					"population",
 					"remote_type",
 					"salary_min",
 					"salary_max",

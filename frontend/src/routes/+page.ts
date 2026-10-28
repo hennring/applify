@@ -1,12 +1,18 @@
 import { api } from '#lib/api/client.ts';
-import { JOB_PAGE_SIZE } from '#lib/jobs.ts';
+import { choice, JOB_PAGE_SIZE, MAX_POPULATIONS, MIN_SCORES } from '#lib/jobs.ts';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ fetch, url }) => {
 	const filters = {
 		onlyNew: url.searchParams.get('neu') === '1',
 		excluded: url.searchParams.get('ausgeblendet') === '1',
-		sort: url.searchParams.get('sort') === 'datum' ? ('date' as const) : ('score' as const)
+		sort: url.searchParams.get('sort') === 'datum' ? ('date' as const) : ('score' as const),
+		minScore: choice<number>(url.searchParams.get('score'), MIN_SCORES, 0),
+		maxPopulation: choice<number | null>(
+			url.searchParams.get('einwohner'),
+			MAX_POPULATIONS.map((p) => p.value),
+			null
+		)
 	};
 	const [health, run, matches] = await Promise.all([
 		api.GET('/api/health', { fetch }),
@@ -18,6 +24,8 @@ export const load: PageLoad = async ({ fetch, url }) => {
 					only_new: filters.onlyNew,
 					excluded: filters.excluded,
 					sort: filters.sort,
+					min_score: filters.minScore,
+					max_population: filters.maxPopulation ?? undefined,
 					limit: JOB_PAGE_SIZE
 				}
 			}

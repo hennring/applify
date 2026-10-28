@@ -7,7 +7,7 @@
 	import JobDetail from '#lib/components/JobDetail.svelte';
 	import ScoreBadge from '#lib/components/ScoreBadge.svelte';
 	import { healthRows } from '#lib/health.ts';
-	import { JOB_PAGE_SIZE } from '#lib/jobs.ts';
+	import { formatPopulation, JOB_PAGE_SIZE, MAX_POPULATIONS, MIN_SCORES } from '#lib/jobs.ts';
 	import {
 		formatDate,
 		formatDateTime,
@@ -58,6 +58,8 @@
 			filters.onlyNew && 'neu=1',
 			filters.excluded && 'ausgeblendet=1',
 			filters.sort === 'date' && 'sort=datum',
+			filters.minScore && `score=${filters.minScore}`,
+			filters.maxPopulation && `einwohner=${filters.maxPopulation}`,
 			jobId !== null && `stelle=${jobId}`
 		].filter(Boolean);
 		return `${resolve('/')}${parts.length ? `?${parts.join('&')}` : ''}`;
@@ -145,6 +147,8 @@
 					only_new: data.filters.onlyNew,
 					excluded: data.filters.excluded,
 					sort: data.filters.sort,
+					min_score: data.filters.minScore,
+					max_population: data.filters.maxPopulation ?? undefined,
 					limit: JOB_PAGE_SIZE,
 					offset: matches.length
 				}
@@ -160,11 +164,19 @@
 		await invalidateAll();
 	}
 
-	function setFilter(changes: { neu?: boolean; ausgeblendet?: boolean; sort?: 'score' | 'date' }) {
+	function setFilter(changes: {
+		neu?: boolean;
+		ausgeblendet?: boolean;
+		sort?: 'score' | 'date';
+		minScore?: number;
+		maxPopulation?: number | null;
+	}) {
 		const next = { ...data.filters };
 		if (changes.neu !== undefined) next.onlyNew = changes.neu;
 		if (changes.ausgeblendet !== undefined) next.excluded = changes.ausgeblendet;
 		if (changes.sort !== undefined) next.sort = changes.sort;
+		if (changes.minScore !== undefined) next.minScore = changes.minScore;
+		if (changes.maxPopulation !== undefined) next.maxPopulation = changes.maxPopulation;
 		more = [];
 		// Same route, only the query string changes; an open panel stays open.
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
@@ -381,6 +393,28 @@
 					onclick={() => setFilter({ sort: 'date' })}>Datum</button
 				>
 			</div>
+			<div class="segmented" role="group" aria-label="Mindestscore">
+				{#each MIN_SCORES as minScore (minScore)}
+					<button
+						type="button"
+						class:on={data.filters.minScore === minScore}
+						onclick={() => setFilter({ minScore })}
+						>{minScore ? `ab ${minScore}` : 'Jeder Score'}</button
+					>
+				{/each}
+			</div>
+			<div class="segmented" role="group" aria-label="Ortsgröße">
+				{#each MAX_POPULATIONS as option (option.value)}
+					<button
+						type="button"
+						class:on={data.filters.maxPopulation === option.value}
+						title={'title' in option
+							? `${option.title}; Remote-Stellen und unbekannte Orte fallen weg`
+							: undefined}
+						onclick={() => setFilter({ maxPopulation: option.value })}>{option.label}</button
+					>
+				{/each}
+			</div>
 			<span class="muted">{data.matches.total} Stellen</span>
 			{#if data.matches.new}
 				<button type="button" class="seen" onclick={markAllSeen}
@@ -416,7 +450,10 @@
 							<div class="meta">
 								<span><Icon name="building" size={15} /> {job.company || '–'}</span>
 								{#if job.location_raw}<span
-										><Icon name="map-pin" size={15} /> {job.location_raw}</span
+										><Icon name="map-pin" size={15} />
+										{job.location_raw}{#if job.population}<span class="population">
+												· {formatPopulation(job.population)}</span
+											>{/if}</span
 									>{/if}
 								{#if job.remote_type}<span
 										><Icon name="house" size={15} /> {jobRemoteLabels[job.remote_type]}</span
@@ -460,11 +497,13 @@
 			{/if}
 		{:else}
 			<p class="muted">
-				{data.filters.onlyNew
-					? 'Keine neuen Stellen.'
-					: data.filters.excluded
-						? 'Keine ausgeblendeten Stellen.'
-						: 'Noch keine Stellen bewertet.'}
+				{data.filters.minScore || data.filters.maxPopulation
+					? 'Keine Stellen für diese Filter.'
+					: data.filters.onlyNew
+						? 'Keine neuen Stellen.'
+						: data.filters.excluded
+							? 'Keine ausgeblendeten Stellen.'
+							: 'Noch keine Stellen bewertet.'}
 			</p>
 		{/if}
 	</div>
@@ -641,6 +680,9 @@
 	.count {
 		font-size: 0.8rem;
 		opacity: 0.8;
+	}
+	.population {
+		color: var(--muted);
 	}
 	.seen {
 		margin-left: auto;

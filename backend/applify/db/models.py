@@ -124,6 +124,8 @@ class Job(Base):
     location_raw: Mapped[str] = mapped_column(String(300), server_default="")
     lat: Mapped[float | None]
     lon: Mapped[float | None]
+    # Inhabitants of the town, from GeoNames; None if the place is unknown or remote.
+    population: Mapped[int | None]
     remote_type: Mapped[str | None] = mapped_column(String(10))  # hybrid / remote
     salary_min: Mapped[int | None]
     salary_max: Mapped[int | None]

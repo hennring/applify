@@ -24,6 +24,7 @@ class JobOut(BaseModel):
     title: str
     company: str
     location_raw: str
+    population: int | None
     remote_type: str | None
     salary_min: int | None
     salary_max: int | None

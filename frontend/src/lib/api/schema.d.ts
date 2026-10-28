@@ -264,6 +264,9 @@ export interface paths {
 		/**
 		 * List Matches
 		 * @description Ranked list (F11); hidden jobs only with excluded=true, each with its reason.
+		 *
+		 *     max_population keeps jobs in towns up to that size; unknown places and remote-only jobs
+		 *     drop out.
 		 */
 		get: operations['list_matches_api_matches_get'];
 		put?: never;
@@ -1144,6 +1147,8 @@ export interface components {
 			company: string;
 			/** Location Raw */
 			location_raw: string;
+			/** Population */
+			population: number | null;
 			/** Remote Type */
 			remote_type: string | null;
 			/** Salary Min */
@@ -1178,6 +1183,8 @@ export interface components {
 			company: string;
 			/** Location Raw */
 			location_raw: string;
+			/** Population */
+			population: number | null;
 			/** Remote Type */
 			remote_type: string | null;
 			/** Salary Min */
@@ -2663,6 +2670,8 @@ export interface operations {
 				only_new?: boolean;
 				excluded?: boolean;
 				sort?: 'score' | 'date';
+				min_score?: number;
+				max_population?: number | null;
 				limit?: number;
 				offset?: number;
 			};

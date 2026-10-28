@@ -42,6 +42,7 @@ def test_new_job_is_normalized_and_enriched(db_session: Session) -> None:
     # Salary from the text, coordinates from GeoNames; remote is only read from title/location.
     assert (job.salary_min, job.salary_max) == (55000, 65000)
     assert job.lat is not None and abs(job.lat - 51.34) < 0.1
+    assert job.population is not None and job.population > 500_000
     assert [s.source for s in job.sources] == ["ba"]
 
 

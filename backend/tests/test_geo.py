@@ -55,3 +55,32 @@ def test_distance() -> None:
 )
 def test_city_of_district_or_state_suffix(text: str, city: str) -> None:
     assert get_gazetteer().city(text) == city
+
+
+@pytest.mark.parametrize(
+    ("text", "low", "high"),
+    [
+        # Districts count as their city.
+        ("Zentrum, Leipzig", 500_000, 600_000),
+        ("Berlin-Mitte", 3_000_000, 4_000_000),
+        ("88074 Meckenbeuren", 10_000, 20_000),
+        ("Wiesenbach", 1_000, 5_000),
+        ("Geiersthal, Regen (Kreis)", 1_000, 5_000),
+        ("Berlin; Chemnitz, Sachsen; Dresden, Sachsen", 3_000_000, 4_000_000),
+    ],
+)
+def test_population(text: str, low: int, high: int) -> None:
+    population = get_gazetteer().population(text)
+    assert population is not None
+    assert low <= population <= high
+
+
+def test_population_of_same_named_town_near_the_job() -> None:
+    # Without coordinates the largest Neustadt; next to Coburg it is Neustadt bei Coburg.
+    gazetteer = get_gazetteer()
+    assert (gazetteer.population("Neustadt") or 0) > 50_000
+    assert (gazetteer.population("Neustadt", 50.33, 11.12) or 0) < 20_000
+
+
+def test_population_unknown() -> None:
+    assert get_gazetteer().population("Remote") is None

@@ -11,14 +11,14 @@ PROFILE = {
 }
 
 
-def posting(external_id: str, title: str) -> JobPosting:
+def posting(external_id: str, title: str, location: str = "04109 Leipzig") -> JobPosting:
     return JobPosting(
         source="ba",
         external_id=external_id,
         url=f"https://example.org/{external_id}",
         title=title,
         company=f"Firma {external_id}",
-        location_raw="04109 Leipzig",
+        location_raw=location,
     )
 
 
@@ -29,7 +29,7 @@ def run_with(api: TestClient, fake_source: FakeSource, texts: dict[str, str]) ->
             posting("1", "Fullstack Entwickler"),
             posting("2", "Projektmanager"),
             posting("3", "Fullstack Entwickler Zeitarbeit"),
-            posting("4", "Fullstack Entwickler Vue"),
+            posting("4", "Fullstack Entwickler Vue", "04416 Markkleeberg"),
         ]
     }
     api.put("/api/profile", json=PROFILE)
@@ -124,6 +124,18 @@ def test_sort_by_date(api: TestClient, fake_source: FakeSource) -> None:
     run_with(api, fake_source, {})
     by_date = api.get("/api/matches", params={"sort": "date"}).json()["items"]
     assert len(by_date) == 3
+
+
+def test_min_score_and_town_size(api: TestClient, fake_source: FakeSource) -> None:
+    run_with(api, fake_source, {})
+    scores = [m["score"] for m in api.get("/api/matches").json()["items"]]
+    threshold = sorted(scores)[1]
+    page = api.get("/api/matches", params={"min_score": threshold}).json()
+    assert page["total"] == len([s for s in scores if s >= threshold]) < len(scores)
+
+    small = api.get("/api/matches", params={"max_population": 100_000}).json()
+    assert [m["job"]["location_raw"] for m in small["items"]] == ["04416 Markkleeberg"]
+    assert small["items"][0]["job"]["population"] < 100_000
 
 
 def test_unknown_match(api: TestClient) -> None:
