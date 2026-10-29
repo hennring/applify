@@ -102,23 +102,31 @@ class YearsBucket(BaseModel):
     jobs: int
 
 
-class AgedJob(BaseModel):
-    job_id: int
-    title: str
-    company: str
-    location_raw: str
-    role_label: str
-    online_since: datetime
-    age_days: int
+class StackAge(BaseModel):
+    skills: list[str]
+    open: int
+    mean_days: int | None
+    median_days: int | None
+
+
+class RoleAge(BaseModel):
+    role_family: str
+    label: str
+    open: int
+    mean_days: int | None
+    median_days: int | None
+    # Stacks with enough open jobs, highest median age first.
+    stacks: list[StackAge]
 
 
 class JobAge(BaseModel):
     # Open jobs only; age = days since publication (else first sighting).
     open: int
+    mean_days: int | None
     median_days: int | None
     buckets: list[YearsBucket]
-    oldest: list[AgedJob]
-    newest: list[AgedJob]
+    # Role families with enough open jobs, highest median age first.
+    roles: list[RoleAge]
 
 
 class SalaryGroup(BaseModel):

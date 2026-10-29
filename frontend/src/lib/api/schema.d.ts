@@ -656,26 +656,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
 	schemas: {
-		/** AgedJob */
-		AgedJob: {
-			/** Job Id */
-			job_id: number;
-			/** Title */
-			title: string;
-			/** Company */
-			company: string;
-			/** Location Raw */
-			location_raw: string;
-			/** Role Label */
-			role_label: string;
-			/**
-			 * Online Since
-			 * Format: date-time
-			 */
-			online_since: string;
-			/** Age Days */
-			age_days: number;
-		};
 		/** AgencyEmployer */
 		AgencyEmployer: {
 			/** Company */
@@ -1128,14 +1108,14 @@ export interface components {
 		JobAge: {
 			/** Open */
 			open: number;
+			/** Mean Days */
+			mean_days: number | null;
 			/** Median Days */
 			median_days: number | null;
 			/** Buckets */
 			buckets: components['schemas']['YearsBucket'][];
-			/** Oldest */
-			oldest: components['schemas']['AgedJob'][];
-			/** Newest */
-			newest: components['schemas']['AgedJob'][];
+			/** Roles */
+			roles: components['schemas']['RoleAge'][];
 		};
 		/** JobDetail */
 		JobDetail: {
@@ -1691,6 +1671,21 @@ export interface components {
 			 */
 			last_seen_at: string;
 		};
+		/** RoleAge */
+		RoleAge: {
+			/** Role Family */
+			role_family: string;
+			/** Label */
+			label: string;
+			/** Open */
+			open: number;
+			/** Mean Days */
+			mean_days: number | null;
+			/** Median Days */
+			median_days: number | null;
+			/** Stacks */
+			stacks: components['schemas']['StackAge'][];
+		};
 		/** RoleFamilyOption */
 		RoleFamilyOption: {
 			/** Key */
@@ -2045,6 +2040,17 @@ export interface components {
 			full_text: number;
 			/** Active */
 			active: number;
+		};
+		/** StackAge */
+		StackAge: {
+			/** Skills */
+			skills: string[];
+			/** Open */
+			open: number;
+			/** Mean Days */
+			mean_days: number | null;
+			/** Median Days */
+			median_days: number | null;
 		};
 		/** StackShare */
 		StackShare: {

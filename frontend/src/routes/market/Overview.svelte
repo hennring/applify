@@ -6,7 +6,6 @@
 	import {
 		benefitGroups,
 		benefitLabels,
-		formatDate,
 		seniorityLabels,
 		skillCategoryLabels,
 		weightBadges
@@ -42,8 +41,6 @@
 			].join('\n')
 		}));
 	}
-
-	let ageOrder = $state<'oldest' | 'newest'>('oldest');
 
 	// --- skill candidates -------------------------------------------------------------------
 
@@ -302,7 +299,9 @@
 					<div>
 						<p class="headline">
 							<strong>{formatDays(age.median_days)}</strong>
-							<span class="muted">Median über {age.open} offene Stellen</span>
+							<span class="muted"
+								>Median über {age.open} offene Stellen (Ø {formatDays(age.mean_days)})</span
+							>
 						</p>
 						<BarList
 							bars={age.buckets.map((b) => ({
@@ -318,36 +317,44 @@
 						</p>
 					</div>
 					<div>
-						<div class="segmented" role="group" aria-label="Sortierung">
-							{#each [['oldest', 'Älteste'], ['newest', 'Neueste']] as const as [value, label] (value)}
-								<button
-									type="button"
-									class:on={ageOrder === value}
-									aria-pressed={ageOrder === value}
-									onclick={() => (ageOrder = value)}>{label}</button
-								>
-							{/each}
-						</div>
-						<table>
-							<thead>
-								<tr><th>Stelle</th><th>Rolle</th><th>Online seit</th><th class="num">Tage</th></tr>
-							</thead>
-							<tbody>
-								{#each age[ageOrder] as job (job.job_id)}
+						{#if age.roles.length}
+							<h3>Alter je Rolle und Stack</h3>
+							<table class="age-roles">
+								<thead>
 									<tr>
-										<td>
-											<a href="{resolve('/')}?stelle={job.job_id}">{job.title}</a>
-											<span class="muted small block"
-												>{job.company}{job.location_raw ? ` · ${job.location_raw}` : ''}</span
-											>
-										</td>
-										<td class="small">{job.role_label}</td>
-										<td class="small">{formatDate(job.online_since)}</td>
-										<td class="num">{job.age_days}</td>
+										<th>Rolle / Stack</th>
+										<th class="num">Stellen</th>
+										<th class="num">Median Tage</th>
+										<th class="num">Ø Tage</th>
 									</tr>
-								{/each}
-							</tbody>
-						</table>
+								</thead>
+								<tbody>
+									{#each age.roles as role (role.role_family)}
+										<tr class="role">
+											<td>{role.label}</td>
+											<td class="num">{role.open}</td>
+											<td class="num">{role.median_days ?? '–'}</td>
+											<td class="num">{role.mean_days ?? '–'}</td>
+										</tr>
+										{#each role.stacks as stack (stack.skills.join('+'))}
+											<tr class="stack">
+												<td class="small">{stack.skills.join(' + ')}</td>
+												<td class="num small">{stack.open}</td>
+												<td class="num small">{stack.median_days ?? '–'}</td>
+												<td class="num small">{stack.mean_days ?? '–'}</td>
+											</tr>
+										{/each}
+									{/each}
+								</tbody>
+							</table>
+							<p class="muted small">
+								Offene Stellen, nach Median sortiert; Gruppen mit weniger als 3 Stellen fehlen.
+								Stacks gibt es nur für Volltext-Stellen. Liegt der Ø weit über dem Median, ziehen
+								einzelne Dauerausschreibungen ihn hoch.
+							</p>
+						{:else}
+							<p class="muted">Zu wenige offene Stellen mit bekannter Rolle.</p>
+						{/if}
 					</div>
 				</div>
 			</section>
@@ -437,8 +444,14 @@
 			grid-template-columns: minmax(0, 1fr);
 		}
 	}
-	.age .segmented {
-		margin-bottom: 0.5rem;
+	.age h3 {
+		margin-top: 0;
+	}
+	.age-roles .stack td:first-child {
+		padding-left: 1.25rem;
+	}
+	.age-roles .stack td {
+		color: var(--muted);
 	}
 	td button {
 		display: inline-flex;

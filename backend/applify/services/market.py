@@ -32,7 +32,9 @@ AGE_BUCKETS = (
     ("6–12 Monate", 180, 364),
     ("> 1 Jahr", 365, 1_000_000),
 )
-AGE_LIST_LIMIT = 15
+# Fewer open jobs make an average age meaningless.
+AGE_GROUP_MIN = 3
+AGE_STACKS_PER_ROLE = 4
 VACATION_BUCKETS = (
     ("20–24", 20, 24),
     ("25–27", 25, 27),
@@ -422,33 +424,73 @@ def _benefits(
     }
 
 
-def _age(session: Session, jobs: str, params: dict[str, Any]) -> dict[str, Any]:
-    """How long the open jobs have been online: distribution, median, oldest and newest."""
-    rows = query_rows(session, f"select age_days from ({jobs}) j where is_active", params)
-    ages = sorted(r.age_days for r in rows)
+def age_stats(ages: list[int]) -> dict[str, Any]:
+    ordered = sorted(ages)
+    return {
+        "open": len(ordered),
+        "mean_days": round(sum(ordered) / len(ordered)) if ordered else None,
+        "median_days": ordered[len(ordered) // 2] if ordered else None,
+    }
 
-    def listed(order: str) -> list[dict[str, Any]]:
-        return [
-            dict(r._mapping)
-            for r in query_rows(
-                session,
-                f"""select j.job_id, j.title, j.company, j.location_raw, j.online_since,
-                    j.age_days, coalesce(d.label, 'Unbekannt') as role_label
-                from ({jobs}) j left join marts.dim_role_family d using (role_family)
-                where j.is_active order by j.age_days {order}, j.job_id limit {AGE_LIST_LIMIT}""",
-                params,
-            )
+
+def _age(session: Session, jobs: str, params: dict[str, Any]) -> dict[str, Any]:
+    """How long the open jobs have been online: distribution, and average age per role
+    family and per tech stack within it."""
+    rows = query_rows(
+        session,
+        f"""select j.age_days, j.role_family, d.label as role_label,
+            coalesce(d.sort_order, 999) as sort_order, s.stack_id, s.skills
+        from ({jobs}) j
+        left join marts.dim_role_family d using (role_family)
+        left join marts.bridge_job_stack b using (job_id)
+        left join marts.dim_skill_stack s using (stack_id)
+        where j.is_active""",
+        params,
+    )
+    ages = [r.age_days for r in rows]
+
+    families: dict[str, dict[str, Any]] = {}
+    for r in rows:
+        if r.role_family == "unknown" or r.role_label is None:
+            continue
+        family = families.setdefault(
+            r.role_family,
+            {"role_family": r.role_family, "label": r.role_label, "ages": [], "stacks": {}},
+        )
+        family["ages"].append(r.age_days)
+        if r.stack_id is not None:
+            stack = family["stacks"].setdefault(r.stack_id, {"skills": r.skills, "ages": []})
+            stack["ages"].append(r.age_days)
+
+    # The median resists the few long-running postings that inflate the average.
+    def by_median(group: dict[str, Any]) -> tuple[int, int]:
+        return -(group["median_days"] or 0), -group["open"]
+
+    roles = []
+    for family in families.values():
+        if len(family["ages"]) < AGE_GROUP_MIN:
+            continue
+        stacks = [
+            {"skills": s["skills"], **age_stats(s["ages"])}
+            for s in family["stacks"].values()
+            if len(s["ages"]) >= AGE_GROUP_MIN
         ]
+        roles.append(
+            {
+                "role_family": family["role_family"],
+                "label": family["label"],
+                **age_stats(family["ages"]),
+                "stacks": sorted(stacks, key=by_median)[:AGE_STACKS_PER_ROLE],
+            }
+        )
 
     return {
-        "open": len(ages),
-        "median_days": ages[len(ages) // 2] if ages else None,
+        **age_stats(ages),
         "buckets": [
             {"bucket": label, "jobs": sum(1 for a in ages if low <= a <= high)}
             for label, low, high in AGE_BUCKETS
         ],
-        "oldest": listed("desc"),
-        "newest": listed("asc"),
+        "roles": sorted(roles, key=by_median),
     }
 
 

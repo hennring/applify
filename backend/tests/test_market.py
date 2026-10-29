@@ -159,3 +159,8 @@ def test_top_roles_of_an_employer() -> None:
         "Frontend",
     ]
     assert market.most_common(None) == []
+
+
+def test_age_stats_average_and_median() -> None:
+    assert market.age_stats([3, 1, 20]) == {"open": 3, "mean_days": 8, "median_days": 3}
+    assert market.age_stats([]) == {"open": 0, "mean_days": None, "median_days": None}

@@ -1886,50 +1886,6 @@
 	},
 	"components": {
 		"schemas": {
-			"AgedJob": {
-				"properties": {
-					"job_id": {
-						"type": "integer",
-						"title": "Job Id"
-					},
-					"title": {
-						"type": "string",
-						"title": "Title"
-					},
-					"company": {
-						"type": "string",
-						"title": "Company"
-					},
-					"location_raw": {
-						"type": "string",
-						"title": "Location Raw"
-					},
-					"role_label": {
-						"type": "string",
-						"title": "Role Label"
-					},
-					"online_since": {
-						"type": "string",
-						"format": "date-time",
-						"title": "Online Since"
-					},
-					"age_days": {
-						"type": "integer",
-						"title": "Age Days"
-					}
-				},
-				"type": "object",
-				"required": [
-					"job_id",
-					"title",
-					"company",
-					"location_raw",
-					"role_label",
-					"online_since",
-					"age_days"
-				],
-				"title": "AgedJob"
-			},
 			"AgencyEmployer": {
 				"properties": {
 					"company": {
@@ -2952,6 +2908,17 @@
 						"type": "integer",
 						"title": "Open"
 					},
+					"mean_days": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Mean Days"
+					},
 					"median_days": {
 						"anyOf": [
 							{
@@ -2970,23 +2937,16 @@
 						"type": "array",
 						"title": "Buckets"
 					},
-					"oldest": {
+					"roles": {
 						"items": {
-							"$ref": "#/components/schemas/AgedJob"
+							"$ref": "#/components/schemas/RoleAge"
 						},
 						"type": "array",
-						"title": "Oldest"
-					},
-					"newest": {
-						"items": {
-							"$ref": "#/components/schemas/AgedJob"
-						},
-						"type": "array",
-						"title": "Newest"
+						"title": "Roles"
 					}
 				},
 				"type": "object",
-				"required": ["open", "median_days", "buckets", "oldest", "newest"],
+				"required": ["open", "mean_days", "median_days", "buckets", "roles"],
 				"title": "JobAge"
 			},
 			"JobDetail": {
@@ -4418,6 +4378,54 @@
 				],
 				"title": "RepeatedTitle"
 			},
+			"RoleAge": {
+				"properties": {
+					"role_family": {
+						"type": "string",
+						"title": "Role Family"
+					},
+					"label": {
+						"type": "string",
+						"title": "Label"
+					},
+					"open": {
+						"type": "integer",
+						"title": "Open"
+					},
+					"mean_days": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Mean Days"
+					},
+					"median_days": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Median Days"
+					},
+					"stacks": {
+						"items": {
+							"$ref": "#/components/schemas/StackAge"
+						},
+						"type": "array",
+						"title": "Stacks"
+					}
+				},
+				"type": "object",
+				"required": ["role_family", "label", "open", "mean_days", "median_days", "stacks"],
+				"title": "RoleAge"
+			},
 			"RoleFamilyOption": {
 				"properties": {
 					"key": {
@@ -5272,6 +5280,46 @@
 				"type": "object",
 				"required": ["source", "source_group", "jobs", "only_here", "full_text", "active"],
 				"title": "SourceValue"
+			},
+			"StackAge": {
+				"properties": {
+					"skills": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Skills"
+					},
+					"open": {
+						"type": "integer",
+						"title": "Open"
+					},
+					"mean_days": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Mean Days"
+					},
+					"median_days": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Median Days"
+					}
+				},
+				"type": "object",
+				"required": ["skills", "open", "mean_days", "median_days"],
+				"title": "StackAge"
 			},
 			"StackShare": {
 				"properties": {
