@@ -203,3 +203,8 @@ Milestones M0–M4 (profile, CV extraction, job sources, matching, company disco
 M5 (market analysis with an ELT pipeline and dashboard) and M5.1 (more tabs: profile fit,
 employers, regions, dynamics, data quality) are implemented. Open: M6 (cover
 letter and application package) and M7 (polish).
+
+## License
+
+[PolyForm Noncommercial 1.0.0](LICENSE.md): you may read, run and modify the code for
+noncommercial purposes; commercial use is not permitted.
