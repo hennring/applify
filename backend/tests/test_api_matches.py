@@ -136,6 +136,12 @@ def test_min_score_and_town_size(api: TestClient, fake_source: FakeSource) -> No
     small = api.get("/api/matches", params={"max_population": 100_000}).json()
     assert [m["job"]["location_raw"] for m in small["items"]] == ["04416 Markkleeberg"]
     assert small["items"][0]["job"]["population"] < 100_000
+    # Leipzig has over 500,000 inhabitants.
+    big = api.get("/api/matches", params={"min_population": 500_000}).json()
+    assert big["total"] == 2
+    assert not api.get(
+        "/api/matches", params={"min_population": 100_000, "max_population": 150_000}
+    ).json()["total"]
 
 
 def test_unknown_match(api: TestClient) -> None:

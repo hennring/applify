@@ -605,7 +605,7 @@
 			"get": {
 				"tags": ["matches"],
 				"summary": "List Matches",
-				"description": "Ranked list (F11); hidden jobs only with excluded=true, each with its reason.\n\nmax_population keeps jobs in towns up to that size; unknown places and remote-only jobs\ndrop out.",
+				"description": "Ranked list (F11); hidden jobs only with excluded=true, each with its reason.\n\nmin_population (inclusive) and max_population (exclusive) keep jobs in towns of that size;\nunknown places and remote-only jobs drop out.",
 				"operationId": "list_matches_api_matches_get",
 				"parameters": [
 					{
@@ -649,6 +649,23 @@
 							"minimum": 0,
 							"default": 0,
 							"title": "Min Score"
+						}
+					},
+					{
+						"name": "min_population",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "integer",
+									"minimum": 0
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Min Population"
 						}
 					},
 					{

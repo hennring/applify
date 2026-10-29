@@ -7,7 +7,13 @@
 	import JobDetail from '#lib/components/JobDetail.svelte';
 	import ScoreBadge from '#lib/components/ScoreBadge.svelte';
 	import { healthRows } from '#lib/health.ts';
-	import { formatPopulation, JOB_PAGE_SIZE, MAX_POPULATIONS, MIN_SCORES } from '#lib/jobs.ts';
+	import {
+		formatPopulation,
+		JOB_PAGE_SIZE,
+		MIN_SCORES,
+		TOWN_SIZES,
+		type TownSize
+	} from '#lib/jobs.ts';
 	import {
 		formatDate,
 		formatDateTime,
@@ -59,7 +65,7 @@
 			filters.excluded && 'ausgeblendet=1',
 			filters.sort === 'date' && 'sort=datum',
 			filters.minScore && `score=${filters.minScore}`,
-			filters.maxPopulation && `einwohner=${filters.maxPopulation}`,
+			filters.townSize && `einwohner=${filters.townSize.key}`,
 			jobId !== null && `stelle=${jobId}`
 		].filter(Boolean);
 		return `${resolve('/')}${parts.length ? `?${parts.join('&')}` : ''}`;
@@ -148,7 +154,8 @@
 					excluded: data.filters.excluded,
 					sort: data.filters.sort,
 					min_score: data.filters.minScore,
-					max_population: data.filters.maxPopulation ?? undefined,
+					min_population: data.filters.townSize?.min,
+					max_population: data.filters.townSize?.max,
 					limit: JOB_PAGE_SIZE,
 					offset: matches.length
 				}
@@ -169,14 +176,14 @@
 		ausgeblendet?: boolean;
 		sort?: 'score' | 'date';
 		minScore?: number;
-		maxPopulation?: number | null;
+		townSize?: TownSize | null;
 	}) {
 		const next = { ...data.filters };
 		if (changes.neu !== undefined) next.onlyNew = changes.neu;
 		if (changes.ausgeblendet !== undefined) next.excluded = changes.ausgeblendet;
 		if (changes.sort !== undefined) next.sort = changes.sort;
 		if (changes.minScore !== undefined) next.minScore = changes.minScore;
-		if (changes.maxPopulation !== undefined) next.maxPopulation = changes.maxPopulation;
+		if (changes.townSize !== undefined) next.townSize = changes.townSize;
 		more = [];
 		// Same route, only the query string changes; an open panel stays open.
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
@@ -404,14 +411,17 @@
 				{/each}
 			</div>
 			<div class="segmented" role="group" aria-label="Ortsgröße">
-				{#each MAX_POPULATIONS as option (option.value)}
+				<button
+					type="button"
+					class:on={data.filters.townSize === null}
+					onclick={() => setFilter({ townSize: null })}>Alle Orte</button
+				>
+				{#each TOWN_SIZES as townSize (townSize.key)}
 					<button
 						type="button"
-						class:on={data.filters.maxPopulation === option.value}
-						title={'title' in option
-							? `${option.title}; Remote-Stellen und unbekannte Orte fallen weg`
-							: undefined}
-						onclick={() => setFilter({ maxPopulation: option.value })}>{option.label}</button
+						class:on={data.filters.townSize?.key === townSize.key}
+						title="Einwohner des Orts; Remote-Stellen und unbekannte Orte fallen weg"
+						onclick={() => setFilter({ townSize })}>{townSize.label}</button
 					>
 				{/each}
 			</div>
@@ -497,7 +507,7 @@
 			{/if}
 		{:else}
 			<p class="muted">
-				{data.filters.minScore || data.filters.maxPopulation
+				{data.filters.minScore || data.filters.townSize
 					? 'Keine Stellen für diese Filter.'
 					: data.filters.onlyNew
 						? 'Keine neuen Stellen.'

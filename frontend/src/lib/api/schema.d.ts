@@ -265,8 +265,8 @@ export interface paths {
 		 * List Matches
 		 * @description Ranked list (F11); hidden jobs only with excluded=true, each with its reason.
 		 *
-		 *     max_population keeps jobs in towns up to that size; unknown places and remote-only jobs
-		 *     drop out.
+		 *     min_population (inclusive) and max_population (exclusive) keep jobs in towns of that size;
+		 *     unknown places and remote-only jobs drop out.
 		 */
 		get: operations['list_matches_api_matches_get'];
 		put?: never;
@@ -2671,6 +2671,7 @@ export interface operations {
 				excluded?: boolean;
 				sort?: 'score' | 'date';
 				min_score?: number;
+				min_population?: number | null;
 				max_population?: number | null;
 				limit?: number;
 				offset?: number;

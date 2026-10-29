@@ -87,14 +87,15 @@ def list_matches(
     excluded: bool = False,
     sort: Literal["score", "date"] = "score",
     min_score: Annotated[int, Query(ge=0, le=100)] = 0,
+    min_population: Annotated[int | None, Query(ge=0)] = None,
     max_population: Annotated[int | None, Query(ge=1)] = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> MatchPage:
     """Ranked list (F11); hidden jobs only with excluded=true, each with its reason.
 
-    max_population keeps jobs in towns up to that size; unknown places and remote-only jobs
-    drop out.
+    min_population (inclusive) and max_population (exclusive) keep jobs in towns of that size;
+    unknown places and remote-only jobs drop out.
     """
     base = select(JobMatch).where(JobMatch.user_id == user_id)
     visible = base.where(
@@ -104,10 +105,13 @@ def list_matches(
         visible = visible.where(JobMatch.status == "new")
     if min_score:
         visible = visible.where(JobMatch.score >= min_score)
-    if max_population is not None:
-        visible = visible.where(
-            JobMatch.job_id.in_(select(Job.id).where(Job.population <= max_population))
-        )
+    if min_population is not None or max_population is not None:
+        towns = select(Job.id).where(Job.population.is_not(None))
+        if min_population is not None:
+            towns = towns.where(Job.population >= min_population)
+        if max_population is not None:
+            towns = towns.where(Job.population < max_population)
+        visible = visible.where(JobMatch.job_id.in_(towns))
 
     def count(query: Select[Any]) -> int:
         return session.scalar(select(func.count()).select_from(query.subquery())) or 0
