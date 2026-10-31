@@ -365,9 +365,11 @@ class _Run:
             try:
                 with client.budget(COMPANY_BUDGET):
                     found = detect(client, company)
-            except SourceError as exc:  # unexpected; detect handles page errors itself
+            # Unexpected, detect handles page errors itself; one company must not end the run.
+            except (SourceError, ValueError, KeyError) as exc:
                 found = None
-                company.detection_status, company.last_error = "failed", str(exc)[:500]
+                message = str(exc) or type(exc).__name__
+                company.detection_status, company.last_error = "failed", message[:500]
             if found is not None:
                 if client.budget_exceeded and found.ats_type == "unknown":
                     found.error = BUDGET_MESSAGE

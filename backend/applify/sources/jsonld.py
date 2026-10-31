@@ -15,7 +15,7 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from applify.sources.base import JobPosting, SourceError
 from applify.sources.html_text import html_to_text
-from applify.sources.http import PoliteClient
+from applify.sources.http import PoliteClient, join_url
 
 SCRIPT = re.compile(
     r"<script[^>]+type\s*=\s*[\"']application/ld\+json[\"'][^>]*>(.*?)</script>", re.S | re.I
@@ -165,7 +165,10 @@ def job_links(html: str, page_url: str) -> list[str]:
     host = urlsplit(page_url).netloc
     links: dict[str, None] = {}
     for href in HREF.findall(html):
-        url = _clean(urljoin(page_url, unescape(href)))
+        joined = join_url(page_url, unescape(href))
+        if joined is None:
+            continue
+        url = _clean(joined)
         if urlsplit(url).netloc == host and JOB_PATH.search(urlsplit(url).path):
             links[url] = None
     return list(links)
@@ -184,7 +187,9 @@ def sitemap_job_urls(client: PoliteClient, site: str, *, limit: int = 200) -> li
         for loc in root.iter():
             if not loc.tag.endswith("loc") or not loc.text:
                 continue
-            url = loc.text.strip()
+            url = join_url(site, loc.text.strip())
+            if url is None:
+                continue
             if url.endswith(".xml") or "sitemap" in url.rsplit("/", 1)[-1]:
                 if any(w in url.lower() for w in ("job", "stelle", "karriere", "career")):
                     queue.insert(0, url)

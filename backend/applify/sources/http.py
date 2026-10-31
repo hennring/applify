@@ -4,7 +4,7 @@ import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 from urllib.robotparser import RobotFileParser
 
 import httpx
@@ -23,7 +23,18 @@ def user_agent(contact: str) -> str:
 
 
 def host_of(url: str) -> str:
-    return urlsplit(url).netloc
+    try:
+        return urlsplit(url).netloc
+    except ValueError as exc:
+        raise SourceError(f"{url[:100]}: ungültige URL") from exc
+
+
+def join_url(base: str, href: str) -> str | None:
+    """Absolute URL of a link found on a page, None if it is malformed ("http://[oops")."""
+    try:
+        return urljoin(base, href)
+    except ValueError:
+        return None
 
 
 class PoliteClient:
@@ -123,8 +134,7 @@ class PoliteClient:
 
     def allowed(self, url: str) -> bool:
         """robots.txt check for pages of company websites (N6); APIs are meant for clients."""
-        parts = urlsplit(url)
-        key = f"{parts.scheme}://{parts.netloc}"
+        key = f"{url.split(':')[0]}://{host_of(url)}"
         if key not in self._robots:
             parser: RobotFileParser | None = None
             try:

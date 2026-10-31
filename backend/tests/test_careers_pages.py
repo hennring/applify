@@ -98,6 +98,7 @@ def test_job_links_on_the_same_site() -> None:
       <a href="https://other.de/jobs/frontend-developer">C</a>
       <a href="/karriere/">overview</a>
       <a href="/impressum">D</a>
+      <a href="http://[oops/jobs/developer">E</a>
     """
     assert job_links(html, "https://acme.de/karriere") == [
         "https://acme.de/karriere/fullstack-entwickler-leipzig",
@@ -280,6 +281,13 @@ def test_detect_survives_a_broken_website(web: FakeWeb) -> None:
     assert _website("vr-bits.de") == "https://vr-bits.de"
 
 
+def test_malformed_urls_are_source_errors(web: FakeWeb) -> None:
+    # An unclosed bracket makes urlsplit raise, which once ended the whole run.
+    with pytest.raises(SourceError, match="ungültige URL"):
+        web.client().get_page("http://[oops/karriere")
+    assert posting_hints(posting(description="Mehr unter http://[oops/karriere")) == ([], None)
+
+
 def test_detect_reports_unreachable_websites(web: FakeWeb) -> None:
     found = detect(web.client(), company(website="https://acme.de"), guess=False)
     assert found.ats_type == "unknown"
@@ -357,6 +365,7 @@ def test_career_links() -> None:
       <a href="/karriere">Karriere</a><a href="/about">Über uns</a>
       <a href="https://acme.jobs.personio.de">Offene Stellen</a>
       <a href="/team"><span>Jobs</span></a><a href="https://twitter.com/acme/jobs">X</a>
+      <a href="http://[oops/karriere">Karriere</a>
     """
     assert career_links(html, "https://www.acme.de/") == [
         "https://www.acme.de/karriere",

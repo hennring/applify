@@ -218,6 +218,38 @@ def test_budget_leaves_undetected_companies_marked(
     assert not any("langsam.de" in url for url in web.urls())
 
 
+def test_one_failing_company_does_not_end_the_run(
+    api: TestClient,
+    run_sources: RunSources,
+    web: FakeWeb,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    api.put("/api/profile", json=PROFILE)
+    company = watch(
+        db_session,
+        Company(
+            name="Kaputt GmbH",
+            name_norm="kaputt",
+            website="https://kaputt.de",
+            discovered_from="user",
+            detection_status="pending",
+            hints={},
+        ),
+    )
+    run_sources.client = web.client()
+
+    def broken(*_: Any) -> None:
+        raise ValueError("Invalid IPv6 URL")
+
+    monkeypatch.setattr(search_runner, "detect", broken)
+
+    run(api)
+
+    db_session.refresh(company)
+    assert (company.detection_status, company.last_error) == ("failed", "Invalid IPv6 URL")
+
+
 def test_budget_postpones_workday_details_to_the_next_run(
     api: TestClient,
     run_sources: RunSources,

@@ -101,7 +101,10 @@ def posting_hints(posting: JobPosting) -> tuple[list[str], str | None]:
     for raw in URL.findall(text):
         url = raw.rstrip(".,;:!?")
         url = url if url.lower().startswith("http") else f"https://{url}"
-        host = urlsplit(url).netloc.lower()
+        try:
+            host = urlsplit(url).netloc.lower()
+        except ValueError:
+            continue
         if not host or registered_domain(host) in FOREIGN_DOMAINS:
             continue
         if find_ats(url) or domain_fits(registered_domain(host), posting.company):

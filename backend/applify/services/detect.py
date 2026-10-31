@@ -10,7 +10,7 @@ from applify.services.companies import registered_domain, same_company
 from applify.services.normalize import normalize_company
 from applify.sources.ats import ADAPTERS, PROBE_ORDER, find_ats
 from applify.sources.base import SourceError
-from applify.sources.http import PoliteClient
+from applify.sources.http import PoliteClient, join_url
 from applify.sources.jsonld import JOB_PATH, job_links, job_postings, sitemap_job_urls
 
 ANCHOR = re.compile(r"<a\s[^>]*href\s*=\s*[\"']([^\"'#]+)[\"'][^>]*>(.*?)</a>", re.I | re.S)
@@ -40,9 +40,9 @@ def career_links(html: str, base: str) -> list[str]:
     host = registered_domain(urlsplit(base).netloc)
     links: dict[str, None] = {}
     for href, text in ANCHOR.findall(html):
-        url = urljoin(base, href.strip())
+        url = join_url(base, href.strip())
         label = re.sub(r"<[^>]+>", " ", text)
-        if not url.startswith("http"):
+        if url is None or not url.startswith("http"):
             continue
         if find_ats(url) or (
             registered_domain(urlsplit(url).netloc) == host
