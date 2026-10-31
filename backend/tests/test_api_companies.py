@@ -1,13 +1,16 @@
 """Search run stages 2 and 3 (feeds, companies) and the settings, companies, coverage API."""
 
+import time
 from typing import Any
 
 import httpx
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from applify.db.models import Company, Job, JobSighting, UserCompany
+from applify.services import search_runner
 from applify.sources.base import JobPosting, RunSources
 from tests.conftest import FIXTURES, FakeSource, FakeWeb
 
@@ -175,6 +178,107 @@ def test_ignored_companies_are_not_read(
     run(api)
 
     assert not any("personio" in url for url in web.urls())
+
+
+def watch(db_session: Session, company: Company) -> Company:
+    db_session.add(company)
+    db_session.flush()
+    db_session.add(UserCompany(user_id=1, company_id=company.id))
+    db_session.flush()
+    return company
+
+
+def test_budget_leaves_undetected_companies_marked(
+    api: TestClient,
+    run_sources: RunSources,
+    web: FakeWeb,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    api.put("/api/profile", json=PROFILE)
+    company = watch(
+        db_session,
+        Company(
+            name="Langsam GmbH",
+            name_norm="langsam",
+            website="https://langsam.de",
+            discovered_from="user",
+            detection_status="pending",
+            hints={},
+        ),
+    )
+    run_sources.client = web.client()
+    monkeypatch.setattr(search_runner, "COMPANY_BUDGET", 0)
+
+    run(api)
+
+    db_session.refresh(company)
+    assert (company.ats_type, company.detection_status) == ("unknown", "done")
+    assert company.last_error == search_runner.BUDGET_MESSAGE
+    assert not any("langsam.de" in url for url in web.urls())
+
+
+def test_budget_postpones_workday_details_to_the_next_run(
+    api: TestClient,
+    run_sources: RunSources,
+    web: FakeWeb,
+    db_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    api.put("/api/profile", json=PROFILE)
+    company = watch(
+        db_session,
+        Company(
+            name="Acme",
+            name_norm="acme",
+            discovered_from="user",
+            ats_type="workday",
+            ats_token="acme/wd3/Site",
+            detection_status="done",
+            hints={},
+        ),
+    )
+    api_url = "https://acme.wd3.myworkdayjobs.com/wday/cxs/acme/Site"
+    web.add(
+        f"{api_url}/jobs",
+        {
+            "total": 2,
+            "jobPostings": [
+                {
+                    "title": "Python Developer",
+                    "externalPath": "/job/a",
+                    "locationsText": "Karlsruhe",
+                },
+                {"title": "Vue Developer", "externalPath": "/job/b", "locationsText": "Karlsruhe"},
+            ],
+        },
+    )
+
+    def detail(request: httpx.Request) -> httpx.Response:
+        time.sleep(0.5)
+        return httpx.Response(200, json={"jobPostingInfo": {"jobDescription": FULL_TEXT}})
+
+    web.pages[f"{api_url}/job/a"] = detail
+    web.pages[f"{api_url}/job/b"] = detail
+    run_sources.client = web.client()
+    monkeypatch.setattr(search_runner, "COMPANY_BUDGET", 0.4)
+
+    stats = run(api)["stats"]["ats:workday"]
+
+    # Without its details a posting would stay without full text for good, so it waits.
+    assert (stats["new"], stats["errors"]) == (1, 1)
+    db_session.refresh(company)
+    assert company.last_error == search_runner.BUDGET_MESSAGE
+    assert all(job.has_full_text for job in db_session.scalars(select(Job)))
+
+    monkeypatch.setattr(search_runner, "COMPANY_BUDGET", 30.0)
+    stats = run(api)["stats"]["ats:workday"]
+
+    assert (stats["new"], stats["errors"]) == (1, 0)
+    db_session.refresh(company)
+    assert company.last_error is None
+    jobs = list(db_session.scalars(select(Job)))
+    assert len(jobs) == 2 and all(job.has_full_text for job in jobs)
 
 
 def test_companies_api(api: TestClient, web: FakeWeb) -> None:

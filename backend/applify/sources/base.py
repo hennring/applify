@@ -48,6 +48,10 @@ class SourceError(Exception):
     """A request to a source failed; the run records it and continues (F7d)."""
 
 
+class BudgetExceeded(SourceError):
+    """The time budget of the current company ran out; says nothing about the source."""
+
+
 class JobSource(Protocol):
     """A source searched per term and location."""
 

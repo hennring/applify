@@ -1,6 +1,8 @@
 import json
+import time
 from typing import Any
 
+import httpx
 import pytest
 
 from applify.db.models import Company
@@ -10,7 +12,7 @@ from applify.services.discovery import _website
 from applify.services.geo import get_gazetteer
 from applify.services.matching import ProfilePlace
 from applify.services.prefilter import Prefilter
-from applify.sources.base import JobPosting, SourceError
+from applify.sources.base import BudgetExceeded, JobPosting, SourceError
 from applify.sources.jsonld import JsonLdCareers, job_links, job_postings, parse_posting
 from tests.conftest import FakeWeb
 
@@ -282,6 +284,72 @@ def test_detect_reports_unreachable_websites(web: FakeWeb) -> None:
     found = detect(web.client(), company(website="https://acme.de"), guess=False)
     assert found.ats_type == "unknown"
     assert found.error and "404" in found.error
+
+
+# --- time budget ---------------------------------------------------------------------------
+
+
+def test_budget_ends_requests_without_remembering_robots(web: FakeWeb) -> None:
+    web.add("https://acme.de/robots.txt", "User-agent: *\nDisallow: /")
+    client = web.client()
+
+    with client.budget(0), pytest.raises(BudgetExceeded):
+        client.get_page("https://acme.de/jobs")
+
+    assert client.budget_exceeded and web.requests == []
+    with pytest.raises(SourceError, match=r"robots\.txt"):
+        client.get_page("https://acme.de/jobs")
+
+
+def test_budget_shortens_the_timeout(web: FakeWeb) -> None:
+    web.add("https://acme.de/jobs", "x")
+    client = web.client()
+
+    with client.budget(5):
+        client.get_ok("https://acme.de/jobs")
+    assert web.requests[0].extensions["timeout"]["read"] <= 5
+    assert web.requests[0].extensions["timeout"]["connect"] <= 5
+
+    client.get_ok("https://acme.de/jobs")
+    assert web.requests[1].extensions["timeout"]["read"] == client.timeout
+
+
+def test_timeout_at_the_end_of_the_budget_is_no_site_error(web: FakeWeb) -> None:
+    def slow(request: httpx.Request) -> httpx.Response:
+        time.sleep(0.02)
+        raise httpx.ReadTimeout("slow", request=request)
+
+    web.pages["https://acme.de/jobs"] = slow
+    client = web.client()
+
+    with client.budget(0.01), pytest.raises(BudgetExceeded):
+        client.get_ok("https://acme.de/jobs")
+
+
+def test_json_ld_keeps_what_it_read_before_the_budget_ran_out(web: FakeWeb) -> None:
+    def slow(request: httpx.Request) -> httpx.Response:
+        time.sleep(0.25)
+        return httpx.Response(200, text=page(POSTING))
+
+    web.add(
+        "https://acme.de/jobs",
+        page(
+            body='<a href="/jobs/first-job">a</a><a href="/jobs/second-job">b</a>'
+            '<a href="/jobs/third-job">c</a>'
+        ),
+    )
+    web.pages["https://acme.de/jobs/first-job"] = slow
+    client = web.client()
+    listed: set[str] = set()
+
+    with client.budget(0.2):
+        postings = JsonLdCareers().fetch(
+            client, "https://acme.de/jobs", "Acme", {"https://acme.de/jobs/third-job"}, listed
+        )
+
+    assert len(postings) == 1 and client.budget_exceeded
+    assert "https://acme.de/jobs/second-job" not in web.urls()
+    assert listed == {"https://acme.de/jobs/third-job"}
 
 
 def test_career_links() -> None:

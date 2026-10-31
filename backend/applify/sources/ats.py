@@ -11,7 +11,7 @@ from datetime import UTC, date, datetime, timedelta
 from html import unescape
 from typing import Any, ClassVar, Protocol
 
-from applify.sources.base import JobPosting, SourceError
+from applify.sources.base import BudgetExceeded, JobPosting, SourceError
 from applify.sources.html_text import html_to_text
 from applify.sources.http import PoliteClient
 
@@ -365,6 +365,8 @@ class SmartRecruiters:
         token, item_id = posting.external_id.split(":", 1)
         try:
             detail = client.get_json(f"{self.API}/{token}/postings/{item_id}")
+        except BudgetExceeded:
+            raise
         except SourceError:
             return posting
         full = self.parse_item(token, detail)
@@ -457,6 +459,8 @@ class Workday:
         api, _ = self._base(token)
         try:
             info = client.get_json(f"{api}{path}").get("jobPostingInfo") or {}
+        except BudgetExceeded:
+            raise
         except (SourceError, AttributeError):
             return posting
         country = ((info.get("jobRequisitionLocation") or {}).get("country") or {}).get(

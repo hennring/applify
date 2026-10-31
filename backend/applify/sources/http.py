@@ -1,13 +1,15 @@
 """HTTP client with the fetching etiquette from N6."""
 
 import time
+from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Any
 from urllib.parse import urlsplit
 from urllib.robotparser import RobotFileParser
 
 import httpx
 
-from applify.sources.base import SourceError
+from applify.sources.base import BudgetExceeded, SourceError
 
 USER_AGENT = "Applify/0.1 (personal job search assistant)"
 # Pages larger than this are not read (careers pages, sitemaps).
@@ -38,6 +40,9 @@ class PoliteClient:
     ) -> None:
         self.interval = interval
         self.contact = contact
+        self.timeout = timeout
+        self.budget_exceeded = False
+        self._deadline: float | None = None
         self._last: dict[str, float] = {}
         self._robots: dict[str, RobotFileParser | None] = {}
         if transport is None and ipv4_only:
@@ -52,14 +57,37 @@ class PoliteClient:
             transport=transport,
         )
 
+    @contextmanager
+    def budget(self, seconds: float) -> Iterator[None]:
+        """Requests inside fail with BudgetExceeded once `seconds` have passed."""
+        self.budget_exceeded = False
+        self._deadline = time.monotonic() + seconds
+        try:
+            yield
+        finally:
+            self._deadline = None
+
+    def _over_budget(self, host: str) -> BudgetExceeded:
+        self.budget_exceeded = True
+        return BudgetExceeded(f"{host}: Zeitbudget aufgebraucht")
+
     def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
         host = host_of(url)
         wait = self._last.get(host, 0.0) + self.interval - time.monotonic()
+        if self._deadline is not None:
+            left = self._deadline - time.monotonic() - max(wait, 0.0)
+            if left <= 0:
+                raise self._over_budget(host)
+            kwargs["timeout"] = httpx.Timeout(
+                min(self.timeout, left), connect=min(CONNECT_TIMEOUT, left)
+            )
         if wait > 0:
             time.sleep(wait)
         try:
             response = self._client.request(method, url, **kwargs)
         except httpx.HTTPError as exc:
+            if self._deadline is not None and time.monotonic() >= self._deadline:
+                raise self._over_budget(host) from exc
             raise SourceError(f"{host}: {type(exc).__name__}") from exc
         # Malformed URL from a page or a user; httpx.InvalidURL is no ValueError.
         except (ValueError, httpx.InvalidURL) as exc:
@@ -101,6 +129,8 @@ class PoliteClient:
             parser: RobotFileParser | None = None
             try:
                 response = self.request("GET", f"{key}/robots.txt")
+            except BudgetExceeded:
+                raise  # says nothing about the site, so it must not be remembered
             except SourceError:
                 response = None
             if response is not None and response.status_code == httpx.codes.OK:

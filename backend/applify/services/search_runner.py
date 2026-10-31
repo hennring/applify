@@ -30,6 +30,7 @@ from applify.services.skills import SkillTaxonomy
 from applify.services.source_settings import BY_KEY, load_settings, save_setting
 from applify.sources.ats import ADAPTERS, Feed
 from applify.sources.base import (
+    BudgetExceeded,
     JobPosting,
     RunSources,
     SearchQuery,
@@ -50,6 +51,9 @@ COMMIT_EVERY = 10
 COUNTERS = ("found", "new", "duplicate", "known", "filtered", "errors")
 # New companies whose careers page is looked for per run (§5.1); the rest waits.
 DETECT_PER_RUN = 50
+# Seconds one company may take per stage, so a slow one does not hold up the run.
+COMPANY_BUDGET = 30.0
+BUDGET_MESSAGE = "Zeitbudget aufgebraucht"
 # Shares of the progress bar per stage when the company stage runs.
 STAGES = {"search": 0.45, "feeds": 0.55, "discovery": 0.6, "detect": 0.75, "careers": 1.0}
 
@@ -232,7 +236,10 @@ class _Run:
                 continue
             # Details only for listings not stored yet; known ones keep what they have.
             if find_source(self.session, posting) is None:
-                posting = complete(posting)
+                try:
+                    posting = complete(posting)
+                except BudgetExceeded:
+                    continue  # stays unstored, so the next run fetches its details
                 if verdict is None and not self.prefilter.check(posting):
                     stats["filtered"] += 1
                     continue
@@ -356,11 +363,14 @@ class _Run:
         for i, company in enumerate(pending):
             self._step(i / max(len(pending), 1), f"Karriereseite suchen: {company.name}")
             try:
-                found = detect(client, company)
+                with client.budget(COMPANY_BUDGET):
+                    found = detect(client, company)
             except SourceError as exc:  # unexpected; detect handles page errors itself
                 found = None
                 company.detection_status, company.last_error = "failed", str(exc)[:500]
             if found is not None:
+                if client.budget_exceeded and found.ats_type == "unknown":
+                    found.error = BUDGET_MESSAGE
                 apply_detection(company, found)
             self.session.commit()
 
@@ -384,61 +394,74 @@ class _Run:
         for i, company in enumerate(companies):
             step = f"Karriereseite: {company.name}"
             self._step(i / max(len(companies), 1), step)
-            now = datetime.now(UTC)
-            if company.ats_type == "jsonld":
-                key, label = "jsonld", jsonld.label
-            else:
-                adapter = ADAPTERS[company.ats_type]
-                key, label = f"ats:{adapter.type}", adapter.label
-            self.progress.source(key, label)
-            complete: Callable[[JobPosting], JobPosting] = _unchanged
-            # Postings still listed without being delivered again (raw layer, §5.8).
-            listed: set[str] = set()
-            unchanged = False
-            try:
-                if company.ats_type == "jsonld":
-                    known = set(
-                        self.session.scalars(
-                            select(JobSource.url)
-                            .join(Job)
-                            .where(Job.company_id == company.id, JobSource.source == "jsonld")
-                        )
-                    )
-                    postings = jsonld.fetch(
-                        client,
-                        company.careers_url or company.website or "",
-                        company.name,
-                        known,
-                        listed,
-                    )
-                else:
-                    # A changed profile may let through postings the prefilter dropped before.
-                    fresh = (
-                        company.last_checked_at is not None
-                        and profile_changed is not None
-                        and profile_changed < company.last_checked_at
-                    )
-                    feed = Feed(
-                        company.ats_token or "",
-                        company.name,
-                        self.terms,
-                        etag=company.etag if fresh else None,
-                    )
-                    postings = adapter.fetch(client, feed)
-                    company.etag, unchanged = feed.etag, feed.unchanged
-                    complete = partial(adapter.complete, client)
-            except (SourceError, ValueError, KeyError) as exc:
-                message = str(exc) or type(exc).__name__
-                mark_checked(company, now, message)
-                self.progress.error(key, label, company.name, message)
-                self.session.commit()
-                continue
-            mark_checked(company, now)
-            if listed or unchanged:
-                self._confirm(company, key, listed if listed else None)
-            self._ingest(key, postings, complete, prefilter=True, step=step, company=company)
+            with client.budget(COMPANY_BUDGET):
+                self._read_company(client, company, jsonld, profile_changed, step)
             self.session.commit()
         self._step(1, "Karriereseiten abgeschlossen")
+
+    def _read_company(
+        self,
+        client: PoliteClient,
+        company: Company,
+        jsonld: JsonLdCareers,
+        profile_changed: datetime | None,
+        step: str,
+    ) -> None:
+        now = datetime.now(UTC)
+        if company.ats_type == "jsonld":
+            key, label = "jsonld", jsonld.label
+        else:
+            adapter = ADAPTERS[company.ats_type]
+            key, label = f"ats:{adapter.type}", adapter.label
+        self.progress.source(key, label)
+        complete: Callable[[JobPosting], JobPosting] = _unchanged
+        # Postings still listed without being delivered again (raw layer, §5.8).
+        listed: set[str] = set()
+        unchanged = False
+        try:
+            if company.ats_type == "jsonld":
+                known = set(
+                    self.session.scalars(
+                        select(JobSource.url)
+                        .join(Job)
+                        .where(Job.company_id == company.id, JobSource.source == "jsonld")
+                    )
+                )
+                postings = jsonld.fetch(
+                    client,
+                    company.careers_url or company.website or "",
+                    company.name,
+                    known,
+                    listed,
+                )
+            else:
+                # A changed profile may let through postings the prefilter dropped before.
+                fresh = (
+                    company.last_checked_at is not None
+                    and profile_changed is not None
+                    and profile_changed < company.last_checked_at
+                )
+                feed = Feed(
+                    company.ats_token or "",
+                    company.name,
+                    self.terms,
+                    etag=company.etag if fresh else None,
+                )
+                postings = adapter.fetch(client, feed)
+                company.etag, unchanged = feed.etag, feed.unchanged
+                complete = partial(adapter.complete, client)
+        except (SourceError, ValueError, KeyError) as exc:
+            message = str(exc) or type(exc).__name__
+            mark_checked(company, now, message)
+            self.progress.error(key, label, company.name, message)
+            return
+        mark_checked(company, now)
+        if listed or unchanged:
+            self._confirm(company, key, listed if listed else None)
+        self._ingest(key, postings, complete, prefilter=True, step=step, company=company)
+        if client.budget_exceeded:
+            mark_checked(company, now, BUDGET_MESSAGE)
+            self.progress.error(key, label, company.name, BUDGET_MESSAGE)
 
     def _confirm(self, company: Company, key: str, urls: set[str] | None) -> None:
         """The company's stored postings from this source, or those with the given URLs."""
