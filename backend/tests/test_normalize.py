@@ -81,6 +81,12 @@ def test_detect_remote(text: str, expected: str | None) -> None:
         ("3.800 – 4.200 € / Monat", (45600, 50400)),
         ("Wir sind 25 Leute in 2 Büros", (None, None)),
         ("Zuschuss von 50 € für das Deutschlandticket", (None, None)),
+        # A range with the dash missing, as Arbeitnow delivered it.
+        ("(ca. 80.000 100.000€ p.a.)", (80000, 100000)),
+        ("Im Jahr 2010 50.000 €", (50000, None)),
+        # Too large for a salary.
+        ("80000100000 €", (None, None)),
+        ("Series A über 2.500.000 €", (None, None)),
     ],
 )
 def test_parse_salary(text: str, expected: tuple[int | None, int | None]) -> None:

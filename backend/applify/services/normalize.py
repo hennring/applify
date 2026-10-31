@@ -33,11 +33,15 @@ HYBRID_WORDS = re.compile(
 )
 
 _NUMBER = r"(\d{1,3}(?:[.\s]\d{3})+|\d+(?:[,.]\d+)?)\s*(k|tsd\.?|tausend)?"
+# Whitespace separates a range only after a dotted number: "80.000 100.000€", not "60 000 EUR".
 SALARY_RANGE = re.compile(
-    rf"{_NUMBER}\s*(?:€|eur|euro)?\s*(?:-|–|bis)\s*{_NUMBER}\s*(?:€|eur|euro)", re.IGNORECASE
+    rf"{_NUMBER}\s*(?:€|eur|euro)?\s*(?:-|–|bis|(?<=\.\d{{3}})\s)\s*{_NUMBER}\s*(?:€|eur|euro)",
+    re.IGNORECASE,
 )
 SALARY_SINGLE = re.compile(rf"(?:ab|mindestens|from)?\s*{_NUMBER}\s*(?:€|eur|euro)", re.IGNORECASE)
 MONTHLY = re.compile(r"monat|month|/\s*m\b|p\.\s?m\.", re.IGNORECASE)
+# Above this, an amount is a funding round or a typo, not a salary.
+MAX_SALARY = 1_000_000
 
 
 def _fold(text: str) -> str:
@@ -95,14 +99,14 @@ def parse_salary(text: str) -> tuple[int | None, int | None]:
     """Yearly gross salary range from free text; monthly values are multiplied by 12."""
     for match in SALARY_RANGE.finditer(text):
         low, high = _amount(match[1], match[2]), _amount(match[3], match[4] or match[2])
-        if low > high or low < 500:
+        if low > high or low < 500 or high > MAX_SALARY:
             continue
         context = text[match.end() : match.end() + 30]
         factor = 12 if MONTHLY.search(context) or high < 15000 else 1
         return int(low * factor), int(high * factor)
     for match in SALARY_SINGLE.finditer(text):
         value = _amount(match[1], match[2])
-        if value < 500:
+        if value < 500 or value > MAX_SALARY:
             continue
         context = text[match.end() : match.end() + 30]
         factor = 12 if MONTHLY.search(context) or value < 15000 else 1
