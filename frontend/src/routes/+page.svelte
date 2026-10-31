@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { api, errorMessage, type Schemas } from '#lib/api/client.ts';
+	import CityFilter from '#lib/components/CityFilter.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import JobDetail from '#lib/components/JobDetail.svelte';
 	import ScoreBadge from '#lib/components/ScoreBadge.svelte';
@@ -66,6 +67,7 @@
 			filters.sort === 'date' && 'sort=datum',
 			filters.minScore && `score=${filters.minScore}`,
 			filters.townSize && `einwohner=${filters.townSize.key}`,
+			filters.city && `stadt=${encodeURIComponent(filters.city)}`,
 			jobId !== null && `stelle=${jobId}`
 		].filter(Boolean);
 		return `${resolve('/')}${parts.length ? `?${parts.join('&')}` : ''}`;
@@ -156,6 +158,7 @@
 					min_score: data.filters.minScore,
 					min_population: data.filters.townSize?.min,
 					max_population: data.filters.townSize?.max,
+					city: data.filters.city ?? undefined,
 					limit: JOB_PAGE_SIZE,
 					offset: matches.length
 				}
@@ -177,6 +180,7 @@
 		sort?: 'score' | 'date';
 		minScore?: number;
 		townSize?: TownSize | null;
+		city?: string | null;
 	}) {
 		const next = { ...data.filters };
 		if (changes.neu !== undefined) next.onlyNew = changes.neu;
@@ -184,6 +188,7 @@
 		if (changes.sort !== undefined) next.sort = changes.sort;
 		if (changes.minScore !== undefined) next.minScore = changes.minScore;
 		if (changes.townSize !== undefined) next.townSize = changes.townSize;
+		if (changes.city !== undefined) next.city = changes.city;
 		more = [];
 		// Same route, only the query string changes; an open panel stays open.
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
@@ -425,6 +430,11 @@
 					>
 				{/each}
 			</div>
+			<CityFilter
+				value={data.filters.city}
+				excluded={data.filters.excluded}
+				onchange={(city) => setFilter({ city })}
+			/>
 			<span class="muted">{data.matches.total} Stellen</span>
 			{#if data.matches.new}
 				<button type="button" class="seen" onclick={markAllSeen}
@@ -507,7 +517,7 @@
 			{/if}
 		{:else}
 			<p class="muted">
-				{data.filters.minScore || data.filters.townSize
+				{data.filters.minScore || data.filters.townSize || data.filters.city
 					? 'Keine Stellen für diese Filter.'
 					: data.filters.onlyNew
 						? 'Keine neuen Stellen.'

@@ -144,6 +144,42 @@ def test_min_score_and_town_size(api: TestClient, fake_source: FakeSource) -> No
     ).json()["total"]
 
 
+def test_city_filter_and_suggestions(api: TestClient, fake_source: FakeSource) -> None:
+    fake_source.postings = {
+        "Fullstack Entwickler": [
+            posting("1", "Fullstack Entwickler"),
+            posting("2", "Fullstack Entwickler Zentrum", "Zentrum, Leipzig"),
+            posting("3", "Fullstack Entwickler Multi", "Leipzig, Markkleeberg, Berlin"),
+            posting("4", "Fullstack Entwickler Vue", "04416 Markkleeberg"),
+            posting("5", "Fullstack Entwickler Zeitarbeit", "Halle (Saale)"),
+        ]
+    }
+    api.put("/api/profile", json=PROFILE)
+    api.post("/api/runs")
+
+    def titles(city: str) -> set[str]:
+        items = api.get("/api/matches", params={"city": city}).json()["items"]
+        return {m["job"]["title"].removeprefix("Fullstack Entwickler ") for m in items}
+
+    assert titles("Leipzig") == {"Fullstack Entwickler", "Zentrum", "Multi"}
+    assert titles("Markkleeberg") == {"Multi", "Vue"}
+    assert titles("Lei") == set()
+
+    def suggest(**params: str | bool) -> list[dict[str, int | str]]:
+        return api.get("/api/matches/cities", params=params).json()
+
+    leipzig = {"name": "Leipzig", "jobs": 3}
+    assert suggest(q="lei") == [leipzig]
+    # Names starting with the text come before those only containing it.
+    assert [c["name"] for c in suggest(q="b")] == ["Berlin", "Markkleeberg"]
+    assert suggest(q="kleeberg") == [{"name": "Markkleeberg", "jobs": 2}]
+    assert suggest()[0] == leipzig
+    assert suggest(q="%") == []
+    # Hidden jobs are not offered, except for the hidden list itself.
+    assert suggest(q="halle") == []
+    assert suggest(q="halle", excluded=True) == [{"name": "Halle (Saale)", "jobs": 1}]
+
+
 def test_unknown_match(api: TestClient) -> None:
     assert api.get("/api/matches/999").status_code == 404
     assert api.post("/api/matches/999/seen").status_code == 404

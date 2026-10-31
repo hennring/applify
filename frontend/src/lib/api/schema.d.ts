@@ -266,9 +266,31 @@ export interface paths {
 		 * @description Ranked list (F11); hidden jobs only with excluded=true, each with its reason.
 		 *
 		 *     min_population (inclusive) and max_population (exclusive) keep jobs in towns of that size;
-		 *     unknown places and remote-only jobs drop out.
+		 *     unknown places and remote-only jobs drop out. city keeps jobs in that town, by the name
+		 *     /matches/cities suggests.
 		 */
 		get: operations['list_matches_api_matches_get'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/matches/cities': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * List Cities
+		 * @description Towns with jobs in the list, for the city filter: names starting with q first, then
+		 *     those containing it, each by number of jobs.
+		 */
+		get: operations['list_cities_api_matches_cities_get'];
 		put?: never;
 		post?: never;
 		delete?: never;
@@ -795,6 +817,13 @@ export interface components {
 			city: string;
 			/** State Code */
 			state_code: string;
+			/** Jobs */
+			jobs: number;
+		};
+		/** CityOption */
+		CityOption: {
+			/** Name */
+			name: string;
 			/** Jobs */
 			jobs: number;
 		};
@@ -2679,6 +2708,7 @@ export interface operations {
 				min_score?: number;
 				min_population?: number | null;
 				max_population?: number | null;
+				city?: string | null;
 				limit?: number;
 				offset?: number;
 			};
@@ -2695,6 +2725,39 @@ export interface operations {
 				};
 				content: {
 					'application/json': components['schemas']['MatchPage'];
+				};
+			};
+			/** @description Validation Error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['HTTPValidationError'];
+				};
+			};
+		};
+	};
+	list_cities_api_matches_cities_get: {
+		parameters: {
+			query?: {
+				q?: string;
+				excluded?: boolean;
+				limit?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successful Response */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CityOption'][];
 				};
 			};
 			/** @description Validation Error */

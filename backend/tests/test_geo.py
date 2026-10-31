@@ -58,6 +58,33 @@ def test_city_of_district_or_state_suffix(text: str, city: str) -> None:
 
 
 @pytest.mark.parametrize(
+    ("text", "cities"),
+    [
+        ("04109 Leipzig", ["Leipzig"]),
+        ("28 Bremen", ["Bremen"]),
+        ("Wedding, Berlin", ["Berlin"]),
+        ("Berlin-Mitte", ["Berlin"]),
+        ("Berlin/Remote", ["Berlin"]),
+        ("Dresden, Sachsen", ["Dresden"]),
+        ("Potsdam, Brandenburg", ["Potsdam"]),
+        ("Bünde, Herford (Kreis)", ["Bünde"]),
+        ("Chemnitz (Kreis), Sachsen", ["Chemnitz"]),
+        ("08468 Heinsdorfergrund", ["Reichenbach/Vogtland"]),
+        ("Remote, Köln, Konstanz, Berlin", ["Köln", "Konstanz", "Berlin"]),
+        ("Berlin, Germany; Munich, Germany", ["Berlin", "München"]),
+        ("Bonn / Berlin / Bonn", ["Bonn", "Berlin"]),
+        ("72555 Metzingen, 10117 Berlin", ["Metzingen", "Berlin"]),
+        ("Thüringen, Hamburg, Sachsen, Schleswig-Holstein, Berlin", ["Hamburg", "Berlin"]),
+        ("Remote", []),
+        ("Paris, France", []),
+        ("", []),
+    ],
+)
+def test_cities(text: str, cities: list[str]) -> None:
+    assert get_gazetteer().cities(text) == cities
+
+
+@pytest.mark.parametrize(
     ("text", "low", "high"),
     [
         # Districts count as their city.

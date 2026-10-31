@@ -3,7 +3,7 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import Select, func, select, update
+from sqlalchemy import Select, any_, func, select, update
 from sqlalchemy.orm import Session, joinedload
 
 from applify.api.jobs import JobDetail, JobOut
@@ -64,6 +64,11 @@ class MatchPage(BaseModel):
     items: list[MatchOut]
 
 
+class CityOption(BaseModel):
+    name: str
+    jobs: int
+
+
 class PastedText(BaseModel):
     text: str = Field(min_length=MIN_PASTED_TEXT, max_length=100_000)
 
@@ -89,13 +94,15 @@ def list_matches(
     min_score: Annotated[int, Query(ge=0, le=100)] = 0,
     min_population: Annotated[int | None, Query(ge=0)] = None,
     max_population: Annotated[int | None, Query(ge=1)] = None,
+    city: Annotated[str | None, Query(max_length=100)] = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> MatchPage:
     """Ranked list (F11); hidden jobs only with excluded=true, each with its reason.
 
     min_population (inclusive) and max_population (exclusive) keep jobs in towns of that size;
-    unknown places and remote-only jobs drop out.
+    unknown places and remote-only jobs drop out. city keeps jobs in that town, by the name
+    /matches/cities suggests.
     """
     base = select(JobMatch).where(JobMatch.user_id == user_id)
     visible = base.where(
@@ -112,6 +119,8 @@ def list_matches(
         if max_population is not None:
             towns = towns.where(Job.population < max_population)
         visible = visible.where(JobMatch.job_id.in_(towns))
+    if city:
+        visible = visible.where(JobMatch.job_id.in_(select(Job.id).where(any_(Job.cities) == city)))
 
     def count(query: Select[Any]) -> int:
         return session.scalar(select(func.count()).select_from(query.subquery())) or 0
@@ -134,6 +143,38 @@ def list_matches(
         excluded=count(base.where(JobMatch.excluded_reason.is_not(None))),
         items=[MatchOut.model_validate(m, from_attributes=True) for m in matches],
     )
+
+
+@router.get("/cities")
+def list_cities(
+    session: SessionDep,
+    user_id: UserDep,
+    q: Annotated[str, Query(max_length=100)] = "",
+    excluded: bool = False,
+    limit: Annotated[int, Query(ge=1, le=50)] = 8,
+) -> list[CityOption]:
+    """Towns with jobs in the list, for the city filter: names starting with q first, then
+    those containing it, each by number of jobs."""
+    towns = (
+        select(func.unnest(Job.cities).label("name"))
+        .join(JobMatch, JobMatch.job_id == Job.id)
+        .where(
+            JobMatch.user_id == user_id,
+            JobMatch.excluded_reason.is_not(None)
+            if excluded
+            else JobMatch.excluded_reason.is_(None),
+        )
+        .subquery()
+    )
+    jobs = func.count()
+    rows = session.execute(
+        select(towns.c.name, jobs.label("jobs"))
+        .where(towns.c.name.icontains(q, autoescape=True))
+        .group_by(towns.c.name)
+        .order_by(towns.c.name.istartswith(q, autoescape=True).desc(), jobs.desc(), towns.c.name)
+        .limit(limit)
+    )
+    return [CityOption(name=name, jobs=count) for name, count in rows]
 
 
 @router.get("/{job_id}")

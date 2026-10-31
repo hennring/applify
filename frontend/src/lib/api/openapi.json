@@ -605,7 +605,7 @@
 			"get": {
 				"tags": ["matches"],
 				"summary": "List Matches",
-				"description": "Ranked list (F11); hidden jobs only with excluded=true, each with its reason.\n\nmin_population (inclusive) and max_population (exclusive) keep jobs in towns of that size;\nunknown places and remote-only jobs drop out.",
+				"description": "Ranked list (F11); hidden jobs only with excluded=true, each with its reason.\n\nmin_population (inclusive) and max_population (exclusive) keep jobs in towns of that size;\nunknown places and remote-only jobs drop out. city keeps jobs in that town, by the name\n/matches/cities suggests.",
 				"operationId": "list_matches_api_matches_get",
 				"parameters": [
 					{
@@ -686,6 +686,23 @@
 						}
 					},
 					{
+						"name": "city",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string",
+									"maxLength": 100
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "City"
+						}
+					},
+					{
 						"name": "limit",
 						"in": "query",
 						"required": false,
@@ -716,6 +733,75 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/MatchPage"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/matches/cities": {
+			"get": {
+				"tags": ["matches"],
+				"summary": "List Cities",
+				"description": "Towns with jobs in the list, for the city filter: names starting with q first, then\nthose containing it, each by number of jobs.",
+				"operationId": "list_cities_api_matches_cities_get",
+				"parameters": [
+					{
+						"name": "q",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"maxLength": 100,
+							"default": "",
+							"title": "Q"
+						}
+					},
+					{
+						"name": "excluded",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": false,
+							"title": "Excluded"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 50,
+							"minimum": 1,
+							"default": 8,
+							"title": "Limit"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/CityOption"
+									},
+									"title": "Response List Cities Api Matches Cities Get"
 								}
 							}
 						}
@@ -2188,6 +2274,21 @@
 				"type": "object",
 				"required": ["city", "state_code", "jobs"],
 				"title": "CityJobs"
+			},
+			"CityOption": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"jobs": {
+						"type": "integer",
+						"title": "Jobs"
+					}
+				},
+				"type": "object",
+				"required": ["name", "jobs"],
+				"title": "CityOption"
 			},
 			"CompanyIn": {
 				"properties": {

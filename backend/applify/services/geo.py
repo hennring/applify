@@ -14,6 +14,26 @@ NAME_SUFFIX = re.compile(r"\s*\(.*\)|\s+(am|an der|in der|ob der|bei|im|vor der)
 # A same-named place this far from a job's coordinates is another town.
 SAME_PLACE_KM = 30
 KREIS = re.compile(r"kreis", re.IGNORECASE)
+# Several locations in one text: "Berlin; München", "Bonn / Berlin", "10117 Berlin, 20095 Hamburg".
+LOCATIONS = re.compile(r"[;|]|\s(?:/|or)\s|,\s*(?=\d{5})", re.IGNORECASE)
+# Not towns, though they contain place names: "Dresden, Sachsen", "Schleswig-Holstein".
+STATES = {
+    "baden-württemberg",
+    "bayern",
+    "brandenburg",
+    "hessen",
+    "mecklenburg-vorpommern",
+    "niedersachsen",
+    "nordrhein-westfalen",
+    "rheinland-pfalz",
+    "saarland",
+    "sachsen",
+    "sachsen-anhalt",
+    "schleswig-holstein",
+    "thüringen",
+}
+# Spelling of international postings, same town as the German name.
+ENGLISH_NAMES = {"cologne": "köln", "munich": "münchen", "nuremberg": "nürnberg"}
 
 
 @dataclass(frozen=True)
@@ -87,6 +107,40 @@ class Gazetteer:
             and (place := self.by_name.get(key) or self.by_name.get(NAME_SUFFIX.sub("", key)))
         ]
         return max(found, key=lambda p: p.population).name if found else None
+
+    def _town(self, text: str) -> Place | None:
+        """The place in one comma-separated part: "Leipzig", "Berlin-Mitte", "Berlin/Remote"."""
+        # Cut off postal codes come as "28 Bremen".
+        text = text.lstrip("0123456789 ")
+        if place_key(text) in STATES:
+            return None
+        for candidate in (text, re.split(r"[-/]", text)[0]):
+            key = place_key(candidate)
+            key = ENGLISH_NAMES.get(key, key)
+            place = self.by_name.get(key) or self.by_name.get(NAME_SUFFIX.sub("", key))
+            if key and place:
+                return place
+        return None
+
+    def cities(self, text: str) -> list[str]:
+        """Names of the towns in free text, for filtering by town.
+
+        A list names several ("Köln, München, Berlin"), but of two names the smaller is taken
+        for a district ("Wedding, Berlin"). A Kreis counts only if no town is named ("Bünde,
+        Herford (Kreis)"), the postal code only if no name is known.
+        """
+        names: list[str] = []
+        for location in LOCATIONS.split(text):
+            parts = POSTAL_CODE.sub("", location).split(",")
+            towns = [
+                place for part in parts if not KREIS.search(part) and (place := self._town(part))
+            ] or [place for part in parts if (place := self._town(part))]
+            if len(towns) == len(parts) == 2:
+                towns = [max(towns, key=lambda p: p.population)]
+            if not towns and (match := POSTAL_CODE.search(location)):
+                towns = [place] if (place := self.postal.get(match.group())) else []
+            names += [place.name for place in towns]
+        return list(dict.fromkeys(names))
 
     def population(
         self, text: str, lat: float | None = None, lon: float | None = None

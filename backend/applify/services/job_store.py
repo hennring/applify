@@ -42,6 +42,7 @@ def enrich(posting: JobPosting, gazetteer: Gazetteer) -> JobPosting:
         posting.lat, posting.lon = place.lat, place.lon
     if posting.population is None:
         posting.population = gazetteer.population(posting.location_raw, posting.lat, posting.lon)
+    posting.cities = gazetteer.cities(posting.location_raw)
     return posting
 
 
@@ -119,6 +120,7 @@ def merge(job: Job, posting: JobPosting) -> None:
     if job.lat is None and posting.lat is not None:
         job.lat, job.lon = posting.lat, posting.lon
     job.population = job.population or posting.population
+    job.cities = job.cities or posting.cities
     job.remote_type = job.remote_type or posting.remote_type
     job.location_raw = job.location_raw or posting.location_raw
     if posting.posted_at and (job.posted_at is None or posting.posted_at < job.posted_at):
@@ -159,6 +161,7 @@ def store_posting(
         lat=posting.lat,
         lon=posting.lon,
         population=posting.population,
+        cities=posting.cities,
         remote_type=posting.remote_type,
         salary_min=posting.salary_min,
         salary_max=posting.salary_max,

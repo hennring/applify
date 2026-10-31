@@ -34,6 +34,7 @@ class JobPosting:
     lat: float | None = None
     lon: float | None = None
     population: int | None = None  # of the town, filled from the geo data
+    cities: list[str] = field(default_factory=list)  # towns named, filled from the geo data
     remote_type: str | None = None  # hybrid / remote
     country: str | None = None  # ISO 3166 alpha-2, lower case, if the source says
     salary_min: int | None = None

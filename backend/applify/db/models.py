@@ -126,6 +126,8 @@ class Job(Base):
     lon: Mapped[float | None]
     # Inhabitants of the town, from GeoNames; None if the place is unknown or remote.
     population: Mapped[int | None]
+    # Towns named in location_raw, as GeoNames spells them; several for multi-site postings.
+    cities: Mapped[list[str]] = mapped_column(ARRAY(String), server_default="{}")
     remote_type: Mapped[str | None] = mapped_column(String(10))  # hybrid / remote
     salary_min: Mapped[int | None]
     salary_max: Mapped[int | None]
